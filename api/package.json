@@ -1,0 +1,41 @@
+{
+  "name": "@inncarsholiday/portal-api",
+  "version": "0.0.1-dev",
+  "description": "API application for Inncars Holiday Portal",
+  "main": "api/index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev": "nodemon"
+  },
+  "author": "Inncars Holiday",
+  "license": "ISC",
+  "engines": {
+    "node": ">=18.13.0"
+  },
+  "contributors": [
+    {
+      "name": "Divesh Heeramun",
+      "email": "divesh.heeramun1@gmail.com"
+    },
+    {
+      "name": "Ram Juttlegadoo",
+      "email": "ram.juttlegadoo@gmail.com"
+    }
+  ],
+  "dependencies": {
+    "cors": "^2.8.5",
+    "express": "^4.18.2",
+    "mssql": "^9.1.1",
+    "reflect-metadata": "^0.1.13",
+    "typedi": "^0.10.0",
+    "winston": "^3.9.0"
+  },
+  "devDependencies": {
+    "@types/express": "^4.17.17",
+    "@types/mssql": "^8.1.2",
+    "dotenv": "^16.3.0",
+    "ts-loader": "^9.4.3",
+    "ts-node": "^10.9.1",
+    "typescript": "^5.1.3"
+  }
+}

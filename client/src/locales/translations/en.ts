@@ -1,0 +1,33 @@
+import { tokens } from '../tokens';
+
+export const en = {
+  [tokens.common.languageChanged]: 'Language changed',
+  [tokens.nav.analytics]: 'Analytics',
+  [tokens.nav.auth]: 'Auth',
+  [tokens.nav.bookings]: 'Bookings',
+  [tokens.nav.dashboard]: 'Dashboard',
+  [tokens.nav.details]: 'Details',
+  [tokens.nav.ecommerce]: 'E-Commerce',
+  [tokens.nav.edit]: 'Edit',
+  [tokens.nav.error]: 'Error',
+  [tokens.nav.feed]: 'Feed',
+  [tokens.nav.finance]: 'Finance',
+  [tokens.nav.fleet]: 'Fleet',
+  [tokens.nav.forgotPassword]: 'Forgot Password',
+  [tokens.nav.list]: 'List',
+  [tokens.nav.login]: 'Login',
+  [tokens.nav.logistics]: 'Logistics',
+  [tokens.nav.mail]: 'Mail',
+  [tokens.nav.management]: 'Management',
+  [tokens.nav.orderList]: 'Orders',
+  [tokens.nav.overview]: 'Overview',
+  [tokens.nav.pages]: 'Pages',
+  [tokens.nav.postCreate]: 'Post Create',
+  [tokens.nav.postDetails]: 'Post Details',
+  [tokens.nav.postList]: 'Post List',
+  [tokens.nav.pricing]: 'Pricing',
+  [tokens.nav.productList]: 'Products',
+  [tokens.nav.profile]: 'Profile',
+  [tokens.nav.reports]: 'Reports',
+  [tokens.nav.verifyCode]: 'Verify Code'
+};

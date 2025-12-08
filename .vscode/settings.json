@@ -1,0 +1,19 @@
+{
+  "editor.codeActionsOnSave": {
+    "source.fixAll.eslint": "explicit"
+  },
+  "eslint.validate": ["javascript"],
+  "eslint.workingDirectories": [
+    {
+      "mode": "auto"
+    }
+  ],
+  "workbench.colorCustomizations": {
+    "titleBar.activeForeground": "#d4d4d4",
+    "titleBar.activeBackground": "#001807",
+    "selection.background": "#1a722d",
+    "list.hoverBackground": "#004e1e",
+    "list.focusBackground": "#1a722d",
+    "activityBar.activeBorder": "#01912c"
+  }
+}

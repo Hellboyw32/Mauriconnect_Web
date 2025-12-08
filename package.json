@@ -1,0 +1,49 @@
+{
+  "name": "@inncarsholiday/portal",
+  "version": "0.0.1-dev",
+  "description": "Inncars Holiday portal web application for Mauriconnect",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "setup:api": "cd api && npm install",
+    "setup:client": "cd client && npm install",
+    "setup": "npm run setup:api && npm run setup:client",
+    "dev:api": "cd api && npm run dev",
+    "dev:client": "cd client && npm run dev",
+    "dev": "concurrently \"cd client && npm run dev\" \"cd api && npm run dev\"",
+    "lint:client": "cd client && npm run lint",
+    "build:client": "cd client && npm run build",
+    "build:client:ci": "cd client && npm install && npm run build"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git@ssh.dev.azure.com:v3/inncarsholiday/inncarsholiday/inncarsholiday-portal"
+  },
+  "author": "Inncars Holiday",
+  "license": "ISC",
+  "engines": {
+    "node": ">=18.13.0"
+  },
+  "contributors": [
+    {
+      "name": "Divesh Heeramun",
+      "email": "divesh.heeramun1@gmail.com"
+    },
+    {
+      "name": "Ram Juttlegadoo",
+      "email": "ram.juttlegadoo@gmail.com"
+    }
+  ],
+  "dependencies": {
+    "@emotion/core": "^11.0.0",
+    "@emotion/styled": "^11.11.0",
+    "@mui/styled-engine": "^5.13.2",
+    "concurrently": "^8.2.0"
+  },
+  "devDependencies": {
+    "nodemon": "^2.0.22",
+    "ts-node": "^10.9.1",
+    "tsconfig-paths": "^4.2.0",
+    "typescript": "^5.1.3"
+  }
+}
