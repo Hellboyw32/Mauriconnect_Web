@@ -1,4 +1,5 @@
 export enum API_ENDPOINTS {
   BOOKINGS = '/bookings',
-  REPORTS ='/reports'
+  REPORTS = '/reports',
+  FILES = '/files'
 }

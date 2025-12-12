@@ -5,17 +5,22 @@ import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
 import Card from '@mui/material/Card';
 import CardActions from '@mui/material/CardActions';
+import CircularProgress from '@mui/material/CircularProgress';
 import Divider from '@mui/material/Divider';
 import Stack from '@mui/material/Stack';
 import SvgIcon from '@mui/material/SvgIcon';
 import Typography from '@mui/material/Typography';
+import { useDropoffsTodayCount } from 'src/hooks/bookings/use-dropoffs-today-count';
+import { paths } from 'src/paths';
+import { RouterLink } from 'src/components/router-link';
 
 interface OverviewPendingIssuesProps {
-  amount: number;
+  amount?: number;
 }
 
 export const OverviewPendingIssues: FC<OverviewPendingIssuesProps> = (props) => {
-  const { amount } = props;
+  const { count, isLoading } = useDropoffsTodayCount();
+  const amount = props.amount ?? count;
 
   return (
     <Card>
@@ -33,7 +38,7 @@ export const OverviewPendingIssues: FC<OverviewPendingIssuesProps> = (props) => 
       >
         <div>
           <img
-            src="/assets/iconly/iconly-glass-info.svg"
+            src="/assets/iconly/iconly-glass-chart.svg"
             width={48}
           />
         </div>
@@ -42,28 +47,37 @@ export const OverviewPendingIssues: FC<OverviewPendingIssuesProps> = (props) => 
             color="text.secondary"
             variant="body2"
           >
-            Pending Issues
+            Cars Dropped Off Today
           </Typography>
-          <Typography
-            color="text.primary"
-            variant="h4"
-          >
-            {amount}
-          </Typography>
+          {isLoading ? (
+            <CircularProgress
+              size={24}
+              sx={{ mt: 1 }}
+            />
+          ) : (
+            <Typography
+              color="text.primary"
+              variant="h4"
+            >
+              {amount}
+            </Typography>
+          )}
         </Box>
       </Stack>
       <Divider />
       <CardActions>
         <Button
           color="inherit"
-          endIcon={(
+          component={RouterLink}
+          href={paths.bookings.index}
+          endIcon={
             <SvgIcon>
               <ArrowRightIcon />
             </SvgIcon>
-          )}
+          }
           size="small"
         >
-          See all issues
+          {/* See all bookings */}
         </Button>
       </CardActions>
     </Card>
@@ -71,5 +85,5 @@ export const OverviewPendingIssues: FC<OverviewPendingIssuesProps> = (props) => 
 };
 
 OverviewPendingIssues.propTypes = {
-  amount: PropTypes.number.isRequired
+  amount: PropTypes.number
 };

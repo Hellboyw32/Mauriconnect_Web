@@ -18,6 +18,67 @@ export default (app: Router) => {
       });
   });
 
+  route.get('/today/count', (req: Request, res: Response) => {
+    const bookingService = Container.get(BookingService);
+    bookingService
+      .getBookingsTodayCount()
+      .then((result) => {
+        res.send(result).status(200);
+      })
+      .catch((error) => {
+        res.send(error).status(500);
+      });
+  });
+
+  route.get('/dropoffs/today/count', (req: Request, res: Response) => {
+    const bookingService = Container.get(BookingService);
+    bookingService
+      .getDropoffsTodayCount()
+      .then((result) => {
+        res.send(result).status(200);
+      })
+      .catch((error) => {
+        res.send(error).status(500);
+      });
+  });
+
+  route.get('/pickups/today/count', (req: Request, res: Response) => {
+    const bookingService = Container.get(BookingService);
+    bookingService
+      .getPickupsTodayCount()
+      .then((result) => {
+        res.send(result).status(200);
+      })
+      .catch((error) => {
+        res.send(error).status(500);
+      });
+  });
+
+  route.get('/recent/:limit?', (req: Request, res: Response) => {
+    const limit = req.params.limit ? parseInt(req.params.limit) : undefined;
+    const bookingService = Container.get(BookingService);
+    bookingService
+      .getRecentBookings(limit)
+      .then((result) => {
+        res.send(result).status(200);
+      })
+      .catch((error) => {
+        res.send(error).status(500);
+      });
+  });
+
+  route.get('/week/current', (req: Request, res: Response) => {
+    const bookingService = Container.get(BookingService);
+    bookingService
+      .getBookingsCurrentWeek()
+      .then((result) => {
+        res.send(result).status(200);
+      })
+      .catch((error) => {
+        res.send(error).status(500);
+      });
+  });
+
   route.get('/:id', (req: Request, res: Response) => {
     const bookingId = parseInt(req.params.id);
     const bookingService = Container.get(BookingService);

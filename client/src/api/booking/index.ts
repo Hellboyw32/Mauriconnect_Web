@@ -25,9 +25,19 @@ type GetBookingRequest = Pick<Booking, 'BookingId'>;
 
 type GetBookingResponse = Promise<Booking>;
 
+type GetBookingsTodayCountResponse = Promise<number>;
+type GetDropoffsTodayCountResponse = Promise<number>;
+type GetPickupsTodayCountResponse = Promise<number>;
+type GetRecentBookingsRequest = { limit?: number };
+type GetRecentBookingsResponse = Promise<Booking[]>;
+
 interface IBookingApi {
   getBookings(request: GetBookingsRequest): GetBookingsResponse;
   getBooking(request?: GetBookingRequest): GetBookingResponse;
+  getBookingsTodayCount(): GetBookingsTodayCountResponse;
+  getDropoffsTodayCount(): GetDropoffsTodayCountResponse;
+  getPickupsTodayCount(): GetPickupsTodayCountResponse;
+  getRecentBookings(request?: GetRecentBookingsRequest): GetRecentBookingsResponse;
 }
 
 class BookingApi implements IBookingApi {
@@ -39,7 +49,7 @@ class BookingApi implements IBookingApi {
       data = deepCopy(bookingsData) as Booking[];
     } else {
       const apiResponse = await api.get<Booking[]>(API_ENDPOINTS.BOOKINGS);
-      data = apiResponse.data as Booking[];
+      data = Array.isArray(apiResponse.data) ? apiResponse.data : [];
     }
 
     let count = data.length;
@@ -114,6 +124,125 @@ class BookingApi implements IBookingApi {
       return Promise.resolve(deepCopy(bookingsData[0]));
     }
     return Promise.resolve(deepCopy((await this.getBookings()).data[0]));
+  }
+
+  public async getBookingsTodayCount(): GetBookingsTodayCountResponse {
+    if (isMockData()) {
+      // Filter bookings for today
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      const todayEnd = new Date();
+      todayEnd.setHours(23, 59, 59, 999);
+
+      const todayBookings = bookingsData.filter((booking) => {
+        const pickupDate = new Date(booking.PickUpDate);
+        return pickupDate >= today && pickupDate <= todayEnd;
+      });
+
+      return Promise.resolve(todayBookings.length);
+    } else {
+      const apiResponse = await api.get<any>(`${API_ENDPOINTS.BOOKINGS}/today/count`);
+      // Extract the count from the response object (e.g., { Booking: 5 } or { BookingCount: 5 })
+      const countData = apiResponse.data;
+      const count =
+        typeof countData === 'number'
+          ? countData
+          : countData?.Booking ?? countData?.BookingCount ?? 0;
+      return Promise.resolve(count);
+    }
+  }
+
+  public async getDropoffsTodayCount(): GetDropoffsTodayCountResponse {
+    if (isMockData()) {
+      // Filter bookings with drop-off date today
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      const todayEnd = new Date();
+      todayEnd.setHours(23, 59, 59, 999);
+
+      const todayDropoffs = bookingsData.filter((booking) => {
+        const dropoffDate = new Date(booking.DropOffDate);
+        return dropoffDate >= today && dropoffDate <= todayEnd;
+      });
+
+      return Promise.resolve(todayDropoffs.length);
+    } else {
+      const apiResponse = await api.get<any>(`${API_ENDPOINTS.BOOKINGS}/dropoffs/today/count`);
+      // Extract the count from the response object
+      const countData = apiResponse.data;
+      const count =
+        typeof countData === 'number'
+          ? countData
+          : countData?.Dropoff ?? countData?.DropoffCount ?? 0;
+      return Promise.resolve(count);
+    }
+  }
+
+  public async getPickupsTodayCount(): GetPickupsTodayCountResponse {
+    if (isMockData()) {
+      // Filter bookings with pickup date today
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      const todayEnd = new Date();
+      todayEnd.setHours(23, 59, 59, 999);
+
+      const todayPickups = bookingsData.filter((booking) => {
+        const pickupDate = new Date(booking.PickUpDate);
+        return pickupDate >= today && pickupDate <= todayEnd;
+      });
+
+      return Promise.resolve(todayPickups.length);
+    } else {
+      const apiResponse = await api.get<any>(`${API_ENDPOINTS.BOOKINGS}/pickups/today/count`);
+      // Extract the count from the response object
+      const countData = apiResponse.data;
+      const count =
+        typeof countData === 'number'
+          ? countData
+          : countData?.Pickup ?? countData?.PickupCount ?? 0;
+      return Promise.resolve(count);
+    }
+  }
+
+  public async getRecentBookings(request?: GetRecentBookingsRequest): GetRecentBookingsResponse {
+    const limit = request?.limit;
+
+    if (isMockData()) {
+      // Sort bookings by PickUpDate (as proxy for CreatedOn) and return top N
+      const sortedBookings = (deepCopy(bookingsData) as Booking[])
+        .sort(
+          (a: Booking, b: Booking) =>
+            new Date(b.PickUpDate).getTime() - new Date(a.PickUpDate).getTime()
+        )
+        .slice(0, limit || 5);
+
+      return Promise.resolve(sortedBookings);
+    } else {
+      const endpoint = limit
+        ? `${API_ENDPOINTS.BOOKINGS}/recent/${limit}`
+        : `${API_ENDPOINTS.BOOKINGS}/recent`;
+      const apiResponse = await api.get<Booking[]>(endpoint);
+      const data = apiResponse.data;
+      // Ensure we always return an array
+      return Promise.resolve(Array.isArray(data) ? data : []);
+    }
+  }
+
+  public async getBookingsCurrentWeek(): Promise<number[]> {
+    if (isMockData()) {
+      // Generate mock data for current week (Sunday to Saturday)
+      return Promise.resolve([12, 15, 18, 22, 19, 25, 20]);
+    } else {
+      const apiResponse = await api.get<any[]>(`${API_ENDPOINTS.BOOKINGS}/week/current`);
+      const data = apiResponse.data;
+
+      if (Array.isArray(data)) {
+        // Extract BookingCount from each day and return as array
+        return Promise.resolve(data.map((day) => day?.BookingCount ?? 0));
+      }
+
+      return Promise.resolve([0, 0, 0, 0, 0, 0, 0]);
+    }
   }
 }
 

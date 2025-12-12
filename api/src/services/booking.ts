@@ -7,6 +7,10 @@ import { BaseMSSqlService } from '../base/base-mssql';
 export interface IBookingService {
   getBookings(): Promise<Response<Bookings>>;
   getBooking(bookingId: number): Promise<Response<Booking>>;
+  getBookingsTodayCount(): Promise<Response<number>>;
+  getDropoffsTodayCount(): Promise<Response<number>>;
+  getPickupsTodayCount(): Promise<Response<number>>;
+  getRecentBookings(limit: number): Promise<Response<Bookings>>;
   createBooking(booking: BookingFormValues): Promise<Response>;
   deleteBooking(bookingId: number, body: { createdBy: string }): Promise<Response>;
 }
@@ -27,6 +31,41 @@ export class BookingService implements IBookingService {
     const inputs = [{ 'bookingId': bookingId }];
 
     return await this.mssqlService.requestByStoredProcedure<Booking>(storedProcedure, inputs, true);
+  }
+
+  async getBookingsTodayCount(): Promise<Response<number>> {
+    const storedProcedure = STORED_PROCEDURES.GET_BOOKINGS_TODAY_COUNT;
+
+    return await this.mssqlService.requestByStoredProcedure<number>(storedProcedure, [], true);
+  }
+
+  async getDropoffsTodayCount(): Promise<Response<number>> {
+    const storedProcedure = STORED_PROCEDURES.GET_DROPOFFS_TODAY_COUNT;
+
+    return await this.mssqlService.requestByStoredProcedure<number>(storedProcedure, [], true);
+  }
+
+  async getPickupsTodayCount(): Promise<Response<number>> {
+    const storedProcedure = STORED_PROCEDURES.GET_PICKUPS_TODAY_COUNT;
+
+    return await this.mssqlService.requestByStoredProcedure<number>(storedProcedure, [], true);
+  }
+
+  async getRecentBookings(limit?: number): Promise<Response<Bookings>> {
+    const storedProcedure = STORED_PROCEDURES.GET_RECENT_BOOKINGS;
+    const inputs = limit ? [{ 'limit': limit }] : [];
+
+    return await this.mssqlService.requestByStoredProcedure<Bookings>(
+      storedProcedure,
+      inputs,
+      false
+    );
+  }
+
+  async getBookingsCurrentWeek(): Promise<Response<any>> {
+    const storedProcedure = STORED_PROCEDURES.GET_BOOKINGS_CURRENT_WEEK;
+
+    return await this.mssqlService.requestByStoredProcedure<any>(storedProcedure, [], false);
   }
 
   async createBooking(booking: BookingFormValues): Promise<Response> {

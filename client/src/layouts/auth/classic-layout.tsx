@@ -78,7 +78,7 @@ export const Layout: FC<LayoutProps> = (props) => {
                   }
                 }}
               >
-                Inncars Holiday <span>Portal</span>
+                Mauriconnect<span>Portal</span>
               </Box>
             </Stack>
           </Stack>

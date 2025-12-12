@@ -56,9 +56,7 @@ const Page = () => {
                 spacing={4}
               >
                 <div>
-                  <Typography variant="h4">
-                    Overview
-                  </Typography>
+                  <Typography variant="h4">Overview</Typography>
                 </div>
                 <div>
                   <Stack
@@ -66,11 +64,11 @@ const Page = () => {
                     spacing={4}
                   >
                     <Button
-                      startIcon={(
+                      startIcon={
                         <SvgIcon>
                           <PlusIcon />
                         </SvgIcon>
-                      )}
+                      }
                       variant="contained"
                     >
                       New Dashboard
@@ -83,36 +81,37 @@ const Page = () => {
               xs={12}
               md={4}
             >
-              <OverviewDoneTasks amount={31} />
+              <OverviewDoneTasks />
             </Grid>
             <Grid
               xs={12}
               md={4}
             >
-              <OverviewPendingIssues amount={12} />
+              <OverviewPendingIssues />
             </Grid>
             <Grid
               xs={12}
               md={4}
             >
-              <OverviewOpenTickets amount={5} />
+              <OverviewOpenTickets />
             </Grid>
             <Grid
               xs={12}
               md={7}
             >
-              <OverviewBanner />
+              {/* <OverviewBanner /> */}
             </Grid>
             <Grid
               xs={12}
               md={5}
             >
-              <OverviewTips
+              {/* <OverviewTips
                 sx={{ height: '100%' }}
                 tips={[
                   {
                     title: 'New fresh design.',
-                    content: 'Your favorite template has a new trendy look, more customization options, screens & more.'
+                    content:
+                      'Your favorite template has a new trendy look, more customization options, screens & more.'
                   },
                   {
                     title: 'Tip 2.',
@@ -123,13 +122,13 @@ const Page = () => {
                     content: 'Tip content'
                   }
                 ]}
-              />
+              /> */}
             </Grid>
             <Grid
               xs={12}
               md={7}
             >
-              <OverviewSubscriptionUsage
+              {/* <OverviewSubscriptionUsage
                 chartSeries={[
                   {
                     name: 'This year',
@@ -140,13 +139,13 @@ const Page = () => {
                     data: [26, 22, 19, 22, 24, 28, 23, 25, 24, 21, 17, 19]
                   }
                 ]}
-              />
+              /> */}
             </Grid>
             <Grid
               xs={12}
               md={5}
             >
-              <OverviewInbox
+              {/* <OverviewInbox
                 messages={[
                   {
                     id: 'b91cbe81ee3efefba6b915a7',
@@ -189,58 +188,19 @@ const Page = () => {
                     senderOnline: false
                   }
                 ]}
-              />
+              /> */}
             </Grid>
             <Grid
               xs={12}
               md={7}
             >
-              <OverviewTransactions
-                transactions={[
-                  {
-                    id: 'd46800328cd510a668253b45',
-                    amount: 25000,
-                    createdAt: now.getTime(),
-                    currency: 'usd',
-                    sender: 'Devias',
-                    status: 'on_hold',
-                    type: 'receive'
-                  },
-                  {
-                    id: 'b4b19b21656e44b487441c50',
-                    amount: 6843,
-                    createdAt: subDays(now, 1).getTime(),
-                    currency: 'usd',
-                    sender: 'Zimbru',
-                    status: 'confirmed',
-                    type: 'send'
-                  },
-                  {
-                    id: '56c09ad91f6d44cb313397db',
-                    amount: 91823,
-                    createdAt: subDays(now, 1).getTime(),
-                    currency: 'usd',
-                    sender: 'Vertical Jelly',
-                    status: 'failed',
-                    type: 'send'
-                  },
-                  {
-                    id: 'aaeb96c5a131a55d9623f44d',
-                    amount: 49550,
-                    createdAt: subDays(now, 3).getTime(),
-                    currency: 'usd',
-                    sender: 'Devias',
-                    status: 'confirmed',
-                    type: 'receive'
-                  }
-                ]}
-              />
+              <OverviewTransactions />
             </Grid>
             <Grid
               xs={12}
               md={5}
             >
-              <OverviewEvents
+              {/* <OverviewEvents
                 events={[
                   {
                     id: '3bfa0bc6cbc99bf747c94d51',
@@ -267,14 +227,10 @@ const Page = () => {
                     title: 'Weekly Meeting'
                   }
                 ]}
-              />
+              /> */}
             </Grid>
-            <Grid xs={6}>
-              <OverviewJobs />
-            </Grid>
-            <Grid xs={6}>
-              <OverviewHelp />
-            </Grid>
+            <Grid xs={6}>{/* <OverviewJobs /> */}</Grid>
+            <Grid xs={6}>{/* <OverviewHelp /> */}</Grid>
           </Grid>
         </Container>
       </Box>

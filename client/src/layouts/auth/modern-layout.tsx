@@ -52,14 +52,13 @@ export const Layout: FC<LayoutProps> = (props) => {
             sx={{ mb: 1 }}
             variant="h4"
           >
-            Welcome to Inncars Holiday Portal
+            Welcome to Mauriconnect Portal
           </Typography>
           <Typography
             color="text.secondary"
             sx={{ mb: 4 }}
           >
-            A professional kit that comes with ready-to-use MUI components developed with one common
-            goal in mind, help you build faster & beautiful applications.
+            Mauriconnect portal - all activities are monitored.
           </Typography>
         </Box>
       </Box>
@@ -118,7 +117,7 @@ export const Layout: FC<LayoutProps> = (props) => {
                   }
                 }}
               >
-                Inncars Holiday <span>Portal</span>
+                Mauriconnect <span>Portal</span>
               </Box>
             </Stack>
           </Box>

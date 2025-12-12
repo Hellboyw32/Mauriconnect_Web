@@ -129,11 +129,9 @@ const Page = () => {
           spacing={3}
           sx={{ mt: 3 }}
         >
-          <Alert severity="error">
-            <div>
-              You can use <b>divesh@inncarsholiday.com</b> and password <b>Password123!</b>
-            </div>
-          </Alert>
+          {/* <Alert severity="error">
+            <div></div>
+          </Alert> */}
         </Stack>
       </div>
     </>

@@ -13,10 +13,11 @@ export class ReportService {
   @Inject()
   mssqlService: BaseMSSqlService;
 
-  async getPickupScheduleByDate() {
+  async getPickupScheduleByDate(pickupDate?: string) {
     const storedProcedure = STORED_PROCEDURES.GET_PICKUP_SCHEDULE_BY_DATE;
-    // The API endpoint is currently failing.
-    // TODO: Need to handle the parameter date to the stored procedure.
-    return await this.mssqlService.requestByStoredProcedure(storedProcedure);
+    // If no date provided, use today's date
+    const dateToUse = pickupDate || new Date().toISOString().split('T')[0];
+    const inputs = [{ 'pickupdate': dateToUse }];
+    return await this.mssqlService.requestByStoredProcedure(storedProcedure, inputs);
   }
 }

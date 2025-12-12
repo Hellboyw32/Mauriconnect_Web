@@ -39,12 +39,12 @@ export default function SelectLabels() {
 
   const handleRunReport = useCallback(async () => {
     if (reportType && reportType == '10') {
-      const data = dailyScheduleStore.handleBookingGet();
+      const data = await dailyScheduleStore.handleBookingGet();
       console.log(data);
-      // setReportData(data);
+      setReportData(data);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [reportType]);
+  }, [reportType, dailyScheduleStore]);
   return (
     <div>
       <FormControl sx={{ m: 1, minWidth: 300 }}>

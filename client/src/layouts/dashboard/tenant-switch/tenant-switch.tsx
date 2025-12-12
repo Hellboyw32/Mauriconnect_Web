@@ -23,7 +23,7 @@ export const TenantSwitch: FC<TenantSwitchProps> = (props) => {
             color="inherit"
             variant="h6"
           >
-            Inncars Portal
+            Mauriconnect Portal
           </Typography>
           <Typography
             color="neutral.400"

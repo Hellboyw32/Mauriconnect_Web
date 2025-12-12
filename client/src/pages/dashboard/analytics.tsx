@@ -7,10 +7,12 @@ import Grid from '@mui/material/Unstable_Grid2';
 import Stack from '@mui/material/Stack';
 import SvgIcon from '@mui/material/SvgIcon';
 import Typography from '@mui/material/Typography';
+import CircularProgress from '@mui/material/CircularProgress';
 
 import { Seo } from 'src/components/seo';
 import { usePageView } from 'src/hooks/use-page-view';
 import { useSettings } from 'src/hooks/use-settings';
+import { useBookingsCurrentWeek } from 'src/hooks/bookings/use-bookings-current-week';
 import { AnalyticsStats } from 'src/sections/dashboard/analytics/analytics-stats';
 import { AnalyticsMostVisited } from 'src/sections/dashboard/analytics/analytics-most-visited';
 import { AnalyticsSocialSources } from 'src/sections/dashboard/analytics/analytics-social-sources';
@@ -19,8 +21,15 @@ import { AnalyticsVisitsByCountry } from 'src/sections/dashboard/analytics/analy
 
 const Page = () => {
   const settings = useSettings();
+  const { weekData, isLoading } = useBookingsCurrentWeek();
 
   usePageView();
+
+  // Calculate total bookings for the week
+  const totalBookings = weekData.reduce((sum, count) => sum + count, 0);
+
+  // Prepare chart data - add 0 at start and end for smooth edges
+  const chartData = [0, ...weekData, 0];
 
   return (
     <>
@@ -71,28 +80,40 @@ const Page = () => {
               xs={12}
               md={4}
             >
-              <AnalyticsStats
-                action={
-                  <Button
-                    color="inherit"
-                    endIcon={
-                      <SvgIcon>
-                        <ArrowRightIcon />
-                      </SvgIcon>
-                    }
-                    size="small"
-                  >
-                    See sources
-                  </Button>
-                }
-                chartSeries={[
-                  {
-                    data: [0, 170, 242, 98, 63, 56, 85, 171, 209, 163, 204, 21, 264, 0]
+              {isLoading ? (
+                <Box
+                  display="flex"
+                  justifyContent="center"
+                  alignItems="center"
+                  height={200}
+                >
+                  <CircularProgress />
+                </Box>
+              ) : (
+                <AnalyticsStats
+                  action={
+                    <Button
+                      color="inherit"
+                      endIcon={
+                        <SvgIcon>
+                          <ArrowRightIcon />
+                        </SvgIcon>
+                      }
+                      size="small"
+                      href="/bookings"
+                    >
+                      View bookings
+                    </Button>
                   }
-                ]}
-                title="Today's Bookings"
-                value="36,6K"
-              />
+                  chartSeries={[
+                    {
+                      data: chartData
+                    }
+                  ]}
+                  title="This Week's Bookings"
+                  value={totalBookings.toString()}
+                />
+              )}
             </Grid>
             <Grid
               xs={12}
