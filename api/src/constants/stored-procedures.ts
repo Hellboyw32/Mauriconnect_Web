@@ -2,6 +2,11 @@ export enum BOOKING_STORED_PROCEDURES {
   GET_BOOKING_DETAILS_JSON = 'spGetSingleBookingDetailsJson',
   GET_BOOKINGS_DETAILS = 'spAllGetBookingDetails',
   GET_BOOKINGS_DETAILS_JSON = 'spGetAllBookingDetailsJson',
+  GET_BOOKINGS_TODAY_COUNT = 'spGetBookingsTodayCount',
+  GET_DROPOFFS_TODAY_COUNT = 'spGetDropoffsTodayCount',
+  GET_PICKUPS_TODAY_COUNT = 'spGetPickupsTodayCount',
+  GET_RECENT_BOOKINGS = 'spGetRecentBookings',
+  GET_BOOKINGS_CURRENT_WEEK = 'spGetBookingsCurrentWeek',
   CREATE_BOOKING = 'spAddBookingDetails',
   DELETE_BOOKING = 'spRemoveBookingDetails'
 }

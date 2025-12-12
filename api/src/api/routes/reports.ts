@@ -8,9 +8,10 @@ export default (app: Router) => {
 
   // Route URL can definitely change if we want to avoid nested API endpoints.
   route.get('/schedule/pickup', (req: Request, res: Response) => {
+    const pickupDate = req.query.pickupdate as string | undefined;
     const reportService = Container.get(ReportService);
     reportService
-      .getPickupScheduleByDate()
+      .getPickupScheduleByDate(pickupDate)
       .then((result) => {
         res.send(result).status(200);
       })

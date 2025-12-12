@@ -1,39 +1,43 @@
 import type { Booking } from '@libs/types';
-import { useCallback, useEffect, useState } from 'react';
-import { useParams } from 'react-router';
+import { useCallback, useState } from 'react';
 import { reportApi } from 'src/api/report';
 import { useMounted } from '../use-mounted';
 
 export const useDailyScheduleReport = () => {
-    const isMounted = useMounted();
-    const [booking, setBooking] = useState<Booking[]>([]);
-    const { bookingId } = useParams();
-  
-    const handleBookingGet = useCallback(async () => {
+  const isMounted = useMounted();
+  const [bookings, setBookings] = useState<Booking[]>([]);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+
+  const handleBookingGet = useCallback(
+    async (pickupDate?: string) => {
       try {
-        const response = await reportApi.getDailyScheduleReport({ BookingId: parseInt(bookingId!) });
-  
+        setIsLoading(true);
+        const response = await reportApi.getDailyScheduleReport(
+          pickupDate ? { pickupDate } : undefined
+        );
+
         if (isMounted()) {
-          setBooking(response);
+          setBookings(response);
         }
+        return response;
       } catch (err) {
         console.error(err);
+        if (isMounted()) {
+          setBookings([]);
+        }
+        return [];
+      } finally {
+        if (isMounted()) {
+          setIsLoading(false);
+        }
       }
-    }, [bookingId, isMounted]);
-  
-    useEffect(
-      () => {
-        handleBookingGet();
-      },
-      // eslint-disable-next-line react-hooks/exhaustive-deps
-      []
-    );
+    },
+    [isMounted]
+  );
 
-    return {
-      ...booking,
-      handleBookingGet
-    }
-  
-    
+  return {
+    bookings,
+    isLoading,
+    handleBookingGet
   };
-  
+};
