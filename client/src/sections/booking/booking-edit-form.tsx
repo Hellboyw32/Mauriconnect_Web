@@ -14,12 +14,16 @@ import Stack from '@mui/material/Stack';
 import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
 import Grid from '@mui/material/Unstable_Grid2';
+import { DateTimePicker } from '@mui/x-date-pickers/DateTimePicker';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
-import { format } from 'date-fns';
+import { differenceInDays, format } from 'date-fns';
 import { useFormik } from 'formik';
 import { useState, type FC } from 'react';
 import { toast } from 'react-hot-toast';
+import { bookingApi } from 'src/api/booking';
 import { RouterLink } from 'src/components/router-link';
+import { useAuth } from 'src/hooks/use-auth';
+import { useRouter } from 'src/hooks/use-router';
 import {
   carAddOns,
   carCategories,
@@ -43,11 +47,15 @@ const validationSchema = Yup.object({
 });
 
 export const BookingEditForm: FC<BookingEditFormProps> = ({ booking }) => {
+  const router = useRouter();
+  const { user } = useAuth();
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
   const initialValues: BookingFormValues = {
     car: booking?.Car.CarId ?? '',
     CarCategory: booking?.Car.CarCategory.Category ?? '',
     CarInsurance: booking?.CarInsurance ? new Date(booking?.CarInsurance) : new Date(),
-    ContactDetails: '',
+    ContactDetails: booking?.ContactDetails ?? '',
     CurrencyOption: (booking?.Currency as string) ?? currencyOptions[0].value,
     CustomerName: booking?.CustomerName ?? '',
     DeliveryUser: booking?.DeliveryUser ?? '',
@@ -75,10 +83,56 @@ export const BookingEditForm: FC<BookingEditFormProps> = ({ booking }) => {
     enableReinitialize: true,
     initialValues,
     validationSchema,
-    onSubmit: (values) => {
-      // TODO: Add submission when API is ready
-      console.log(values);
-      toast.success('Booking updated');
+    onSubmit: async (values) => {
+      try {
+        setIsSubmitting(true);
+
+        const numberOfDays = differenceInDays(values.DropOffDate, values.PickUpDate);
+
+        const bookingData = {
+          CustomerName: values.CustomerName,
+          ContactDetails: values.ContactDetails,
+          FlightNumber: values.FlightNumber,
+          PickUpDate: values.PickUpDate,
+          DropOffDate: values.DropOffDate,
+          NumberOfDays: numberOfDays,
+          Price: values.Price,
+          CarId: values.car,
+          SpecialRequest: values.SpecialRequest,
+          ReferenceNo: values.ReferenceNo,
+          NoShow: values.NoShow,
+          Mileage: values.Mileage,
+          Insurance: values.Insurance,
+          CurrencyOption: values.CurrencyOption,
+          PaymentMethod: values.PaymentMethod,
+          POSMachine: values.POSMachine,
+          IsGps: values.IsGps,
+          IsCarSeat: values.IsCarSeat,
+          IsBoosterSeat: values.IsBoosterSeat,
+          DropOffPlace: values.DropOffPlace,
+          DeliveryUser: values.DeliveryUser,
+          InsuranceAmount: values.Insurance,
+          SimCard: values.SimCard,
+          HasInsurance: values.Insurance > 0,
+          FuelLevel: values.FuelLevel,
+          CarInsurance: values.CarInsurance,
+          RoadTax: values.RoadTax,
+          LastModifiedUserId: user?.email || 'system'
+        };
+
+        const response = await bookingApi.updateBooking({
+          bookingId: booking.BookingId,
+          booking: bookingData
+        });
+
+        toast.success(response.message || 'Booking updated successfully');
+        router.push(paths.bookings.index);
+      } catch (error: any) {
+        console.error('Error updating booking:', error);
+        toast.error(error?.message || 'Failed to update booking');
+      } finally {
+        setIsSubmitting(false);
+      }
     }
   });
 
@@ -150,14 +204,14 @@ export const BookingEditForm: FC<BookingEditFormProps> = ({ booking }) => {
                       onChange={formik.handleChange}
                       value={formik.values.FlightNumber}
                     />
-                    <DatePicker
-                      format="dd/MM/yyyy"
+                    <DateTimePicker
+                      format="dd/MM/yyyy hh:mm a"
                       label="Pickup Date"
                       onChange={(value) => formik.setFieldValue('PickUpDate', value, true)}
                       value={formik.values.PickUpDate}
                     />
-                    <DatePicker
-                      format="dd/MM/yyyy"
+                    <DateTimePicker
+                      format="dd/MM/yyyy hh:mm a"
                       label="Dropoff Date"
                       onChange={(value) => formik.setFieldValue('DropOffDate', value, true)}
                       value={formik.values.DropOffDate}
@@ -489,13 +543,15 @@ export const BookingEditForm: FC<BookingEditFormProps> = ({ booking }) => {
             <Button
               type="submit"
               variant="contained"
+              disabled={isSubmitting}
             >
-              Update
+              {isSubmitting ? 'Updating...' : 'Update'}
             </Button>
             <Button
               color="inherit"
               component={RouterLink}
               href={paths.bookings.index}
+              disabled={isSubmitting}
             >
               Cancel
             </Button>

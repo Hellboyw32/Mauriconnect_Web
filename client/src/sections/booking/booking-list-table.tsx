@@ -2,6 +2,7 @@ import type { Booking } from '@libs/types';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
 import Checkbox from '@mui/material/Checkbox';
+import CircularProgress from '@mui/material/CircularProgress';
 import Stack from '@mui/material/Stack';
 import Table from '@mui/material/Table';
 import TableBody from '@mui/material/TableBody';
@@ -25,6 +26,8 @@ interface BookingListTableProps {
   page?: number;
   rowsPerPage?: number;
   selected?: number[];
+  isLoading?: boolean;
+  onRefresh?: () => void;
 }
 
 export const BookingListTable: FC<BookingListTableProps> = (props) => {
@@ -39,7 +42,9 @@ export const BookingListTable: FC<BookingListTableProps> = (props) => {
     onSelectOne,
     page = 0,
     rowsPerPage = 0,
-    selected = []
+    selected = [],
+    isLoading = false,
+    onRefresh
   } = props;
   const selectedSome = selected.length > 0 && selected.length < items.length;
   const selectedAll = items.length > 0 && selected.length === items.length;
@@ -118,18 +123,39 @@ export const BookingListTable: FC<BookingListTableProps> = (props) => {
             </TableRow>
           </TableHead>
           <TableBody>
-            {items.map((booking) => {
-              const isSelected = selected.includes(booking.BookingId);
-              return (
-                <BookingListTableRow
-                  isSelected={isSelected}
-                  booking={booking}
-                  key={booking.BookingId}
-                  onSelectOne={onSelectOne}
-                  onDeselectOne={onDeselectOne}
-                />
-              );
-            })}
+            {isLoading ? (
+              <TableRow>
+                <TableCell
+                  colSpan={9}
+                  align="center"
+                >
+                  <CircularProgress size={40} />
+                </TableCell>
+              </TableRow>
+            ) : items.length === 0 ? (
+              <TableRow>
+                <TableCell
+                  colSpan={9}
+                  align="center"
+                >
+                  No bookings found
+                </TableCell>
+              </TableRow>
+            ) : (
+              items.map((booking) => {
+                const isSelected = selected.includes(booking.BookingId);
+                return (
+                  <BookingListTableRow
+                    isSelected={isSelected}
+                    booking={booking}
+                    key={booking.BookingId}
+                    onSelectOne={onSelectOne}
+                    onDeselectOne={onDeselectOne}
+                    onRefresh={onRefresh}
+                  />
+                );
+              })
+            )}
           </TableBody>
         </Table>
       </Scrollbar>

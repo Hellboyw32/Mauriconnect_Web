@@ -2,6 +2,7 @@ import type { Booking } from '@libs/types';
 import Avatar from '@mui/material/Avatar';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
+import CircularProgress from '@mui/material/CircularProgress';
 import Dialog from '@mui/material/Dialog';
 import Paper from '@mui/material/Paper';
 import Stack from '@mui/material/Stack';
@@ -16,10 +17,11 @@ interface BookingDeleteDialogProps {
   onClose?: () => void;
   onDelete?: () => void;
   open?: boolean;
+  isDeleting?: boolean;
 }
 
 export const BookingDeleteDialog: FC<BookingDeleteDialogProps> = (props) => {
-  const { data, onClose, onDelete, open = false } = props;
+  const { data, onClose, onDelete, open = false, isDeleting = false } = props;
   return (
     <Dialog
       fullWidth
@@ -76,6 +78,7 @@ export const BookingDeleteDialog: FC<BookingDeleteDialogProps> = (props) => {
             color="inherit"
             onClick={onClose}
             sx={{ mr: 2 }}
+            disabled={isDeleting}
           >
             Cancel
           </Button>
@@ -88,8 +91,17 @@ export const BookingDeleteDialog: FC<BookingDeleteDialogProps> = (props) => {
               }
             }}
             variant="contained"
+            disabled={isDeleting}
+            startIcon={
+              isDeleting ? (
+                <CircularProgress
+                  size={20}
+                  color="inherit"
+                />
+              ) : null
+            }
           >
-            Delete
+            {isDeleting ? 'Deleting...' : 'Delete'}
           </Button>
         </Box>
       </Paper>
@@ -102,5 +114,6 @@ BookingDeleteDialog.propTypes = {
   data: PropTypes.object,
   onClose: PropTypes.func,
   onDelete: PropTypes.func,
-  open: PropTypes.bool
+  open: PropTypes.bool,
+  isDeleting: PropTypes.bool
 };

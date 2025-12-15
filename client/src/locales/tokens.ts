@@ -6,7 +6,7 @@ export const tokens = {
     analytics: 'nav.analytics',
     auth: 'nav.auth',
     bookings: 'nav.bookings',
-    cars: 'nav.cars',
+    cars: 'cars',
     dashboard: 'nav.dashboard',
     details: 'nav.details',
     ecommerce: 'nav.ecommerce',

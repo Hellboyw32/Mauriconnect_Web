@@ -1,11 +1,11 @@
 import type { FC } from 'react';
-import PropTypes from 'prop-types';
 import numeral from 'numeral';
 import InfoCircleIcon from '@untitled-ui/icons-react/build/esm/InfoCircle';
-import LinkExternal01Icon from '@untitled-ui/icons-react/build/esm/LinkExternal01';
+import RefreshCcw01Icon from '@untitled-ui/icons-react/build/esm/RefreshCcw01';
 import Card from '@mui/material/Card';
 import CardHeader from '@mui/material/CardHeader';
-import Link from '@mui/material/Link';
+import CircularProgress from '@mui/material/CircularProgress';
+import IconButton from '@mui/material/IconButton';
 import Stack from '@mui/material/Stack';
 import SvgIcon from '@mui/material/SvgIcon';
 import Table from '@mui/material/Table';
@@ -15,101 +15,116 @@ import TableHead from '@mui/material/TableHead';
 import TableRow from '@mui/material/TableRow';
 import Tooltip from '@mui/material/Tooltip';
 import Typography from '@mui/material/Typography';
-
 import { Scrollbar } from 'src/components/scrollbar';
+import { useTopRentedCars } from 'src/hooks/cars/use-top-rented-cars';
 
-interface Page {
-  bounceRate: number;
-  uniqueVisits: number;
-  url: string;
-  visitors: number;
-}
+export const AnalyticsMostVisited: FC = () => {
+  const { cars, isLoading, refetch } = useTopRentedCars(8);
 
-interface AnalyticsMostVisitedProps {
-  pages: Page[];
-}
-
-export const AnalyticsMostVisited: FC<AnalyticsMostVisitedProps> = (props) => {
-  const { pages } = props;
+  console.log('Component render - cars:', cars);
+  console.log('Component render - isLoading:', isLoading);
+  console.log('Component render - cars.length:', cars?.length);
 
   return (
     <Card>
       <CardHeader
-        title="Most Visited Pages"
-        action={(
-          <Tooltip title="Refresh rate is 24h">
-            <SvgIcon color="action">
-              <InfoCircleIcon />
-            </SvgIcon>
-          </Tooltip>
-        )}
+        title="Top Rented Cars"
+        action={
+          <Stack
+            direction="row"
+            spacing={1}
+          >
+            <Tooltip title="Active cars sorted by rental count">
+              <SvgIcon color="action">
+                <InfoCircleIcon />
+              </SvgIcon>
+            </Tooltip>
+            <Tooltip title="Refresh">
+              <IconButton
+                onClick={refetch}
+                size="small"
+                disabled={isLoading}
+              >
+                <SvgIcon fontSize="small">
+                  {isLoading ? <CircularProgress size={20} /> : <RefreshCcw01Icon />}
+                </SvgIcon>
+              </IconButton>
+            </Tooltip>
+          </Stack>
+        }
       />
       <Scrollbar>
         <Table sx={{ minWidth: 600 }}>
           <TableHead>
             <TableRow>
-              <TableCell>
-                Page Name
-              </TableCell>
-              <TableCell>
-                Visitors
-              </TableCell>
-              <TableCell>
-                Unique page visits
-              </TableCell>
-              <TableCell>
-                Bounce rate
-              </TableCell>
+              <TableCell>Car Number</TableCell>
+              <TableCell>Car Model</TableCell>
+              <TableCell>Current Mileage</TableCell>
+              <TableCell align="right">Times Rented</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
-            {pages.map((page) => {
-              const visitors = numeral(page.visitors).format('0,0');
-              const uniqueVisitors = numeral(page.uniqueVisits).format('0,0');
-
-              return (
-                <TableRow
-                  key={page.url}
-                  sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
+            {isLoading ? (
+              <TableRow key="loading">
+                <TableCell
+                  colSpan={4}
+                  align="center"
                 >
-                  <TableCell>
-                    <Link
-                      color="text.primary"
-                      href="#"
-                    >
-                      <Stack
-                        alignItems="center"
-                        direction="row"
-                        spacing={2}
+                  <CircularProgress size={40} />
+                </TableCell>
+              </TableRow>
+            ) : cars.length === 0 ? (
+              <TableRow key="empty">
+                <TableCell
+                  colSpan={4}
+                  align="center"
+                >
+                  <Typography
+                    variant="body2"
+                    color="text.secondary"
+                  >
+                    No rental data available
+                  </Typography>
+                </TableCell>
+              </TableRow>
+            ) : (
+              cars.map((car) => {
+                const mileage = numeral(car.CurrentMileage).format('0,0');
+
+                return (
+                  <TableRow
+                    key={car.CarId}
+                    sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
+                  >
+                    <TableCell>
+                      <Typography
+                        variant="body2"
+                        fontWeight={600}
                       >
-                        <SvgIcon fontSize="small">
-                          <LinkExternal01Icon />
-                        </SvgIcon>
-                        <Typography variant="body2">
-                          {page.url}
-                        </Typography>
-                      </Stack>
-                    </Link>
-                  </TableCell>
-                  <TableCell>
-                    {visitors}
-                  </TableCell>
-                  <TableCell>
-                    {uniqueVisitors}
-                  </TableCell>
-                  <TableCell>
-                    {page.bounceRate}%
-                  </TableCell>
-                </TableRow>
-              );
-            })}
+                        {car.CarNumber}
+                      </Typography>
+                    </TableCell>
+                    <TableCell>
+                      <Typography variant="body2">{car.Model}</Typography>
+                    </TableCell>
+                    <TableCell>
+                      <Typography variant="body2">{mileage} km</Typography>
+                    </TableCell>
+                    <TableCell align="right">
+                      <Typography
+                        variant="body2"
+                        fontWeight={600}
+                      >
+                        {car.RentalCount}
+                      </Typography>
+                    </TableCell>
+                  </TableRow>
+                );
+              })
+            )}
           </TableBody>
         </Table>
       </Scrollbar>
     </Card>
   );
-};
-
-AnalyticsMostVisited.propTypes = {
-  pages: PropTypes.array.isRequired
 };

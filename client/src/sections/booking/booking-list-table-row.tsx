@@ -7,8 +7,12 @@ import TableCell from '@mui/material/TableCell';
 import TableRow from '@mui/material/TableRow';
 import DotsVerticalIcon from '@untitled-ui/icons-react/build/esm/DotsVertical';
 import PropTypes from 'prop-types';
-import { useCallback, type ChangeEvent, type FC } from 'react';
+import { useCallback, useState, type ChangeEvent, type FC } from 'react';
+import { toast } from 'react-hot-toast';
+import { bookingApi } from 'src/api/booking';
 import { useDialog } from 'src/hooks/use-dialog';
+import { useAuth } from 'src/hooks/use-auth';
+import { useRouter } from 'src/hooks/use-router';
 import { usePopover } from 'src/hooks/use-popover';
 import { paths } from 'src/paths';
 import { timestampToDate } from 'src/utils/date-locale';
@@ -21,12 +25,16 @@ interface BookingListTableRowProps {
   isSelected?: boolean;
   onSelectOne?: (bookingId: number) => void;
   onDeselectOne?: (bookingId: number) => void;
+  onRefresh?: () => void;
 }
 
 export const BookingListTableRow: FC<BookingListTableRowProps> = (props) => {
-  const { booking, isSelected, onSelectOne, onDeselectOne } = props;
+  const { booking, isSelected, onSelectOne, onDeselectOne, onRefresh } = props;
   const popover = usePopover<HTMLButtonElement>();
   const deleteDialog = useDialog<Booking>();
+  const router = useRouter();
+  const { user } = useAuth();
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const bookingDocumentLink = replaceIdPath(
     paths.bookings.documents,
@@ -44,13 +52,28 @@ export const BookingListTableRow: FC<BookingListTableRowProps> = (props) => {
   const handleOpenDeleteDialog = useCallback((): void => {
     popover.handleClose();
     deleteDialog.handleOpen();
-    console.log('Opening the delete dialog');
   }, [deleteDialog, popover]);
 
-  const handleDelete = useCallback((): void => {
-    // TODO: Delete booking
-    console.log(`Deleting the booking ${booking.CustomerName}`);
-  }, [booking.CustomerName]);
+  const handleDelete = useCallback(async (): Promise<void> => {
+    try {
+      setIsDeleting(true);
+      const response = await bookingApi.deleteBooking({
+        bookingId: booking.BookingId,
+        createdBy: user?.email || 'system'
+      });
+
+      toast.success(response.message || 'Booking deleted successfully');
+      deleteDialog.handleClose();
+      if (onRefresh) {
+        onRefresh();
+      }
+    } catch (error: any) {
+      console.error('Error deleting booking:', error);
+      toast.error(error?.message || 'Failed to delete booking');
+    } finally {
+      setIsDeleting(false);
+    }
+  }, [booking.BookingId, deleteDialog, onRefresh, user]);
 
   return (
     <>
@@ -114,6 +137,7 @@ export const BookingListTableRow: FC<BookingListTableRowProps> = (props) => {
         onClose={deleteDialog.handleClose}
         onDelete={handleDelete}
         open={deleteDialog.open}
+        isDeleting={isDeleting}
       />
     </>
   );

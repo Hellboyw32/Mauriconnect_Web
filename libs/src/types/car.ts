@@ -15,3 +15,39 @@ export interface Car extends RecordLogs {
 }
 
 export type Cars = Car[];
+
+export interface CarFormValues {
+  CarId?: number;
+  Model: string;
+  CategoryId: number;
+  CarNumber: string;
+  Description: string;
+  CurrentMileage: number;
+  ServicingFrequency: number;
+  LastServicedMileage: number;
+  IsActive: boolean;
+  CreatedBy?: string;
+}
+
+export interface CarsSearchState {
+  filters: CarFilters;
+  page: number;
+  rowsPerPage: number;
+  sortBy: string;
+  sortDir: 'asc' | 'desc';
+}
+
+export interface CarFilters {
+  carNumber?: string;
+  categoryId?: number;
+}
+
+export interface TopRentedCar {
+  CarId: number;
+  CarNumber: string;
+  Model: string;
+  CurrentMileage: number;
+  RentalCount: number;
+}
+
+export type TopRentedCars = TopRentedCar[];

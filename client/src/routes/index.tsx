@@ -3,6 +3,7 @@ import type { RouteObject } from 'react-router';
 
 import { authRoutes } from './auth';
 import { bookingRoutes } from './bookings';
+import { carRoutes } from './cars';
 import { reportRoutes } from './reports';
 import { dashboardRoutes } from './dashboard';
 
@@ -13,6 +14,7 @@ const Error500Page = lazy(() => import('src/pages/500'));
 export const routes: RouteObject[] = [
   ...authRoutes,
   ...bookingRoutes,
+  ...carRoutes,
   ...reportRoutes,
   ...dashboardRoutes,
   {

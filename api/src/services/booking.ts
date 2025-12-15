@@ -12,6 +12,7 @@ export interface IBookingService {
   getPickupsTodayCount(): Promise<Response<number>>;
   getRecentBookings(limit: number): Promise<Response<Bookings>>;
   createBooking(booking: BookingFormValues): Promise<Response>;
+  updateBooking(bookingId: number, booking: any): Promise<Response>;
   deleteBooking(bookingId: number, body: { createdBy: string }): Promise<Response>;
 }
 
@@ -96,7 +97,46 @@ export class BookingService implements IBookingService {
     return await this.mssqlService.requestByStoredProcedure(storedProcedure, inputs);
   }
 
-  // TODO: Complete the delete booking logic
+  async updateBooking(bookingId: number, booking: any): Promise<Response> {
+    const storedProcedure = STORED_PROCEDURES.UPDATE_BOOKING;
+    const inputs = [
+      {
+        'BookingId': bookingId,
+        'CustomerName': booking.CustomerName,
+        'ContactDetails': booking.ContactDetails,
+        'FlightNo': booking.FlightNumber,
+        'PickUpDate': booking.PickUpDate,
+        'DropOffDate': booking.DropOffDate,
+        'NumberOfDays': booking.NumberOfDays,
+        'Price': booking.Price,
+        'CarId': booking.CarId,
+        'SpecialRequest': booking.SpecialRequest,
+        'Login': booking.LastModifiedUserId,
+        'Action': 'Update',
+        'ReferenceNo': booking.ReferenceNo,
+        'NoShow': booking.NoShow,
+        'Mileage': booking.Mileage,
+        'Insurance': booking.Insurance,
+        'Currency': booking.CurrencyOption,
+        'PaymentMethod': booking.PaymentMethod,
+        'POSMachine': booking.POSMachine,
+        'IsGPS': booking.IsGps,
+        'IsCarSeat': booking.IsCarSeat,
+        'IsBoosterSeat': booking.IsBoosterSeat,
+        'DropOffPlace': booking.DropOffPlace,
+        'DeliveryUser': booking.DeliveryUser,
+        'InsuranceAmount': booking.InsuranceAmount,
+        'SimCard': booking.SimCard,
+        'HasInsurance': booking.HasInsurance,
+        'FuelLevel': booking.FuelLevel,
+        'CarInsurance': booking.CarInsurance,
+        'RoadTax': booking.RoadTax
+      }
+    ];
+
+    return await this.mssqlService.requestByStoredProcedure(storedProcedure, inputs);
+  }
+
   async deleteBooking(bookingId: number, body: { createdBy: string }): Promise<Response> {
     const storedProcedure = STORED_PROCEDURES.DELETE_BOOKING;
     const { createdBy } = body;
