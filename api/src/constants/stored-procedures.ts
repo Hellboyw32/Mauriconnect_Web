@@ -8,6 +8,7 @@ export enum BOOKING_STORED_PROCEDURES {
   GET_RECENT_BOOKINGS = 'spGetRecentBookings',
   GET_BOOKINGS_CURRENT_WEEK = 'spGetBookingsCurrentWeek',
   CREATE_BOOKING = 'spAddBookingDetails',
+  UPDATE_BOOKING = 'spUpdateBookingDetails',
   DELETE_BOOKING = 'spRemoveBookingDetails'
 }
 
@@ -16,7 +17,11 @@ export enum CAR_CATEGORY_STORED_PROCEDURES {
 }
 
 export enum CAR_STORED_PROCEDURES {
-  GET_CARS = 'spGetCars'
+  GET_CARS = 'spGetCars',
+  GET_CARS_JSON = 'spGetAllCarDetailsJson',
+  GET_CAR_JSON = 'spGetSingleCarDetailsJson',
+  UPDATE_CAR = 'spUpdateCarDetails',
+  GET_TOP_RENTED_CARS = 'spGetTopRentedCars'
 }
 
 export enum DELIVERY_USER_STORED_PROCEDURES {

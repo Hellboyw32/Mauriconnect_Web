@@ -2,6 +2,7 @@ import type { Booking, BookingsSearchState, Filters } from '@libs/types';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
 import Card from '@mui/material/Card';
+import CircularProgress from '@mui/material/CircularProgress';
 import Container from '@mui/material/Container';
 import Stack from '@mui/material/Stack';
 import SvgIcon from '@mui/material/SvgIcon';
@@ -131,11 +132,16 @@ const Page = () => {
                 <Button
                   onClick={handleRefresh}
                   startIcon={
-                    <SvgIcon>
-                      <RefreshCcw01Icon />
-                    </SvgIcon>
+                    bookingsStore.isLoading ? (
+                      <CircularProgress size={20} />
+                    ) : (
+                      <SvgIcon>
+                        <RefreshCcw01Icon />
+                      </SvgIcon>
+                    )
                   }
                   variant="contained"
+                  disabled={bookingsStore.isLoading}
                 >
                   Refresh
                 </Button>
@@ -160,6 +166,8 @@ const Page = () => {
                 page={bookingsSearch.state.page}
                 rowsPerPage={bookingsSearch.state.rowsPerPage}
                 selected={bookingsSelection.selected}
+                isLoading={bookingsStore.isLoading}
+                onRefresh={handleRefresh}
               />
             </Card>
           </Stack>

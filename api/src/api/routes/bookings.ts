@@ -104,17 +104,29 @@ export default (app: Router) => {
       });
   });
 
-  // TODO: Complete the delete booking functionality
-  // route.delete('/:id', (req: Request, res: Response) => {
-  //   const bookingId = parseInt(req.params.id);
-  //   const bookingService = Container.get(BookingService);
-  //   bookingService
-  //     .deleteBooking(bookingId, req.body)
-  //     .then((result) => {
-  //       res.send(result).status(200);
-  //     })
-  //     .catch((error) => {
-  //       res.send(error).status(500);
-  //     });
-  // });
+  route.put('/:id', (req: Request, res: Response) => {
+    const bookingId = parseInt(req.params.id);
+    const bookingService = Container.get(BookingService);
+    bookingService
+      .updateBooking(bookingId, req.body)
+      .then((result) => {
+        res.send(result).status(200);
+      })
+      .catch((error) => {
+        res.send(error).status(500);
+      });
+  });
+
+  route.delete('/:id', (req: Request, res: Response) => {
+    const bookingId = parseInt(req.params.id);
+    const bookingService = Container.get(BookingService);
+    bookingService
+      .deleteBooking(bookingId, req.body)
+      .then((result) => {
+        res.send(result).status(200);
+      })
+      .catch((error) => {
+        res.send(error).status(500);
+      });
+  });
 };

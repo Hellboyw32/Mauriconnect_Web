@@ -20,7 +20,8 @@ export const paths = {
   },
   cars: {
     index: '/cars',
-    create: '/cars/create'
+    create: '/cars/create',
+    edit: '/cars/:carId/edit'
   },
   reports: {
     index: '/reports'

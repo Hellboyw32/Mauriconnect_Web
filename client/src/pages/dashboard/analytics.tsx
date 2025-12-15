@@ -235,46 +235,7 @@ const Page = () => {
               xs={12}
               lg={8}
             >
-              <AnalyticsMostVisited
-                pages={[
-                  {
-                    bounceRate: 16,
-                    uniqueVisits: 8584,
-                    url: '/',
-                    visitors: 95847
-                  },
-                  {
-                    bounceRate: 5,
-                    uniqueVisits: 648,
-                    url: '/auth/login',
-                    visitors: 7500
-                  },
-                  {
-                    bounceRate: 2,
-                    uniqueVisits: 568,
-                    url: '/dashboard',
-                    visitors: 85406
-                  },
-                  {
-                    bounceRate: 12,
-                    uniqueVisits: 12322,
-                    url: '/blog/top-5-react-frameworks',
-                    visitors: 75050
-                  },
-                  {
-                    bounceRate: 10,
-                    uniqueVisits: 11645,
-                    url: '/blog/understand-programming-principles',
-                    visitors: 68003
-                  },
-                  {
-                    bounceRate: 8,
-                    uniqueVisits: 10259,
-                    url: '/blog/design-patterns',
-                    visitors: 49510
-                  }
-                ]}
-              />
+              <AnalyticsMostVisited />
             </Grid>
             <Grid
               xs={12}

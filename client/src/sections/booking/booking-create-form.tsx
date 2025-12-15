@@ -14,11 +14,17 @@ import Stack from '@mui/material/Stack';
 import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
 import Grid from '@mui/material/Unstable_Grid2';
+import { DateTimePicker } from '@mui/x-date-pickers/DateTimePicker';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
+import { differenceInDays } from 'date-fns';
 import { useFormik } from 'formik';
 import type { FC } from 'react';
+import { useState } from 'react';
 import { toast } from 'react-hot-toast';
+import { bookingApi } from 'src/api/booking';
 import { RouterLink } from 'src/components/router-link';
+import { useAuth } from 'src/hooks/use-auth';
+import { useRouter } from 'src/hooks/use-router';
 import { carAddOns, carCategories, currencyOptions, paymentMethods } from 'src/mock/booking';
 import { paths } from 'src/paths';
 import { generateRefNumber } from 'src/utils/generate-ref-number';
@@ -50,13 +56,52 @@ const validationSchema = Yup.object({
 });
 
 export const BookingCreateForm: FC = (props) => {
+  const router = useRouter();
+  const { user } = useAuth();
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
   const formik = useFormik({
     initialValues,
     validationSchema,
-    onSubmit: (values) => {
-      // TODO: Add submission when API is ready
-      console.log(values);
-      toast.success('Booking created');
+    onSubmit: async (values) => {
+      try {
+        setIsSubmitting(true);
+
+        // Calculate number of days
+        const numberOfDays = differenceInDays(values.DropOffDate, values.PickUpDate);
+
+        // Prepare booking data
+        const bookingData = {
+          CustomerName: values.CustomerName,
+          ContactDetails: values.ContactDetails,
+          FlightNumber: values.FlightNumber,
+          PickUpDate: values.PickUpDate,
+          DropOffDate: values.DropOffDate,
+          NumberOfDays: numberOfDays,
+          Price: values.Price,
+          CarCategory: values.CarCategory,
+          SpecialRequest: values.SpecialRequest,
+          ReferenceNo: values.ReferenceNo,
+          Insurance: values.Insurance,
+          CurrencyOption: values.CurrencyOption,
+          PaymentMethod: values.PaymentMethod,
+          IsGps: values.IsGps,
+          IsCarSeat: values.IsCarSeat,
+          IsBoosterSeat: values.IsBoosterSeat,
+          DropOffPlace: values.DropOffPlace,
+          CreatedBy: user?.email || 'system'
+        };
+
+        const response = await bookingApi.createBooking({ booking: bookingData });
+
+        toast.success(response.message || 'Booking created successfully');
+        router.push(paths.bookings.index);
+      } catch (error: any) {
+        console.error('Error creating booking:', error);
+        toast.error(error?.message || 'Failed to create booking');
+      } finally {
+        setIsSubmitting(false);
+      }
     }
   });
 
@@ -137,14 +182,14 @@ export const BookingCreateForm: FC = (props) => {
                       onChange={formik.handleChange}
                       value={formik.values.FlightNumber}
                     />
-                    <DatePicker
-                      format="dd/MM/yyyy"
+                    <DateTimePicker
+                      format="dd/MM/yyyy hh:mm a"
                       label="Pickup Date"
                       onChange={(value) => formik.setFieldValue('PickUpDate', value, true)}
                       value={formik.values.PickUpDate}
                     />
-                    <DatePicker
-                      format="dd/MM/yyyy"
+                    <DateTimePicker
+                      format="dd/MM/yyyy hh:mm a"
                       label="Dropoff Date"
                       onChange={(value) => formik.setFieldValue('DropOffDate', value, true)}
                       value={formik.values.DropOffDate}
@@ -313,13 +358,15 @@ export const BookingCreateForm: FC = (props) => {
             <Button
               type="submit"
               variant="contained"
+              disabled={isSubmitting}
             >
-              Create
+              {isSubmitting ? 'Creating...' : 'Create'}
             </Button>
             <Button
               color="inherit"
               component={RouterLink}
               href={paths.bookings.index}
+              disabled={isSubmitting}
             >
               Cancel
             </Button>

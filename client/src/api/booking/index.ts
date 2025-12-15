@@ -31,6 +31,13 @@ type GetPickupsTodayCountResponse = Promise<number>;
 type GetRecentBookingsRequest = { limit?: number };
 type GetRecentBookingsResponse = Promise<Booking[]>;
 
+type CreateBookingRequest = { booking: any };
+type CreateBookingResponse = Promise<{ status: number; message: string }>;
+type UpdateBookingRequest = { bookingId: number; booking: any };
+type UpdateBookingResponse = Promise<{ status: number; message: string }>;
+type DeleteBookingRequest = { bookingId: number; createdBy: string };
+type DeleteBookingResponse = Promise<{ status: number; message: string }>;
+
 interface IBookingApi {
   getBookings(request: GetBookingsRequest): GetBookingsResponse;
   getBooking(request?: GetBookingRequest): GetBookingResponse;
@@ -38,6 +45,9 @@ interface IBookingApi {
   getDropoffsTodayCount(): GetDropoffsTodayCountResponse;
   getPickupsTodayCount(): GetPickupsTodayCountResponse;
   getRecentBookings(request?: GetRecentBookingsRequest): GetRecentBookingsResponse;
+  createBooking(request: CreateBookingRequest): CreateBookingResponse;
+  updateBooking(request: UpdateBookingRequest): UpdateBookingResponse;
+  deleteBooking(request: DeleteBookingRequest): DeleteBookingResponse;
 }
 
 class BookingApi implements IBookingApi {
@@ -243,6 +253,33 @@ class BookingApi implements IBookingApi {
 
       return Promise.resolve([0, 0, 0, 0, 0, 0, 0]);
     }
+  }
+
+  public async createBooking(request: CreateBookingRequest): CreateBookingResponse {
+    const { booking } = request;
+    const response = await api.post<any>(API_ENDPOINTS.BOOKINGS, booking);
+    return {
+      status: response.status,
+      message: response.message || 'Booking created successfully'
+    };
+  }
+
+  public async updateBooking(request: UpdateBookingRequest): UpdateBookingResponse {
+    const { bookingId, booking } = request;
+    const response = await api.put<any>(`${API_ENDPOINTS.BOOKINGS}/${bookingId}`, booking);
+    return {
+      status: response.status,
+      message: response.message || 'Booking updated successfully'
+    };
+  }
+
+  public async deleteBooking(request: DeleteBookingRequest): DeleteBookingResponse {
+    const { bookingId, createdBy } = request;
+    const response = await api.delete<any>(`${API_ENDPOINTS.BOOKINGS}/${bookingId}`, { createdBy });
+    return {
+      status: response.status,
+      message: response.message || 'Booking deleted successfully'
+    };
   }
 }
 
