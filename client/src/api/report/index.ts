@@ -27,9 +27,18 @@ type GetDailyScheduleReportRequest = {
 
 type GetDailyScheduleReportResponse = Promise<Booking[]>;
 
+type GetDropoffScheduleReportRequest = {
+  dropoffDate?: string;
+};
+
+type GetDropoffScheduleReportResponse = Promise<Booking[]>;
+
 interface IReportApi {
   getDailyScheduleReports(request: GetDailyScheduleReportsRequest): GetDailyScheduleReportsResponse;
   getDailyScheduleReport(request?: GetDailyScheduleReportRequest): GetDailyScheduleReportResponse;
+  getDropoffScheduleReport(
+    request?: GetDropoffScheduleReportRequest
+  ): GetDropoffScheduleReportResponse;
 }
 
 class ReportApi implements IReportApi {
@@ -111,6 +120,23 @@ class ReportApi implements IReportApi {
       : '';
     const apiResponse = await api.get<Booking[]>(
       `${API_ENDPOINTS.REPORTS}/schedule/pickup${queryString}`
+    );
+
+    return Promise.resolve(apiResponse.data || []);
+  }
+
+  public async getDropoffScheduleReport(
+    request?: GetDropoffScheduleReportRequest
+  ): GetDropoffScheduleReportResponse {
+    if (isMockData()) {
+      return Promise.resolve(deepCopy(bookingsData));
+    }
+
+    const queryString = request?.dropoffDate
+      ? `?dropoffdate=${encodeURIComponent(request.dropoffDate)}`
+      : '';
+    const apiResponse = await api.get<Booking[]>(
+      `${API_ENDPOINTS.REPORTS}/schedule/dropoff${queryString}`
     );
 
     return Promise.resolve(apiResponse.data || []);

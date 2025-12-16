@@ -112,4 +112,9 @@ export class CarService implements ICarService {
       false
     );
   }
+
+  async getCarCategoryDistribution(): Promise<Response> {
+    const storedProcedure = STORED_PROCEDURES.GET_CAR_CATEGORY_DISTRIBUTION;
+    return await this.mssqlService.requestByStoredProcedure(storedProcedure);
+  }
 }

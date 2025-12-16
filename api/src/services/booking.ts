@@ -23,8 +23,7 @@ export class BookingService implements IBookingService {
 
   async getBookings(): Promise<Response<Bookings>> {
     const storedProcedure = STORED_PROCEDURES.GET_BOOKINGS_DETAILS_JSON;
-
-    return await this.mssqlService.requestByStoredProcedure<Bookings>(storedProcedure, [], true);
+    return await this.mssqlService.requestByStoredProcedure<Bookings>(storedProcedure, [], false);
   }
 
   async getBooking(bookingId: number): Promise<Response<Booking>> {

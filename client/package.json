@@ -64,6 +64,7 @@
     "formik": "^2.4.2",
     "gray-matter": "4.0.3",
     "i18next": "22.4.15",
+    "jspdf": "^3.0.4",
     "lodash.debounce": "4.0.8",
     "lodash.isequal": "4.5.0",
     "mui-one-time-password-input": "1.1.0",

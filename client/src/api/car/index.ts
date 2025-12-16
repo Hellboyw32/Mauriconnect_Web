@@ -138,6 +138,22 @@ class CarsApi {
     // Ensure we always return an array
     return Array.isArray(data) ? data : [];
   }
+
+  async getCarCategoryDistribution(): Promise<{ Category: string; TotalCars: number }[]> {
+    if (useMock) {
+      return Promise.resolve([
+        { Category: 'Mini', TotalCars: 5 },
+        { Category: 'Economy', TotalCars: 10 },
+        { Category: 'Intermediate', TotalCars: 8 },
+        { Category: 'Fullsize', TotalCars: 6 }
+      ]);
+    }
+
+    const response = await api.get(`${API_ENDPOINTS.CARS}/analytics/category-distribution`);
+
+    const data = response.data;
+    return Array.isArray(data) ? data : [];
+  }
 }
 
 export const carsApi = new CarsApi();

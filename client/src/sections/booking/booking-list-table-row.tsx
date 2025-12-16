@@ -108,7 +108,8 @@ export const BookingListTableRow: FC<BookingListTableRowProps> = (props) => {
         <TableCell>{booking.DropOffDate && timestampToDate(booking.DropOffDate)}</TableCell>
         <TableCell>{booking.Price}</TableCell>
         <TableCell>
-          {booking.Car.Model} - {booking.Car.CarNumber}
+          {booking.Car?.Model || (booking as any).Model} -{' '}
+          {booking.Car?.CarNumber || (booking as any).CarNumber}
         </TableCell>
         <TableCell>{booking.SpecialRequest}</TableCell>
         <TableCell>{booking.CreatedOn && timestampToDate(booking.CreatedOn)}</TableCell>

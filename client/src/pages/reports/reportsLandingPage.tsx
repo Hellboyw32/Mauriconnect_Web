@@ -35,12 +35,16 @@ export default function SelectLabels() {
   const handleChange = (event: SelectChangeEvent) => {
     const report = event.target.value;
     setReportType(report);
+    // Reset report data when changing report type
+    if (report !== '10') {
+      setReportData([]);
+    }
   };
 
   const handleRunReport = useCallback(async () => {
-    if (reportType && reportType == '10') {
+    if (reportType && reportType === '10') {
       const data = await dailyScheduleStore.handleBookingGet();
-      console.log(data);
+      console.log('Report data:', data);
       setReportData(data);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -59,9 +63,9 @@ export default function SelectLabels() {
           <MenuItem value="">
             <em>None</em>
           </MenuItem>
-          <MenuItem value={10}>Daily Schedule Report</MenuItem>
-          <MenuItem value={20}>Availability Report</MenuItem>
-          <MenuItem value={30}>Settlement Report</MenuItem>
+          <MenuItem value="10">Daily Schedule Report</MenuItem>
+          <MenuItem value="20">Availability Report</MenuItem>
+          <MenuItem value="30">Settlement Report</MenuItem>
         </Select>
         {/* <FormHelperText>select report and click on run</FormHelperText> */}
       </FormControl>
@@ -84,9 +88,11 @@ export default function SelectLabels() {
           Run Report
         </Button>
       </Box>
-      <Box>
-        <DailyScheduleReport bookings={reportData} />
-      </Box>
+      {reportType === '10' && reportData.length > 0 && (
+        <Box>
+          <DailyScheduleReport bookings={reportData} />
+        </Box>
+      )}
     </div>
   );
 }

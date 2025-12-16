@@ -19,4 +19,17 @@ export default (app: Router) => {
         res.send(error).status(500);
       });
   });
+
+  route.get('/schedule/dropoff', (req: Request, res: Response) => {
+    const dropoffDate = req.query.dropoffdate as string | undefined;
+    const reportService = Container.get(ReportService);
+    reportService
+      .getDropoffScheduleByDate(dropoffDate)
+      .then((result) => {
+        res.send(result).status(200);
+      })
+      .catch((error) => {
+        res.send(error).status(500);
+      });
+  });
 };

@@ -21,7 +21,8 @@ export enum CAR_STORED_PROCEDURES {
   GET_CARS_JSON = 'spGetAllCarDetailsJson',
   GET_CAR_JSON = 'spGetSingleCarDetailsJson',
   UPDATE_CAR = 'spUpdateCarDetails',
-  GET_TOP_RENTED_CARS = 'spGetTopRentedCars'
+  GET_TOP_RENTED_CARS = 'spGetTopRentedCars',
+  GET_CAR_CATEGORY_DISTRIBUTION = 'spGetCarCategoryDistribution'
 }
 
 export enum DELIVERY_USER_STORED_PROCEDURES {
@@ -29,5 +30,6 @@ export enum DELIVERY_USER_STORED_PROCEDURES {
 }
 
 export enum REPORT_STORED_PROCEDURES {
-  GET_PICKUP_SCHEDULE_BY_DATE = 'spGetPickScheduleByDate'
+  GET_PICKUP_SCHEDULE_BY_DATE = 'spGetPickScheduleByDate',
+  GET_DROPOFF_SCHEDULE_BY_DATE = 'spGetDropScheduleByDate'
 }

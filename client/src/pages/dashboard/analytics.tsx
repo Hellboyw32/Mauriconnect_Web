@@ -241,10 +241,7 @@ const Page = () => {
               xs={12}
               lg={4}
             >
-              <AnalyticsSocialSources
-                chartSeries={[10, 10, 20]}
-                labels={['Linkedin', 'Facebook', 'Instagram']}
-              />
+              <AnalyticsSocialSources />
             </Grid>
           </Grid>
         </Container>

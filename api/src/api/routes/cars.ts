@@ -134,3 +134,17 @@ route.get('/analytics/top-rented', async (req: Request, res: Response) => {
     });
   }
 });
+
+// GET /cars/analytics/category-distribution - Get car category distribution
+route.get('/analytics/category-distribution', async (req: Request, res: Response) => {
+  try {
+    const carService = Container.get(CarService);
+    const result = await carService.getCarCategoryDistribution();
+    res.status(200).send(result);
+  } catch (error) {
+    res.status(500).send({
+      success: false,
+      message: error.message || 'Failed to fetch car category distribution'
+    });
+  }
+});

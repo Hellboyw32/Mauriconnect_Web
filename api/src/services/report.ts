@@ -20,4 +20,12 @@ export class ReportService {
     const inputs = [{ 'pickupdate': dateToUse }];
     return await this.mssqlService.requestByStoredProcedure(storedProcedure, inputs);
   }
+
+  async getDropoffScheduleByDate(dropoffDate?: string) {
+    const storedProcedure = STORED_PROCEDURES.GET_DROPOFF_SCHEDULE_BY_DATE;
+    // If no date provided, use today's date
+    const dateToUse = dropoffDate || new Date().toISOString().split('T')[0];
+    const inputs = [{ 'dropoffdate': dateToUse }];
+    return await this.mssqlService.requestByStoredProcedure(storedProcedure, inputs);
+  }
 }

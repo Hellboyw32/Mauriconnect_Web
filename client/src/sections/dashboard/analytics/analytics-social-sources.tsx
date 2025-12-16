@@ -1,4 +1,5 @@
 import type { FC } from 'react';
+import { useEffect } from 'react';
 import PropTypes from 'prop-types';
 import type { ApexOptions } from 'apexcharts';
 import InfoCircleIcon from '@untitled-ui/icons-react/build/esm/InfoCircle';
@@ -14,6 +15,7 @@ import Typography from '@mui/material/Typography';
 import { useTheme } from '@mui/material/styles';
 
 import { Chart } from 'src/components/chart';
+import { useCarCategoryDistribution } from 'src/hooks/cars/use-car-category-distribution';
 
 const useChartOptions = (labels: string[]): ApexOptions => {
   const theme = useTheme();
@@ -28,6 +30,7 @@ const useChartOptions = (labels: string[]): ApexOptions => {
     },
     colors: [
       theme.palette.primary.main,
+      theme.palette.success.main,
       theme.palette.warning.main,
       theme.palette.info.main
     ],
@@ -73,26 +76,37 @@ const useChartOptions = (labels: string[]): ApexOptions => {
 
 type ChartSeries = number[];
 
-interface AnalyticsSocialSourcesProps {
-  chartSeries: ChartSeries;
-  labels: string[];
-}
+interface AnalyticsSocialSourcesProps {}
 
-export const AnalyticsSocialSources: FC<AnalyticsSocialSourcesProps> = (props) => {
-  const { chartSeries, labels } = props;
+export const AnalyticsSocialSources: FC<AnalyticsSocialSourcesProps> = () => {
+  const { categories, isLoading } = useCarCategoryDistribution();
+
+  const labels = categories.map((cat) => cat.Category);
+  const chartSeries = categories.map((cat) => cat.TotalCars);
   const chartOptions = useChartOptions(labels);
+
+  if (isLoading) {
+    return (
+      <Card>
+        <CardHeader title="Car Category Distribution" />
+        <CardContent>
+          <Typography>Loading...</Typography>
+        </CardContent>
+      </Card>
+    );
+  }
 
   return (
     <Card>
       <CardHeader
-        title="Social Media Sources"
-        action={(
-          <Tooltip title="Refresh rate is 24h">
+        title="Car Category Distribution"
+        action={
+          <Tooltip title="Active cars by category">
             <SvgIcon color="action">
               <InfoCircleIcon />
             </SvgIcon>
           </Tooltip>
-        )}
+        }
       />
       <CardContent>
         <Chart
@@ -124,9 +138,7 @@ export const AnalyticsSocialSources: FC<AnalyticsSocialSourcesProps> = (props) =
                     width: 8
                   }}
                 />
-                <Typography variant="subtitle2">
-                  {labels[index]}
-                </Typography>
+                <Typography variant="subtitle2">{labels[index]}</Typography>
               </Stack>
             </Grid>
           ))}
@@ -136,7 +148,4 @@ export const AnalyticsSocialSources: FC<AnalyticsSocialSourcesProps> = (props) =
   );
 };
 
-AnalyticsSocialSources.propTypes = {
-  chartSeries: PropTypes.any.isRequired,
-  labels: PropTypes.array.isRequired
-};
+AnalyticsSocialSources.propTypes = {};

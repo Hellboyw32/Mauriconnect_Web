@@ -5,12 +5,60 @@ import {
   GridToolbarExport,
   type GridColDef
 } from '@mui/x-data-grid';
+import { format } from 'date-fns';
 import * as React from 'react';
 import { useCallback, useEffect, useMemo, useState } from 'react';
+import Box from '@mui/material/Box';
+import Typography from '@mui/material/Typography';
 import { bookingApi } from 'src/api/booking';
+import { reportApi } from 'src/api/report';
 import { useMounted } from 'src/hooks/use-mounted';
 
 export default function DailyScheduleReport({ bookings }: { bookings: Booking[] }): any {
+  const isMounted = useMounted();
+  const [dropoffBookings, setDropoffBookings] = useState<Booking[]>([]);
+
+  useEffect(() => {
+    const fetchDropoffSchedule = async () => {
+      try {
+        const data = await reportApi.getDropoffScheduleReport();
+        if (isMounted()) {
+          setDropoffBookings(data);
+        }
+      } catch (err) {
+        console.error('Error fetching dropoff schedule:', err);
+      }
+    };
+
+    if (bookings.length > 0) {
+      fetchDropoffSchedule();
+    }
+  }, [bookings, isMounted]);
+
+  // Add print styles
+  useEffect(() => {
+    const style = document.createElement('style');
+    style.textContent = `
+      @media print {
+        .report-title {
+          display: block !important;
+          font-size: 24px !important;
+          font-weight: bold !important;
+          margin-bottom: 16px !important;
+          margin-top: 16px !important;
+          page-break-after: avoid !important;
+        }
+        .dropoff-title {
+          page-break-before: always !important;
+        }
+      }
+    `;
+    document.head.appendChild(style);
+    return () => {
+      document.head.removeChild(style);
+    };
+  }, []);
+
   interface Filters {
     query?: string;
   }
@@ -65,6 +113,13 @@ export default function DailyScheduleReport({ bookings }: { bookings: Booking[] 
 
   const columns: GridColDef[] = [
     {
+      field: 'id',
+      headerName: '#',
+      width: 20,
+      type: 'number',
+      valueGetter: (params) => params.api.getAllRowIds().indexOf(params.id) + 1
+    },
+    {
       field: 'CustomerName',
       headerName: 'Customer Name',
       width: 150
@@ -72,25 +127,25 @@ export default function DailyScheduleReport({ bookings }: { bookings: Booking[] 
     {
       field: 'PickUpDate',
       headerName: 'Pickup Date',
-      type: 'datetime',
-      width: 200,
-      valueGetter: ({ value }) => value && new Date(value).toString()
+      type: 'string',
+      width: 100,
+      valueGetter: ({ value }) => value && format(new Date(value), 'dd/MM/yy HH:mm')
     },
     {
       field: 'DropOffDate',
       headerName: 'Dropoff Date',
-      type: 'datetime',
-      width: 110,
-      valueGetter: ({ value }) => value && new Date(value)
+      type: 'string',
+      width: 100,
+      valueGetter: ({ value }) => value && format(new Date(value), 'dd/MM/yy HH:mm')
     },
     {
       field: 'FlightNo',
       headerName: 'FlightNo.',
       type: 'string',
-      width: 90
+      width: 70
     },
     {
-      field: 'numberOfDays',
+      field: 'NumberOfDays',
       headerName: ' Day(s)',
       type: 'number',
       width: 60
@@ -98,41 +153,163 @@ export default function DailyScheduleReport({ bookings }: { bookings: Booking[] 
     {
       field: 'Price',
       headerName: ' Price',
-      type: 'number',
-      width: 150
+      type: 'string',
+      width: 100
     },
     {
-      field: 'model',
+      field: 'Category',
       headerName: 'Car Model',
-      type: 'number',
-      width: 100
+      type: 'string',
+      width: 100,
+      valueGetter: ({ row }) => row?.Category || ''
     },
     {
       field: 'SpecialRequest',
       headerName: ' Comments',
       type: 'string',
-      width: 160
+      width: 200,
+      flex: 1,
+      renderCell: (params) => (
+        <div
+          style={{
+            whiteSpace: 'normal',
+            wordWrap: 'break-word',
+            overflowWrap: 'anywhere',
+            wordBreak: 'break-word',
+            lineHeight: '1.5',
+            padding: '8px 0',
+            maxWidth: '100%'
+          }}
+        >
+          {params.value}
+        </div>
+      )
     }
   ];
 
+  const PickupToolbar = () => (
+    <GridToolbarContainer>
+      <div
+        style={{
+          fontSize: '20px',
+          fontWeight: 'bold',
+          padding: '16px',
+          width: '100%'
+        }}
+      >
+        Pickup Schedule
+      </div>
+      <GridToolbarExport />
+    </GridToolbarContainer>
+  );
+
+  const DropoffToolbar = () => (
+    <GridToolbarContainer>
+      <div
+        style={{
+          fontSize: '20px',
+          fontWeight: 'bold',
+          padding: '16px',
+          width: '100%'
+        }}
+      >
+        Drop-off Schedule
+      </div>
+      <GridToolbarExport />
+    </GridToolbarContainer>
+  );
+
   return (
-    <div style={{ height: 700, width: '100%', marginLeft: '1%' }}>
-      <DataGrid
-        getRowId={(row) => row.BookingId}
-        columns={columns}
-        rows={bookings}
-        slots={{
-          toolbar: GridToolbarExport
-        }}
-        sx={{
-          boxShadow: 2,
-          border: 2,
-          borderColor: 'primary.light',
-          '& .MuiDataGrid-cell:hover': {
-            color: 'primary.main'
-          }
-        }}
-      />
-    </div>
+    <Box sx={{ width: '100%' }}>
+      {/* Pickup Schedule */}
+      <Box sx={{ mb: 4 }}>
+        <div style={{ height: 700, width: '99%' }}>
+          <DataGrid
+            getRowId={(row) => row.BookingId}
+            columns={columns}
+            rows={bookings}
+            slots={{
+              toolbar: PickupToolbar
+            }}
+            getRowHeight={() => 'auto'}
+            sx={{
+              boxShadow: 2,
+              border: 2,
+              borderColor: 'primary.light',
+              '& .MuiDataGrid-cell': {
+                py: 1,
+                whiteSpace: 'normal !important',
+                wordWrap: 'break-word',
+                lineHeight: '1.5',
+                overflowWrap: 'anywhere'
+              },
+              '& .MuiDataGrid-cell:hover': {
+                color: 'primary.main'
+              },
+              '& .MuiDataGrid-row': {
+                maxHeight: 'none !important'
+              },
+              '@media print': {
+                '& .MuiDataGrid-cell': {
+                  whiteSpace: 'normal !important',
+                  wordWrap: 'break-word !important',
+                  overflowWrap: 'anywhere !important',
+                  wordBreak: 'break-word !important',
+                  maxWidth: '200px !important'
+                },
+                '& .MuiDataGrid-row': {
+                  pageBreakInside: 'avoid'
+                }
+              }
+            }}
+          />
+        </div>
+      </Box>
+
+      {/* Drop-off Schedule */}
+      <Box sx={{ mt: 4 }}>
+        <div style={{ height: 700, width: '99%' }}>
+          <DataGrid
+            getRowId={(row) => row.BookingId}
+            columns={columns}
+            rows={dropoffBookings}
+            slots={{
+              toolbar: DropoffToolbar
+            }}
+            getRowHeight={() => 'auto'}
+            sx={{
+              boxShadow: 2,
+              border: 2,
+              borderColor: 'primary.light',
+              '& .MuiDataGrid-cell': {
+                py: 1,
+                whiteSpace: 'normal !important',
+                wordWrap: 'break-word',
+                lineHeight: '1.5',
+                overflowWrap: 'anywhere'
+              },
+              '& .MuiDataGrid-cell:hover': {
+                color: 'primary.main'
+              },
+              '& .MuiDataGrid-row': {
+                maxHeight: 'none !important'
+              },
+              '@media print': {
+                '& .MuiDataGrid-cell': {
+                  whiteSpace: 'normal !important',
+                  wordWrap: 'break-word !important',
+                  overflowWrap: 'anywhere !important',
+                  wordBreak: 'break-word !important',
+                  maxWidth: '200px !important'
+                },
+                '& .MuiDataGrid-row': {
+                  pageBreakInside: 'avoid'
+                }
+              }
+            }}
+          />
+        </div>
+      </Box>
+    </Box>
   );
 }
