@@ -54,56 +54,79 @@ class BookingApi implements IBookingApi {
   public async getBookings(request: GetBookingsRequest = {}): GetBookingsResponse {
     const { filters, page, rowsPerPage, sortBy, sortDir } = request;
     let data: Booking[] = [];
+    let count = 0;
 
     if (isMockData()) {
       data = deepCopy(bookingsData) as Booking[];
-    } else {
-      const apiResponse = await api.get<Booking[]>(API_ENDPOINTS.BOOKINGS);
-      data = Array.isArray(apiResponse.data) ? apiResponse.data : [];
-    }
-
-    let count = data.length;
-
-    if (typeof filters !== 'undefined') {
-      data = data.filter((booking) => {
-        if (typeof filters.customerName !== 'undefined' && filters.customerName !== '') {
-          const nameMatched = booking!
-            .CustomerName!.toLowerCase()
-            .includes(filters.customerName.toLowerCase());
-
-          if (!nameMatched) {
-            return false;
-          }
-        }
-
-        if (typeof filters.pickupDate !== 'undefined') {
-          const filterPickupDate = filters.pickupDate.toDateString();
-          const bookingPickupDate = booking.PickUpDate.toDateString();
-          const dateMatched = filterPickupDate === bookingPickupDate;
-
-          if (!dateMatched) {
-            return false;
-          }
-        }
-
-        if (typeof filters.dropoffDate !== 'undefined') {
-          const filterDropoffDate = filters.dropoffDate.toDateString();
-          const bookingDropoffDate = booking.DropOffDate.toDateString();
-          const dateMatched = filterDropoffDate === bookingDropoffDate;
-
-          if (!dateMatched) {
-            return false;
-          }
-        }
-
-        return true;
-      });
       count = data.length;
+
+      // Apply filters for mock data
+      if (typeof filters !== 'undefined') {
+        data = data.filter((booking) => {
+          if (typeof filters.customerName !== 'undefined' && filters.customerName !== '') {
+            const nameMatched = booking!
+              .CustomerName!.toLowerCase()
+              .includes(filters.customerName.toLowerCase());
+
+            if (!nameMatched) {
+              return false;
+            }
+          }
+
+          if (typeof filters.pickupDate !== 'undefined') {
+            const filterPickupDate = filters.pickupDate.toDateString();
+            const bookingPickupDate = booking.PickUpDate.toDateString();
+            const dateMatched = filterPickupDate === bookingPickupDate;
+
+            if (!dateMatched) {
+              return false;
+            }
+          }
+
+          if (typeof filters.dropoffDate !== 'undefined') {
+            const filterDropoffDate = filters.dropoffDate.toDateString();
+            const bookingDropoffDate = booking.DropOffDate.toDateString();
+            const dateMatched = filterDropoffDate === bookingDropoffDate;
+
+            if (!dateMatched) {
+              return false;
+            }
+          }
+
+          return true;
+        });
+      }
+      count = data.length;
+    } else {
+      // Build query string for backend filtering
+      let endpoint = API_ENDPOINTS.BOOKINGS;
+      const params = new URLSearchParams();
+
+      if (filters?.customerName) {
+        params.append('customerName', filters.customerName);
+      }
+
+      if (filters?.pickupDate) {
+        params.append('pickupDate', filters.pickupDate.toISOString());
+      }
+
+      if (filters?.dropoffDate) {
+        params.append('dropoffDate', filters.dropoffDate.toISOString());
+      }
+
+      if (params.toString()) {
+        endpoint = `${endpoint}?${params.toString()}`;
+      }
+
+      const response = await api.get<Booking[]>(endpoint);
+      data = response.data;
     }
 
     if (typeof sortBy !== 'undefined' && typeof sortDir !== 'undefined') {
       data = applySort(data, sortBy, sortDir);
     }
+
+    count = data.length;
 
     if (typeof page !== 'undefined' && typeof rowsPerPage !== 'undefined') {
       data = applyPagination(data, page, rowsPerPage);
@@ -115,7 +138,7 @@ class BookingApi implements IBookingApi {
     });
   }
 
-  public async getBooking(request?: GetBookingRequest): GetBookingResponse {
+  public async getBooking(request?: GetBookingRequest): Promise<GetBookingResponse> {
     let data = {} as Booking;
     if (request) {
       if (isMockData()) {

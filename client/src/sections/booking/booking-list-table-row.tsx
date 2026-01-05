@@ -17,6 +17,7 @@ import { usePopover } from 'src/hooks/use-popover';
 import { paths } from 'src/paths';
 import { timestampToDate } from 'src/utils/date-locale';
 import { replaceIdPath } from 'src/utils/replace-id-path';
+import { generateVoucherPDF } from 'src/utils/generate-voucher-pdf';
 import { BookingDeleteDialog } from './booking-delete-dialog';
 import { BookingListTableMenu } from './booking-list-table-menu';
 
@@ -35,6 +36,7 @@ export const BookingListTableRow: FC<BookingListTableRowProps> = (props) => {
   const router = useRouter();
   const { user } = useAuth();
   const [isDeleting, setIsDeleting] = useState(false);
+  const [isGeneratingVoucher, setIsGeneratingVoucher] = useState(false);
 
   const bookingDocumentLink = replaceIdPath(
     paths.bookings.documents,
@@ -43,11 +45,22 @@ export const BookingListTableRow: FC<BookingListTableRowProps> = (props) => {
   );
   const bookingEditLink = replaceIdPath(paths.bookings.edit, ':bookingId', booking.BookingId);
 
-  const handleGenerateVoucher = useCallback((): void => {
-    popover.handleClose();
-    // TODO: Add generate voucher functionality
-    console.log(`Generating voucher here for booking ${booking.CustomerName}`);
-  }, [booking.CustomerName, popover]);
+  const handleGenerateVoucher = useCallback(async (): Promise<void> => {
+    try {
+      popover.handleClose();
+      setIsGeneratingVoucher(true);
+      toast.loading('Generating voucher...', { id: 'voucher-generation' });
+
+      await generateVoucherPDF(booking);
+
+      toast.success('Voucher generated successfully!', { id: 'voucher-generation' });
+    } catch (error: any) {
+      console.error('Error generating voucher:', error);
+      toast.error(error?.message || 'Failed to generate voucher', { id: 'voucher-generation' });
+    } finally {
+      setIsGeneratingVoucher(false);
+    }
+  }, [booking, popover]);
 
   const handleOpenDeleteDialog = useCallback((): void => {
     popover.handleClose();
@@ -129,6 +142,7 @@ export const BookingListTableRow: FC<BookingListTableRowProps> = (props) => {
         bookingDocumentLink={bookingDocumentLink}
         bookingEditLink={bookingEditLink}
         handleGenerateVoucher={handleGenerateVoucher}
+        isGeneratingVoucher={isGeneratingVoucher}
         onClose={popover.handleClose}
         onDeleteDialogOpen={handleOpenDeleteDialog}
         open={popover.open}

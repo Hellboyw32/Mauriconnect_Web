@@ -8,8 +8,12 @@ export default (app: Router) => {
 
   route.get('/', (req: Request, res: Response) => {
     const bookingService = Container.get(BookingService);
+    const customerName = req.query.customerName as string | undefined;
+    const pickupDate = req.query.pickupDate as string | undefined;
+    const dropoffDate = req.query.dropoffDate as string | undefined;
+
     bookingService
-      .getBookings()
+      .getBookings(customerName, pickupDate, dropoffDate)
       .then((result) => {
         res.send(result).status(200);
       })

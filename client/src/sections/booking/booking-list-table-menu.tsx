@@ -1,6 +1,7 @@
 import Menu from '@mui/material/Menu';
 import MenuItem, { menuItemClasses } from '@mui/material/MenuItem';
 import SvgIcon from '@mui/material/SvgIcon';
+import CircularProgress from '@mui/material/CircularProgress';
 import Edit02Icon from '@untitled-ui/icons-react/build/esm/Edit02';
 import FileAttachment04 from '@untitled-ui/icons-react/build/esm/FileAttachment04';
 import Ticket01 from '@untitled-ui/icons-react/build/esm/Ticket01';
@@ -14,6 +15,7 @@ interface BookingListTableMenuProps {
   bookingDocumentLink: string;
   bookingEditLink: string;
   handleGenerateVoucher?: () => void;
+  isGeneratingVoucher?: boolean;
   onClose?: () => void;
   onDeleteDialogOpen?: () => void;
   open?: boolean;
@@ -26,6 +28,7 @@ export const BookingListTableMenu: FC<BookingListTableMenuProps> = (props) => {
     bookingDocumentLink,
     onDeleteDialogOpen,
     handleGenerateVoucher,
+    isGeneratingVoucher = false,
     onClose,
     open = false
   } = props;
@@ -70,11 +73,21 @@ export const BookingListTableMenu: FC<BookingListTableMenuProps> = (props) => {
         </SvgIcon>
         View Documents
       </MenuItem>
-      <MenuItem onClick={handleGenerateVoucher}>
-        <SvgIcon fontSize="small">
-          <Ticket01 />
-        </SvgIcon>
-        Generate Voucher
+      <MenuItem
+        onClick={handleGenerateVoucher}
+        disabled={isGeneratingVoucher}
+      >
+        {isGeneratingVoucher ? (
+          <CircularProgress
+            size={16}
+            sx={{ mr: 1 }}
+          />
+        ) : (
+          <SvgIcon fontSize="small">
+            <Ticket01 />
+          </SvgIcon>
+        )}
+        {isGeneratingVoucher ? 'Generating...' : 'Generate Voucher'}
       </MenuItem>
       <MenuItem
         onClick={onDeleteDialogOpen}

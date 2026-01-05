@@ -89,8 +89,15 @@ const Page = () => {
   const bookingsSelection = useSelection<number>(bookingsIds);
 
   const handleRefresh = useCallback((): void => {
+    // Reset filters to initial state
+    bookingsSearch.handleFiltersChange({
+      customerName: undefined,
+      pickupDate: undefined,
+      dropoffDate: undefined
+    });
+    // Trigger data refresh
     bookingsStore.handleBookingsGet();
-  }, [bookingsStore]);
+  }, [bookingsStore, bookingsSearch]);
 
   return (
     <>
@@ -153,6 +160,7 @@ const Page = () => {
                 onSortChange={bookingsSearch.handleSortChange}
                 sortBy={bookingsSearch.state.sortBy}
                 sortDir={bookingsSearch.state.sortDir}
+                filters={bookingsSearch.state.filters}
               />
               <BookingListTable
                 count={bookingsStore.bookingsCount}

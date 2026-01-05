@@ -7,6 +7,9 @@ SET QUOTED_IDENTIFIER ON
 GO
 
 CREATE OR ALTER PROCEDURE [dbo].[spGetAllBookingDetailsJson]
+    @CustomerName NVARCHAR(255) = NULL,
+    @PickupDate DATETIME = NULL,
+    @DropoffDate DATETIME = NULL
 AS
 BEGIN
     SET NOCOUNT ON;
@@ -51,6 +54,9 @@ BEGIN
         LEFT JOIN DeliveryUsers du ON b.DeliveryUser = du.DeliveryUserId
     WHERE 
         b.IsActive = 1
+        AND (@CustomerName IS NULL OR b.CustomerName LIKE '%' + @CustomerName + '%')
+        AND (@PickupDate IS NULL OR CAST(b.PickUpDate AS DATE) = CAST(@PickupDate AS DATE))
+        AND (@DropoffDate IS NULL OR CAST(b.DropOffDate AS DATE) = CAST(@DropoffDate AS DATE))
     ORDER BY 
         b.CreatedOn DESC;
 END

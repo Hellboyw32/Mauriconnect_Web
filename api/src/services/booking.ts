@@ -5,7 +5,11 @@ import { Inject, Service } from 'typedi';
 import { BaseMSSqlService } from '../base/base-mssql';
 
 export interface IBookingService {
-  getBookings(): Promise<Response<Bookings>>;
+  getBookings(
+    customerName?: string,
+    pickupDate?: string,
+    dropoffDate?: string
+  ): Promise<Response<Bookings>>;
   getBooking(bookingId: number): Promise<Response<Booking>>;
   getBookingsTodayCount(): Promise<Response<number>>;
   getDropoffsTodayCount(): Promise<Response<number>>;
@@ -21,9 +25,29 @@ export class BookingService implements IBookingService {
   @Inject()
   private readonly mssqlService: BaseMSSqlService;
 
-  async getBookings(): Promise<Response<Bookings>> {
+  async getBookings(
+    customerName?: string,
+    pickupDate?: string,
+    dropoffDate?: string
+  ): Promise<Response<Bookings>> {
     const storedProcedure = STORED_PROCEDURES.GET_BOOKINGS_DETAILS_JSON;
-    return await this.mssqlService.requestByStoredProcedure<Bookings>(storedProcedure, [], false);
+    const inputs = [];
+
+    if (customerName) {
+      inputs.push({ CustomerName: customerName });
+    }
+    if (pickupDate) {
+      inputs.push({ PickupDate: pickupDate });
+    }
+    if (dropoffDate) {
+      inputs.push({ DropoffDate: dropoffDate });
+    }
+
+    return await this.mssqlService.requestByStoredProcedure<Bookings>(
+      storedProcedure,
+      inputs,
+      false
+    );
   }
 
   async getBooking(bookingId: number): Promise<Response<Booking>> {

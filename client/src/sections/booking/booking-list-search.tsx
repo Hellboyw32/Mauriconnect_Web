@@ -1,5 +1,6 @@
 import type { Filters } from '@libs/types';
 import Box from '@mui/material/Box';
+import Button from '@mui/material/Button';
 import Chip from '@mui/material/Chip';
 import Divider from '@mui/material/Divider';
 import InputAdornment from '@mui/material/InputAdornment';
@@ -11,7 +12,7 @@ import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import SearchMdIcon from '@untitled-ui/icons-react/build/esm/SearchMd';
 import PropTypes from 'prop-types';
 import type { FC } from 'react';
-import { ChangeEvent, FormEvent, useCallback, useRef, useState } from 'react';
+import { ChangeEvent, useCallback, useRef, useState } from 'react';
 import { useUpdateEffect } from 'src/hooks/use-update-effect';
 import { timestampToDate } from 'src/utils/date-locale';
 
@@ -47,12 +48,27 @@ interface BookingListSearchProps {
   onSortChange?: (sort: { sortBy: string; sortDir: SortDir }) => void;
   sortBy?: string;
   sortDir?: SortDir;
+  filters?: Filters;
 }
 
 export const BookingListSearch: FC<BookingListSearchProps> = (props) => {
-  const { onFiltersChange, onSortChange, sortBy, sortDir } = props;
+  const { onFiltersChange, onSortChange, sortBy, sortDir, filters } = props;
   const queryRef = useRef<HTMLInputElement | null>(null);
   const [chips, setChips] = useState<SearchChip[]>([]);
+  const [pickupDate, setPickupDate] = useState<Date | null>(null);
+  const [dropoffDate, setDropoffDate] = useState<Date | null>(null);
+
+  // Reset fields when filters are cleared from parent
+  useUpdateEffect(() => {
+    if (!filters?.customerName && !filters?.pickupDate && !filters?.dropoffDate) {
+      setChips([]);
+      setPickupDate(null);
+      setDropoffDate(null);
+      if (queryRef.current) {
+        queryRef.current.value = '';
+      }
+    }
+  }, [filters]);
 
   const handleChipsUpdate = useCallback(() => {
     const filters: Filters = {
@@ -90,90 +106,68 @@ export const BookingListSearch: FC<BookingListSearchProps> = (props) => {
         return !(deletedChip.field === chip.field && deletedChip.value === chip.value);
       });
     });
-  }, []);
 
-  const handleQueryChange = useCallback((event: FormEvent<HTMLFormElement>): void => {
-    event.preventDefault();
-
-    const value = queryRef.current?.value || '';
-
-    setChips((prevChips) => {
-      const found = prevChips.find((chip) => chip.field === 'customerName');
-
-      if (found && value) {
-        return prevChips.map((chip) => {
-          if (chip.field === 'customerName') {
-            return {
-              ...chip,
-              value: queryRef.current?.value || ''
-            };
-          }
-
-          return chip;
-        });
-      }
-
-      if (found && !value) {
-        return prevChips.filter((chip) => chip.field !== 'customerName');
-      }
-
-      if (!found && value) {
-        const chip: SearchChip = {
-          label: 'Customer Name',
-          field: 'customerName',
-          value
-        };
-
-        return [...prevChips, chip];
-      }
-
-      return prevChips;
-    });
-
-    if (queryRef.current) {
-      queryRef.current.value = '';
+    // Reset date states when deleting date chips
+    if (deletedChip.field === 'pickupDate') {
+      setPickupDate(null);
+    }
+    if (deletedChip.field === 'dropoffDate') {
+      setDropoffDate(null);
     }
   }, []);
 
   const handlePickupDateChange = useCallback((date: Date | null): void => {
-    const value = timestampToDate(date!);
-    setChips((prevChips) => {
-      const newChips = prevChips.filter((chip) => {
-        if (chip.field !== 'pickupDate') {
-          return true;
-        }
-      });
-
-      newChips.push({
-        label: 'Pickup Date',
-        field: 'pickupDate',
-        value: new Date(date!),
-        displayValue: value
-      });
-
-      return newChips;
-    });
+    setPickupDate(date);
   }, []);
 
   const handleDropoffDateChange = useCallback((date: Date | null): void => {
-    const value = timestampToDate(date!);
-    setChips((prevChips) => {
-      const newChips = prevChips.filter((chip) => {
-        if (chip.field !== 'dropoffDate') {
-          return true;
-        }
-      });
-
-      newChips.push({
-        label: 'Dropoff Date',
-        field: 'dropoffDate',
-        value: new Date(date!),
-        displayValue: value
-      });
-
-      return newChips;
-    });
+    setDropoffDate(date);
   }, []);
+
+  const handleSearchClick = useCallback(
+    (event?: any): void => {
+      if (event) {
+        event.preventDefault();
+      }
+
+      const customerName = queryRef.current?.value || '';
+      const newChips: SearchChip[] = [];
+
+      // Add customer name chip
+      if (customerName) {
+        newChips.push({
+          label: 'Customer Name',
+          field: 'customerName',
+          value: customerName
+        });
+      }
+
+      // Add pickup date chip
+      if (pickupDate) {
+        const value = timestampToDate(pickupDate);
+        newChips.push({
+          label: 'Pickup Date',
+          field: 'pickupDate',
+          value: pickupDate,
+          displayValue: value
+        });
+      }
+
+      // Add dropoff date chip
+      if (dropoffDate) {
+        const value = timestampToDate(dropoffDate);
+        newChips.push({
+          label: 'Dropoff Date',
+          field: 'dropoffDate',
+          value: dropoffDate,
+          displayValue: value
+        });
+      }
+
+      setChips(newChips);
+    },
+    [pickupDate, dropoffDate]
+  );
 
   const handleSortChange = useCallback(
     (event: ChangeEvent<HTMLInputElement>): void => {
@@ -200,7 +194,7 @@ export const BookingListSearch: FC<BookingListSearchProps> = (props) => {
       >
         <Box
           component="form"
-          onSubmit={handleQueryChange}
+          onSubmit={handleSearchClick}
           sx={{ flexGrow: 1 }}
         >
           <OutlinedInput
@@ -228,14 +222,31 @@ export const BookingListSearch: FC<BookingListSearchProps> = (props) => {
             format="dd/MM/yyyy"
             label="Pickup Date"
             onChange={handlePickupDateChange}
-            value={new Date()}
+            value={pickupDate}
+            slotProps={{
+              actionBar: {
+                actions: ['clear', 'accept']
+              }
+            }}
           />
           <DatePicker
             format="dd/MM/yyyy"
             label="Dropoff Date"
             onChange={handleDropoffDateChange}
-            value={new Date()}
+            value={dropoffDate}
+            slotProps={{
+              actionBar: {
+                actions: ['clear', 'accept']
+              }
+            }}
           />
+          <Button
+            onClick={handleSearchClick}
+            variant="contained"
+            sx={{ minWidth: 100, height: 56 }}
+          >
+            Search
+          </Button>
         </Stack>
         <TextField
           label="Sort By"
