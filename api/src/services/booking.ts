@@ -8,7 +8,8 @@ export interface IBookingService {
   getBookings(
     customerName?: string,
     pickupDate?: string,
-    dropoffDate?: string
+    dropoffDate?: string,
+    topCount?: number
   ): Promise<Response<Bookings>>;
   getBooking(bookingId: number): Promise<Response<Booking>>;
   getBookingsTodayCount(): Promise<Response<number>>;
@@ -28,7 +29,8 @@ export class BookingService implements IBookingService {
   async getBookings(
     customerName?: string,
     pickupDate?: string,
-    dropoffDate?: string
+    dropoffDate?: string,
+    topCount: number = 50
   ): Promise<Response<Bookings>> {
     const storedProcedure = STORED_PROCEDURES.GET_BOOKINGS_DETAILS_JSON;
     const inputs = [];
@@ -42,6 +44,8 @@ export class BookingService implements IBookingService {
     if (dropoffDate) {
       inputs.push({ DropoffDate: dropoffDate });
     }
+    // Add TopCount parameter with default value of 50
+    inputs.push({ TopCount: topCount });
 
     return await this.mssqlService.requestByStoredProcedure<Bookings>(
       storedProcedure,
@@ -54,7 +58,11 @@ export class BookingService implements IBookingService {
     const storedProcedure = STORED_PROCEDURES.GET_BOOKING_DETAILS_JSON;
     const inputs = [{ 'bookingId': bookingId }];
 
-    return await this.mssqlService.requestByStoredProcedure<Booking>(storedProcedure, inputs, true);
+    return await this.mssqlService.requestByStoredProcedure<Booking>(
+      storedProcedure,
+      inputs,
+      false
+    );
   }
 
   async getBookingsTodayCount(): Promise<Response<number>> {

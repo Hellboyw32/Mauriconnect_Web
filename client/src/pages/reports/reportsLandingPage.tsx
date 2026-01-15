@@ -11,6 +11,7 @@ import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import * as React from 'react';
 import { useCallback, useMemo, useState } from 'react';
 import { useDailyScheduleReport } from 'src/hooks/reports/use-daily-schedule-report';
+import { useDropoffScheduleReport } from 'src/hooks/reports/use-dropoff-schedule-report';
 import DailyScheduleReport from 'src/sections/report/DailyScheduleReport';
 
 const useBookingsSearch = () => {
@@ -30,7 +31,11 @@ const useBookingsSearch = () => {
 export default function SelectLabels() {
   const [reportType, setReportType] = React.useState('');
   const [reportData, setReportData] = React.useState<Booking[]>([]);
+  const [dropoffReportData, setDropoffReportData] = React.useState<Booking[]>([]);
+  const [pickupDate, setPickupDate] = React.useState<Date | null>(new Date());
+  const [dropoffDate, setDropoffDate] = React.useState<Date | null>(new Date());
   const dailyScheduleStore = useDailyScheduleReport();
+  const dropoffScheduleStore = useDropoffScheduleReport();
 
   const handleChange = (event: SelectChangeEvent) => {
     const report = event.target.value;
@@ -43,12 +48,29 @@ export default function SelectLabels() {
 
   const handleRunReport = useCallback(async () => {
     if (reportType && reportType === '10') {
-      const data = await dailyScheduleStore.handleBookingGet();
-      console.log('Report data:', data);
-      setReportData(data);
+      // Format the dates as ISO strings for the API
+      const pickupDateStr = pickupDate ? pickupDate.toISOString().split('T')[0] : undefined;
+      const dropoffDateStr = dropoffDate ? dropoffDate.toISOString().split('T')[0] : undefined;
+
+      console.log(
+        'Running report with pickup date:',
+        pickupDateStr,
+        'dropoff date:',
+        dropoffDateStr
+      );
+
+      // Fetch both pickup and dropoff schedules
+      const pickupData = await dailyScheduleStore.handleBookingGet(pickupDateStr);
+      const dropoffData = await dropoffScheduleStore.handleBookingGet(dropoffDateStr);
+
+      console.log('Pickup data:', pickupData);
+      console.log('Dropoff data:', dropoffData);
+
+      setReportData(pickupData);
+      setDropoffReportData(dropoffData);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [reportType, dailyScheduleStore]);
+  }, [reportType, dailyScheduleStore, dropoffScheduleStore, pickupDate, dropoffDate]);
   return (
     <div>
       <FormControl sx={{ m: 1, minWidth: 300 }}>
@@ -73,8 +95,16 @@ export default function SelectLabels() {
         component="div"
         sx={{ p: 2, border: '1px grey' }}
       >
-        <DatePicker label="Pickup" />
-        <DatePicker label="Drop" />
+        <DatePicker
+          label="Pickup"
+          value={pickupDate}
+          onChange={(newValue) => setPickupDate(newValue)}
+        />
+        <DatePicker
+          label="Drop"
+          value={dropoffDate}
+          onChange={(newValue) => setDropoffDate(newValue)}
+        />
       </Box>
 
       <Box
@@ -88,9 +118,12 @@ export default function SelectLabels() {
           Run Report
         </Button>
       </Box>
-      {reportType === '10' && reportData.length > 0 && (
+      {reportType === '10' && (reportData.length > 0 || dropoffReportData.length > 0) && (
         <Box>
-          <DailyScheduleReport bookings={reportData} />
+          <DailyScheduleReport
+            bookings={reportData}
+            dropoffBookings={dropoffReportData}
+          />
         </Box>
       )}
     </div>

@@ -9,44 +9,55 @@ GO
 CREATE OR ALTER PROCEDURE [dbo].[spGetAllBookingDetailsJson]
     @CustomerName NVARCHAR(255) = NULL,
     @PickupDate DATETIME = NULL,
-    @DropoffDate DATETIME = NULL
+    @DropoffDate DATETIME = NULL,
+    @TopCount INT = 50
 AS
 BEGIN
     SET NOCOUNT ON;
     
-    SELECT 
+    SELECT TOP (@TopCount)
         b.BookingId,
         b.CustomerName,
         b.ContactDetails,
+        b.FlightNumber,
         b.PickUpDate,
         b.DropOffDate,
         b.NumberOfDays,
         b.Price,
         b.Currency,
-        b.FlightNumber,
         b.SpecialRequest,
         b.IsBoosterSeat,
         b.IsCarSeat,
         b.IsGps,
         b.HasInsurance,
+        b.InsuranceAmount AS Insurance,
+        b.PaymentMethod,
         b.FuelLevel,
         b.DropOffPlace,
         b.ReferenceNo,
         b.CreatedOn,
+        b.CreatedBy,
         b.LastModifiedOn,
         b.IsActive,
-        c.CarId,
-        c.Model,
-        c.CarNumber,
-        c.Description,
-        c.CurrentMileage,
-        c.ServicingFrequency,
-        c.LastServicedMileage,
-        cc.CategoryId,
-        cc.Category,
-        cc.Description AS CategoryDescription,
-        du.DeliveryUserId,
-        du.Name AS DeliveryUserName
+        b.DeliveryUser,
+        (
+            SELECT
+                c.CarId,
+                c.Model,
+                c.CarNumber,
+                c.Description,
+                c.CurrentMileage,
+                c.ServicingFrequency,
+                c.LastServicedMileage,
+                (
+                    SELECT
+                        cc.CategoryId,
+                        cc.Category,
+                        cc.Description AS CategoryDescription
+                    FOR JSON PATH, WITHOUT_ARRAY_WRAPPER
+                ) AS CarCategory
+            FOR JSON PATH, WITHOUT_ARRAY_WRAPPER
+        ) AS Car
     FROM 
         Booking b
         INNER JOIN Cars c ON b.CarId = c.CarId
@@ -58,6 +69,7 @@ BEGIN
         AND (@PickupDate IS NULL OR CAST(b.PickUpDate AS DATE) = CAST(@PickupDate AS DATE))
         AND (@DropoffDate IS NULL OR CAST(b.DropOffDate AS DATE) = CAST(@DropoffDate AS DATE))
     ORDER BY 
-        b.CreatedOn DESC;
+        b.CreatedOn DESC
+    FOR JSON PATH;
 END
 GO

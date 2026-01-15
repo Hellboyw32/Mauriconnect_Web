@@ -35,11 +35,31 @@ export class BaseMSSqlService implements IBaseMSSqlService {
     const response = request.execute(storedProcedure);
 
     try {
-      const data = (await response).recordset;
+      const recordset = (await response).recordset;
       const status = 200;
       const message = 'Operation completed successfully.';
 
-      return { status, message, data: isJsonPath ? data[0] : data, success: true };
+      let data: any;
+      if (isJsonPath) {
+        // FOR JSON PATH returns a single row with JSON string in the first column
+        const jsonString = recordset[0] ? Object.values(recordset[0])[0] : null;
+
+        // Debug logging
+        this.logger.info('🔍 Stored Procedure: %s', storedProcedure);
+        this.logger.info('🔍 Recordset length: %d', recordset.length);
+        this.logger.info('🔍 First record: %o', recordset[0]);
+        this.logger.info('🔍 JSON String type: %s', typeof jsonString);
+        this.logger.info('🔍 JSON String value: %o', jsonString);
+
+        data = jsonString ? JSON.parse(jsonString as string) : null;
+
+        this.logger.info('🔍 Parsed data type: %s', typeof data);
+        this.logger.info('🔍 Is Array: %s', Array.isArray(data));
+      } else {
+        data = recordset;
+      }
+
+      return { status, message, data, success: true };
     } catch (error) {
       this.logger.error('🔥  Error on requesting DB data: %o', error);
       const status = 500;
@@ -54,11 +74,20 @@ export class BaseMSSqlService implements IBaseMSSqlService {
     const response = request.query<any[]>(query);
 
     try {
-      const data = (await response).recordset;
+      const recordset = (await response).recordset;
       const status = 200;
       const message = 'Operation completed successfully.';
 
-      return { status, message, data: isJsonPath ? data[0] : data, success: true };
+      let data: any;
+      if (isJsonPath) {
+        // FOR JSON PATH returns a single row with JSON string in the first column
+        const jsonString = recordset[0] ? Object.values(recordset[0])[0] : null;
+        data = jsonString ? JSON.parse(jsonString as string) : null;
+      } else {
+        data = recordset;
+      }
+
+      return { status, message, data, success: true };
     } catch (error) {
       this.logger.error('🔥  Error on requesting DB data: %o', error);
       const status = 500;

@@ -11,9 +11,10 @@ export default (app: Router) => {
     const customerName = req.query.customerName as string | undefined;
     const pickupDate = req.query.pickupDate as string | undefined;
     const dropoffDate = req.query.dropoffDate as string | undefined;
+    const topCount = req.query.topCount ? parseInt(req.query.topCount as string) : 50;
 
     bookingService
-      .getBookings(customerName, pickupDate, dropoffDate)
+      .getBookings(customerName, pickupDate, dropoffDate, topCount)
       .then((result) => {
         res.send(result).status(200);
       })

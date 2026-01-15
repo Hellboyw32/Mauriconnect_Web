@@ -166,7 +166,7 @@ export const BookingListTable: FC<BookingListTableProps> = (props) => {
         onRowsPerPageChange={onRowsPerPageChange}
         page={page}
         rowsPerPage={rowsPerPage}
-        rowsPerPageOptions={[5, 10, 25, { value: -1, label: 'All' }]}
+        rowsPerPageOptions={[5, 10, 25, 50, { value: -1, label: 'All' }]}
       />
     </Box>
   );

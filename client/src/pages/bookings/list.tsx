@@ -27,7 +27,7 @@ const useBookingsSearch = () => {
       dropoffDate: undefined
     },
     page: 0,
-    rowsPerPage: -1,
+    rowsPerPage: 50,
     sortBy: 'customerName',
     sortDir: 'asc'
   });

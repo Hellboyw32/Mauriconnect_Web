@@ -1,5 +1,5 @@
 import type { Booking, Filters } from '@libs/types';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { bookingApi } from 'src/api/booking';
 import { useMounted } from '../use-mounted';
 
@@ -25,6 +25,9 @@ export const useBookings = (searchState: BookingsSearchState) => {
     isLoading: false
   });
 
+  // Store previous search state to detect actual changes
+  const prevSearchStateRef = useRef<string>();
+
   const handleBookingsGet = useCallback(async () => {
     try {
       setState((prev) => ({ ...prev, isLoading: true }));
@@ -45,13 +48,16 @@ export const useBookings = (searchState: BookingsSearchState) => {
     }
   }, [searchState, isMounted]);
 
-  useEffect(
-    () => {
+  useEffect(() => {
+    // Deep comparison using JSON stringify
+    const currentSearchState = JSON.stringify(searchState);
+
+    // Only fetch if search state actually changed
+    if (prevSearchStateRef.current !== currentSearchState) {
+      prevSearchStateRef.current = currentSearchState;
       handleBookingsGet();
-    },
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [searchState]
-  );
+    }
+  }, [searchState, handleBookingsGet]);
 
   return {
     handleBookingsGet,

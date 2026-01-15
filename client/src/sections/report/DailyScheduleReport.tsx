@@ -14,11 +14,24 @@ import { bookingApi } from 'src/api/booking';
 import { reportApi } from 'src/api/report';
 import { useMounted } from 'src/hooks/use-mounted';
 
-export default function DailyScheduleReport({ bookings }: { bookings: Booking[] }): any {
+export default function DailyScheduleReport({
+  bookings,
+  dropoffBookings: propDropoffBookings
+}: {
+  bookings: Booking[];
+  dropoffBookings?: Booking[];
+}): any {
   const isMounted = useMounted();
-  const [dropoffBookings, setDropoffBookings] = useState<Booking[]>([]);
+  const [dropoffBookings, setDropoffBookings] = useState<Booking[]>(propDropoffBookings || []);
 
   useEffect(() => {
+    // If dropoffBookings are passed as props, use them
+    if (propDropoffBookings) {
+      setDropoffBookings(propDropoffBookings);
+      return;
+    }
+
+    // Otherwise, fetch dropoff schedule (fallback for backward compatibility)
     const fetchDropoffSchedule = async () => {
       try {
         const data = await reportApi.getDropoffScheduleReport();
@@ -33,7 +46,7 @@ export default function DailyScheduleReport({ bookings }: { bookings: Booking[] 
     if (bookings.length > 0) {
       fetchDropoffSchedule();
     }
-  }, [bookings, isMounted]);
+  }, [bookings, propDropoffBookings, isMounted]);
 
   // Add print styles
   useEffect(() => {

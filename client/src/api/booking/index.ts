@@ -119,7 +119,32 @@ class BookingApi implements IBookingApi {
       }
 
       const response = await api.get<Booking[]>(endpoint);
-      data = response.data;
+
+      // Debug logging
+      console.log('Bookings API Response:', response);
+      console.log('Response data type:', typeof response.data);
+      console.log('Response data is Array:', Array.isArray(response.data));
+      console.log('Response data length:', response.data?.length);
+      console.log('First item:', response.data?.[0]);
+      console.log('First item is Array:', Array.isArray(response.data?.[0]));
+
+      // Handle the case where data might be wrapped in an extra array
+      let responseData = response.data;
+      if (
+        Array.isArray(responseData) &&
+        responseData.length === 1 &&
+        Array.isArray(responseData[0])
+      ) {
+        console.log('Flattening nested array');
+        responseData = responseData[0];
+      }
+
+      data = Array.isArray(responseData) ? responseData : [];
+
+      console.log('Final data array length:', data.length);
+      console.log('First booking in final data:', data[0]);
+
+      count = data.length;
     }
 
     if (typeof sortBy !== 'undefined' && typeof sortDir !== 'undefined') {
