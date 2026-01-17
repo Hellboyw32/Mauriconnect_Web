@@ -141,15 +141,43 @@ export default function DailyScheduleReport({
       field: 'PickUpDate',
       headerName: 'Pickup Date',
       type: 'string',
-      width: 100,
-      valueGetter: ({ value }) => value && format(new Date(value), 'dd/MM/yy HH:mm')
+      width: 120,
+      valueGetter: ({ value }) => {
+        if (!value) return '';
+        try {
+          const date = new Date(value);
+          const year = date.getUTCFullYear();
+          const month = String(date.getUTCMonth() + 1).padStart(2, '0');
+          const day = String(date.getUTCDate()).padStart(2, '0');
+          const hours = String(date.getUTCHours()).padStart(2, '0');
+          const minutes = String(date.getUTCMinutes()).padStart(2, '0');
+          return `${day}/${month}/${year} ${hours}:${minutes}`;
+        } catch (error) {
+          console.error('Error formatting PickUpDate:', value, error);
+          return value;
+        }
+      }
     },
     {
       field: 'DropOffDate',
       headerName: 'Dropoff Date',
       type: 'string',
-      width: 100,
-      valueGetter: ({ value }) => value && format(new Date(value), 'dd/MM/yy HH:mm')
+      width: 120,
+      valueGetter: ({ value }) => {
+        if (!value) return '';
+        try {
+          const date = new Date(value);
+          const year = date.getUTCFullYear();
+          const month = String(date.getUTCMonth() + 1).padStart(2, '0');
+          const day = String(date.getUTCDate()).padStart(2, '0');
+          const hours = String(date.getUTCHours()).padStart(2, '0');
+          const minutes = String(date.getUTCMinutes()).padStart(2, '0');
+          return `${day}/${month}/${year} ${hours}:${minutes}`;
+        } catch (error) {
+          console.error('Error formatting DropOffDate:', value, error);
+          return value;
+        }
+      }
     },
     {
       field: 'FlightNo',
