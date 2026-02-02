@@ -16,7 +16,7 @@ import Typography from '@mui/material/Typography';
 import Grid from '@mui/material/Unstable_Grid2';
 import { DateTimePicker } from '@mui/x-date-pickers/DateTimePicker';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
-import { differenceInDays } from 'date-fns';
+import { differenceInDays, format } from 'date-fns';
 import { useFormik } from 'formik';
 import type { FC } from 'react';
 import { useState } from 'react';
@@ -60,6 +60,9 @@ export const BookingCreateForm: FC = (props) => {
   const { user } = useAuth();
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  const toLocalDateTimeString = (value: Date | null) =>
+    value ? format(value, 'yyyy-MM-dd HH:mm:ss') : null;
+
   const formik = useFormik({
     initialValues,
     validationSchema,
@@ -75,8 +78,8 @@ export const BookingCreateForm: FC = (props) => {
           CustomerName: values.CustomerName,
           ContactDetails: values.ContactDetails,
           FlightNumber: values.FlightNumber,
-          PickUpDate: values.PickUpDate,
-          DropOffDate: values.DropOffDate,
+          PickUpDate: toLocalDateTimeString(values.PickUpDate),
+          DropOffDate: toLocalDateTimeString(values.DropOffDate),
           NumberOfDays: numberOfDays,
           Price: values.Price,
           CarCategory: values.CarCategory,

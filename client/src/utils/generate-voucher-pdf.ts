@@ -24,7 +24,7 @@ export const generateVoucherPDF = async (booking: Booking): Promise<void> => {
   doc.text('Mauriconnect', margin + 30, 16);
   doc.setFontSize(9);
   doc.setFont('helvetica', 'normal');
-  doc.text('CAR RENTAL & TOURING', margin + 30, 22);
+  doc.text('CAR RENTAL & TOURISM', margin + 30, 22);
 
   // Confirmation Number and Date (positioned higher and to the right)
   doc.setFontSize(9);

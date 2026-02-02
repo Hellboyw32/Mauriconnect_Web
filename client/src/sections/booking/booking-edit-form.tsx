@@ -51,6 +51,9 @@ export const BookingEditForm: FC<BookingEditFormProps> = ({ booking }) => {
   const { user } = useAuth();
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  const toLocalDateTimeString = (value: Date | null) =>
+    value ? format(value, 'yyyy-MM-dd HH:mm:ss') : null;
+
   const initialValues: BookingFormValues = {
     car: booking?.Car.CarId ?? '',
     CarCategory: booking?.Car.CarCategory.Category ?? '',
@@ -93,8 +96,8 @@ export const BookingEditForm: FC<BookingEditFormProps> = ({ booking }) => {
           CustomerName: values.CustomerName,
           ContactDetails: values.ContactDetails,
           FlightNumber: values.FlightNumber,
-          PickUpDate: values.PickUpDate,
-          DropOffDate: values.DropOffDate,
+          PickUpDate: toLocalDateTimeString(values.PickUpDate),
+          DropOffDate: toLocalDateTimeString(values.DropOffDate),
           NumberOfDays: numberOfDays,
           Price: values.Price,
           CarId: values.car,
