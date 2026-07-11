@@ -121,7 +121,8 @@ export class BookingService implements IBookingService {
         'IsGps': booking.IsGps,
         'IsCarSeat': booking.IsCarSeat,
         'IsBoosterSeat': booking.IsBoosterSeat,
-        'DropOffPlace': booking.DropOffPlace
+        'DropOffPlace': booking.DropOffPlace,
+        'PickupLocation': booking.PickupLocation
       }
     ];
 
@@ -134,6 +135,7 @@ export class BookingService implements IBookingService {
       {
         'BookingId': bookingId,
         'CustomerName': booking.CustomerName,
+        'ContractNumber': booking.ContractNumber,
         'ContactDetails': booking.ContactDetails,
         'FlightNo': booking.FlightNumber,
         'PickUpDate': booking.PickUpDate,
@@ -155,6 +157,7 @@ export class BookingService implements IBookingService {
         'IsCarSeat': booking.IsCarSeat,
         'IsBoosterSeat': booking.IsBoosterSeat,
         'DropOffPlace': booking.DropOffPlace,
+        'PickupLocation': booking.PickupLocation,
         'DeliveryUser': booking.DeliveryUser,
         'InsuranceAmount': booking.InsuranceAmount,
         'SimCard': booking.SimCard,

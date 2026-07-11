@@ -228,6 +228,18 @@ export default function DailyScheduleReport({
     }
   ];
 
+  const pickupLocationColumnIndex = columns.findIndex((column) => column.field === 'SpecialRequest');
+  const pickupColumns: GridColDef[] = [
+    ...columns.slice(0, pickupLocationColumnIndex),
+    {
+      field: 'PickupLocation',
+      headerName: 'Pickup Location',
+      type: 'string',
+      width: 150
+    },
+    ...columns.slice(pickupLocationColumnIndex)
+  ];
+
   const PickupToolbar = () => (
     <GridToolbarContainer>
       <div
@@ -267,7 +279,7 @@ export default function DailyScheduleReport({
         <div style={{ height: 700, width: '99%' }}>
           <DataGrid
             getRowId={(row) => row.BookingId}
-            columns={columns}
+            columns={pickupColumns}
             rows={bookings}
             slots={{
               toolbar: PickupToolbar

@@ -52,7 +52,7 @@ const Page = () => {
                 <Typography variant="h4">Edit Booking: {booking?.CustomerName}</Typography>
               </Stack>
             </Stack>
-            <BookingEditForm booking={booking!} />
+            {booking && <BookingEditForm booking={booking} />}
           </Stack>
         </Container>
       </Box>

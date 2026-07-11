@@ -30,21 +30,21 @@ BEGIN
         B.CreatedOn,
         B.CreatedBy,
         B.IsActive,
-        (
+        JSON_QUERY((
             SELECT
                 C.CarId,
                 C.Model,
                 C.CarNumber,
                 C.Description,
                 C.CurrentMileage,
-                (
+                JSON_QUERY((
                     SELECT
                         CC.CategoryId,
                         CC.Category
                     FOR JSON PATH, WITHOUT_ARRAY_WRAPPER
-                ) AS CarCategory
+                )) AS CarCategory
             FOR JSON PATH, WITHOUT_ARRAY_WRAPPER
-        ) AS Car
+        )) AS Car
     FROM Booking B
     INNER JOIN Car C ON B.CarId = C.CarId
     INNER JOIN CarCategory CC ON C.CategoryId = CC.CategoryId

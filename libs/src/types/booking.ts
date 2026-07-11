@@ -10,6 +10,7 @@ export interface Booking extends RecordLogs {
   Car: Car;
   CarInsurance?: Date | null;
   ContactDetails?: string | null;
+  ContractNumber?: string | null;
   CreatedBy?: string | null;
   CreatedOn?: Date | null;
   Currency?: string | null;
@@ -32,6 +33,7 @@ export interface Booking extends RecordLogs {
   NumberOfDays?: number;
   PaymentMethod?: PaymentMethods | null;
   PickUpDate: Date;
+  PickupLocation?: string | null;
   POSMachine?: string | null;
   Price?: string;
   ReferenceNo?: string;
@@ -59,9 +61,10 @@ export interface Filters {
 
 export interface BookingFormValues {
   car?: number;
-  CarCategory: string;
+  CarCategory: string | number;
   CarInsurance?: Date;
   ContactDetails: string;
+  ContractNumber?: string;
   CreatedBy?: string;
   CurrencyOption: string;
   CustomerName: string;
@@ -79,6 +82,7 @@ export interface BookingFormValues {
   NumberOfDays?: number;
   PaymentMethod: string;
   PickUpDate: Date;
+  PickupLocation: string;
   POSMachine?: string;
   Price: string;
   ReferenceNo: string;

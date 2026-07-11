@@ -44,6 +44,7 @@ const initialValues: BookingFormValues = {
   CarCategory: '',
   SpecialRequest: '',
   DropOffPlace: '',
+  PickupLocation: '',
   IsGps: false,
   IsCarSeat: false,
   IsBoosterSeat: false
@@ -92,6 +93,7 @@ export const BookingCreateForm: FC = (props) => {
           IsCarSeat: values.IsCarSeat,
           IsBoosterSeat: values.IsBoosterSeat,
           DropOffPlace: values.DropOffPlace,
+          PickupLocation: values.PickupLocation,
           CreatedBy: user?.email || 'system'
         };
 
@@ -347,6 +349,16 @@ export const BookingCreateForm: FC = (props) => {
                       onBlur={formik.handleBlur}
                       onChange={formik.handleChange}
                       value={formik.values.DropOffPlace}
+                    />
+                    <TextField
+                      error={!!(formik.touched.PickupLocation && formik.errors.PickupLocation)}
+                      fullWidth
+                      helperText={formik.touched.PickupLocation && formik.errors.PickupLocation}
+                      label="Pickup Location"
+                      name="PickupLocation"
+                      onBlur={formik.handleBlur}
+                      onChange={formik.handleChange}
+                      value={formik.values.PickupLocation}
                     />
                   </Stack>
                 </Grid>

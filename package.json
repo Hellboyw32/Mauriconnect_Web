@@ -34,7 +34,8 @@
     "@emotion/core": "^11.0.0",
     "@emotion/styled": "^11.11.0",
     "@mui/styled-engine": "^5.13.2",
-    "concurrently": "^8.2.0"
+    "concurrently": "^8.2.0",
+    "reflect-metadata": "^0.2.2"
   },
   "devDependencies": {
     "nodemon": "^2.0.22",

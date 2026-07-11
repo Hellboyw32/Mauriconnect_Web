@@ -9,10 +9,22 @@ import XIcon from '@untitled-ui/icons-react/build/esm/X';
 import PropTypes from 'prop-types';
 import type { FC } from 'react';
 import { useCallback, useEffect, useState } from 'react';
+import type { FileRejection } from 'react-dropzone';
 import { toast } from 'react-hot-toast';
 
 import { File, FileDropzone } from 'src/components/file-dropzone';
 import { fileApi } from 'src/api/files';
+
+const MAX_FILE_SIZE_BYTES = 10 * 1024 * 1024; // 10MB
+const ACCEPTED_FILE_TYPES = {
+  'image/jpeg': ['.jpg', '.jpeg'],
+  'image/png': ['.png'],
+  'image/gif': ['.gif'],
+  'image/webp': ['.webp'],
+  'application/pdf': ['.pdf'],
+  'application/msword': ['.doc'],
+  'application/vnd.openxmlformats-officedocument.wordprocessingml.document': ['.docx']
+};
 
 interface FileUploaderProps {
   referenceNo: string;
@@ -44,6 +56,15 @@ export const FileUploader: FC<FileUploaderProps> = (props) => {
 
   const handleRemoveAll = useCallback((): void => {
     setFiles([]);
+  }, []);
+
+  const handleDropRejected = useCallback((rejections: FileRejection[]): void => {
+    rejections.forEach((rejection) => {
+      const reason = rejection.errors[0]?.code === 'file-too-large'
+        ? 'is too large (max 10MB)'
+        : 'has an unsupported file type';
+      toast.error(`${rejection.file.name} ${reason}`);
+    });
   }, []);
 
   const handleUpload = useCallback(async (): Promise<void> => {
@@ -129,9 +150,12 @@ export const FileUploader: FC<FileUploaderProps> = (props) => {
           </Stack>
         ) : (
           <FileDropzone
-            caption="Max file size is 3 MB"
+            accept={ACCEPTED_FILE_TYPES}
+            caption="Images, PDF, or Word documents. Max 10MB per file."
             files={files}
+            maxSize={MAX_FILE_SIZE_BYTES}
             onDrop={handleDrop}
+            onDropRejected={handleDropRejected}
             onRemove={handleRemove}
             onRemoveAll={handleRemoveAll}
             onUpload={handleUpload}

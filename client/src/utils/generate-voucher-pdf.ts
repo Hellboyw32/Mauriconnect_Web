@@ -32,7 +32,9 @@ export const generateVoucherPDF = async (booking: Booking): Promise<void> => {
   doc.text('Car Rental Provider Confirmation No:', pageWidth - margin - 30, 12, { align: 'right' });
   doc.setFontSize(16);
   doc.setFont('helvetica', 'bold');
-  doc.text(`MC${booking.BookingId.toString().padStart(7, '0')}`, pageWidth - margin, 18, {
+  const confirmationNo =
+    booking.ReferenceNo || `MC${booking.BookingId.toString().padStart(7, '0')}`;
+  doc.text(confirmationNo, pageWidth - margin, 18, {
     align: 'right'
   });
   doc.setFontSize(9);
@@ -108,7 +110,7 @@ export const generateVoucherPDF = async (booking: Booking): Promise<void> => {
     yPos
   );
   doc.text(
-    `Car Category: ${booking.Car?.CarCategory?.Category || 'Economy'}`,
+    `Car Category: ${booking.Car?.CarCategory?.Category || 'N/A'}`,
     margin + 2 * colWidth,
     yPos
   );
@@ -117,7 +119,12 @@ export const generateVoucherPDF = async (booking: Booking): Promise<void> => {
   doc.text('Mauritius Airport', margin, yPos);
   doc.text('Mauritius Airport', margin + colWidth, yPos);
 
-  const carDetails = `Economy, Toyota Vitz or similar, 5 Doors, Power steering, Automatic gear, Air Condition, Music, 5 Adult passengers, 1 Large suitcase (10U Liters), 2 Small suitcases (50 Liters)`;
+  const carCategoryName = booking.Car?.CarCategory?.Category || 'N/A';
+  const carModel = booking.Car?.Model || 'N/A';
+  const carCategoryDescription = booking.Car?.CarCategory?.Description;
+  const carDetails = carCategoryDescription
+    ? `${carCategoryName}, ${carModel} or similar, ${carCategoryDescription}`
+    : `${carCategoryName}, ${carModel} or similar`;
   const splitDetails = doc.splitTextToSize(carDetails, colWidth - 5);
   doc.text(splitDetails, margin + 2 * colWidth, yPos);
 

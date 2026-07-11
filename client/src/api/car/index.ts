@@ -57,9 +57,13 @@ class CarsApi {
     const url = queryString ? `${API_ENDPOINTS.CARS}?${queryString}` : API_ENDPOINTS.CARS;
 
     const response = await api.get(url);
-    const data = response.data;
+    let data = response.data;
 
-    // Ensure we always return an array
+    // FOR JSON PATH + parseJSON:true returns the cars array as data[0]
+    if (Array.isArray(data) && data.length > 0 && Array.isArray(data[0])) {
+      data = data[0];
+    }
+
     return Array.isArray(data) ? data : [];
   }
 

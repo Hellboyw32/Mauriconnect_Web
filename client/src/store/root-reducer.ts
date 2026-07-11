@@ -1,3 +1,5 @@
 import { combineReducers } from '@reduxjs/toolkit';
 
-export const rootReducer = combineReducers({});
+const placeholderReducer = (state = {}) => state;
+
+export const rootReducer = combineReducers({ _: placeholderReducer });

@@ -99,7 +99,7 @@ class BookingApi implements IBookingApi {
       count = data.length;
     } else {
       // Build query string for backend filtering
-      let endpoint = API_ENDPOINTS.BOOKINGS;
+      let endpoint: string = API_ENDPOINTS.BOOKINGS;
       const params = new URLSearchParams();
 
       if (filters?.customerName) {
@@ -163,7 +163,7 @@ class BookingApi implements IBookingApi {
     });
   }
 
-  public async getBooking(request?: GetBookingRequest): Promise<GetBookingResponse> {
+  public async getBooking(request?: GetBookingRequest): GetBookingResponse {
     let data = {} as Booking;
     if (request) {
       if (isMockData()) {
@@ -173,7 +173,11 @@ class BookingApi implements IBookingApi {
         const apiResponse = await api.get<Booking[]>(
           `${API_ENDPOINTS.BOOKINGS}/${request.BookingId}`
         );
-        data = apiResponse.data![0];
+        let responseData = apiResponse.data!;
+        if (Array.isArray(responseData) && responseData.length === 1 && Array.isArray(responseData[0])) {
+          responseData = responseData[0];
+        }
+        data = Array.isArray(responseData) ? responseData[0] : responseData;
         return Promise.resolve(data);
       }
     }

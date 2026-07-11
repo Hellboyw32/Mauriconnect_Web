@@ -18,6 +18,7 @@ BEGIN
     SELECT TOP (@TopCount)
         b.BookingId,
         b.CustomerName,
+        b.ContractNumber,
         b.ContactDetails,
         b.FlightNumber,
         b.PickUpDate,
@@ -34,13 +35,14 @@ BEGIN
         b.PaymentMethod,
         b.FuelLevel,
         b.DropOffPlace,
+        b.PickupLocation,
         b.ReferenceNo,
         b.CreatedOn,
         b.CreatedBy,
-        b.LastModifiedOn,
+        b.LastModifiedTimeStamp,
         b.IsActive,
         b.DeliveryUser,
-        (
+        JSON_QUERY((
             SELECT
                 c.CarId,
                 c.Model,
@@ -49,15 +51,15 @@ BEGIN
                 c.CurrentMileage,
                 c.ServicingFrequency,
                 c.LastServicedMileage,
-                (
+                JSON_QUERY((
                     SELECT
                         cc.CategoryId,
                         cc.Category,
-                        cc.Description AS CategoryDescription
+                        cc.Description
                     FOR JSON PATH, WITHOUT_ARRAY_WRAPPER
-                ) AS CarCategory
+                )) AS CarCategory
             FOR JSON PATH, WITHOUT_ARRAY_WRAPPER
-        ) AS Car
+        )) AS Car
     FROM 
         Booking b
         INNER JOIN Cars c ON b.CarId = c.CarId
@@ -68,8 +70,8 @@ BEGIN
         AND (@CustomerName IS NULL OR b.CustomerName LIKE '%' + @CustomerName + '%')
         AND (@PickupDate IS NULL OR CAST(b.PickUpDate AS DATE) = CAST(@PickupDate AS DATE))
         AND (@DropoffDate IS NULL OR CAST(b.DropOffDate AS DATE) = CAST(@DropoffDate AS DATE))
-    ORDER BY 
-        b.CreatedOn DESC
+    ORDER BY
+        b.LastModifiedTimeStamp DESC
     FOR JSON PATH;
 END
 GO

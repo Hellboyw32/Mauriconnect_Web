@@ -7,6 +7,7 @@ import FormControl from '@mui/material/FormControl';
 import FormControlLabel from '@mui/material/FormControlLabel';
 import FormGroup from '@mui/material/FormGroup';
 import FormLabel from '@mui/material/FormLabel';
+import Autocomplete from '@mui/material/Autocomplete';
 import MenuItem from '@mui/material/MenuItem';
 import Radio from '@mui/material/Radio';
 import RadioGroup from '@mui/material/RadioGroup';
@@ -18,11 +19,12 @@ import { DateTimePicker } from '@mui/x-date-pickers/DateTimePicker';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import { differenceInDays, format } from 'date-fns';
 import { useFormik } from 'formik';
-import { useState, type FC } from 'react';
+import { useState, type FC, type ChangeEvent } from 'react';
 import { toast } from 'react-hot-toast';
 import { bookingApi } from 'src/api/booking';
 import { RouterLink } from 'src/components/router-link';
 import { useAuth } from 'src/hooks/use-auth';
+import { useCars } from 'src/hooks/cars/use-cars';
 import { useRouter } from 'src/hooks/use-router';
 import {
   carAddOns,
@@ -31,7 +33,6 @@ import {
   paymentMethods,
   posMachines
 } from 'src/mock/booking';
-import { cars } from 'src/mock/car';
 import { deliveryUsers } from 'src/mock/delivery-user';
 import { paths } from 'src/paths';
 import * as Yup from 'yup';
@@ -42,6 +43,7 @@ interface BookingEditFormProps {
 
 const validationSchema = Yup.object({
   CustomerName: Yup.string().required('Customer name is required'),
+  ContractNumber: Yup.string().required('Contract number is required'),
   Price: Yup.string().required('Price is required'),
   CarCategory: Yup.string().required('Car category is required')
 });
@@ -54,16 +56,21 @@ export const BookingEditForm: FC<BookingEditFormProps> = ({ booking }) => {
   const toLocalDateTimeString = (value: Date | null) =>
     value ? format(value, 'yyyy-MM-dd HH:mm:ss') : null;
 
+  const toLocalDateString = (value: Date | null) =>
+    value ? format(value, 'yyyy-MM-dd') : null;
+
   const initialValues: BookingFormValues = {
-    car: booking?.Car.CarId ?? '',
-    CarCategory: booking?.Car.CarCategory.Category ?? '',
+    car: booking?.Car?.CarId ?? '',
+    CarCategory: booking?.Car?.CarCategory?.CategoryId ?? '',
     CarInsurance: booking?.CarInsurance ? new Date(booking?.CarInsurance) : new Date(),
     ContactDetails: booking?.ContactDetails ?? '',
+    ContractNumber: booking?.ContractNumber ?? '',
     CurrencyOption: (booking?.Currency as string) ?? currencyOptions[0].value,
     CustomerName: booking?.CustomerName ?? '',
     DeliveryUser: booking?.DeliveryUser ?? '',
     DropOffDate: booking?.DropOffDate ? new Date(booking?.DropOffDate) : new Date(),
     DropOffPlace: booking?.DropOffPlace ?? '',
+    PickupLocation: booking?.PickupLocation ?? '',
     FlightNumber: booking?.FlightNumber ?? '',
     FuelLevel: booking?.FuelLevel ?? '',
     Insurance: booking?.InsuranceAmount ?? 0,
@@ -94,6 +101,7 @@ export const BookingEditForm: FC<BookingEditFormProps> = ({ booking }) => {
 
         const bookingData = {
           CustomerName: values.CustomerName,
+          ContractNumber: values.ContractNumber,
           ContactDetails: values.ContactDetails,
           FlightNumber: values.FlightNumber,
           PickUpDate: toLocalDateTimeString(values.PickUpDate),
@@ -113,13 +121,14 @@ export const BookingEditForm: FC<BookingEditFormProps> = ({ booking }) => {
           IsCarSeat: values.IsCarSeat,
           IsBoosterSeat: values.IsBoosterSeat,
           DropOffPlace: values.DropOffPlace,
+          PickupLocation: values.PickupLocation,
           DeliveryUser: values.DeliveryUser,
           InsuranceAmount: values.Insurance,
           SimCard: values.SimCard,
           HasInsurance: values.Insurance > 0,
           FuelLevel: values.FuelLevel,
-          CarInsurance: values.CarInsurance,
-          RoadTax: values.RoadTax,
+          CarInsurance: toLocalDateString(values.CarInsurance ?? null),
+          RoadTax: toLocalDateString(values.RoadTax ?? null),
           LastModifiedUserId: user?.email || 'system'
         };
 
@@ -138,6 +147,18 @@ export const BookingEditForm: FC<BookingEditFormProps> = ({ booking }) => {
       }
     }
   });
+
+  const initialCategoryId = booking?.Car?.CarCategory?.CategoryId;
+  const { cars, refetch: refetchCars } = useCars(
+    initialCategoryId ? { categoryId: initialCategoryId } : undefined
+  );
+
+  const handleCategoryChange = (e: ChangeEvent<HTMLInputElement>) => {
+    const categoryId = Number(e.target.value);
+    formik.setFieldValue('CarCategory', e.target.value);
+    formik.setFieldValue('car', '');
+    refetchCars({ categoryId });
+  };
 
   const [showAllCarsState, setShowAllCarsState] = useState<boolean>(true);
   const [noShowState, setNoShowState] = useState<boolean>(!showAllCarsState);
@@ -171,6 +192,17 @@ export const BookingEditForm: FC<BookingEditFormProps> = ({ booking }) => {
                       onBlur={formik.handleBlur}
                       onChange={formik.handleChange}
                       value={formik.values.CustomerName}
+                    />
+                    <TextField
+                      error={!!(formik.touched.ContractNumber && formik.errors.ContractNumber)}
+                      fullWidth
+                      helperText={formik.touched.ContractNumber && formik.errors.ContractNumber}
+                      required
+                      label="Contract Number"
+                      name="ContractNumber"
+                      onBlur={formik.handleBlur}
+                      onChange={formik.handleChange}
+                      value={formik.values.ContractNumber}
                     />
                     <Stack
                       spacing={3}
@@ -331,7 +363,7 @@ export const BookingEditForm: FC<BookingEditFormProps> = ({ booking }) => {
                       label="Car Category"
                       name="CarCategory"
                       onBlur={formik.handleBlur}
-                      onChange={formik.handleChange}
+                      onChange={handleCategoryChange}
                       select
                       required
                       value={formik.values.CarCategory}
@@ -351,7 +383,7 @@ export const BookingEditForm: FC<BookingEditFormProps> = ({ booking }) => {
                         <FormControlLabel
                           control={<Checkbox checked={noShowState} />}
                           label={<Typography variant="body2">No Show</Typography>}
-                          name="noShow"
+                          name="NoShow"
                           disabled={showAllCarsState}
                           onChange={(event) => {
                             formik.handleChange(event);
@@ -369,27 +401,26 @@ export const BookingEditForm: FC<BookingEditFormProps> = ({ booking }) => {
                         />
                       </div>
                     </Stack>
-                    <TextField
+                    <Autocomplete
                       disabled={noShowState}
-                      error={!!(formik.touched.car && formik.errors.car)}
-                      fullWidth
-                      label="Car Requested"
-                      name="car"
-                      onBlur={formik.handleBlur}
-                      onChange={formik.handleChange}
-                      select
-                      value={formik.values.car}
-                      helperText={formik.touched.car && formik.errors.car}
-                    >
-                      {cars.map((car) => (
-                        <MenuItem
-                          key={car.CarId}
-                          value={car.CarId}
-                        >
-                          {car.Model}
-                        </MenuItem>
-                      ))}
-                    </TextField>
+                      options={cars}
+                      getOptionLabel={(car) => `${car.Model} - ${car.CarNumber}`}
+                      value={cars.find((c) => c.CarId === formik.values.car) ?? null}
+                      onChange={(_, selected) => {
+                        formik.setFieldValue('car', selected?.CarId ?? '');
+                      }}
+                      onBlur={() => formik.setFieldTouched('car', true)}
+                      isOptionEqualToValue={(option, value) => option.CarId === value.CarId}
+                      renderInput={(params) => (
+                        <TextField
+                          {...params}
+                          label="Car Requested"
+                          name="car"
+                          error={!!(formik.touched.car && formik.errors.car)}
+                          helperText={formik.touched.car && formik.errors.car}
+                        />
+                      )}
+                    />
                     <TextField
                       error={!!(formik.touched.Mileage && formik.errors.Mileage)}
                       fullWidth
@@ -480,6 +511,16 @@ export const BookingEditForm: FC<BookingEditFormProps> = ({ booking }) => {
                       onBlur={formik.handleBlur}
                       onChange={formik.handleChange}
                       value={formik.values.DropOffPlace}
+                    />
+                    <TextField
+                      error={!!(formik.touched.PickupLocation && formik.errors.PickupLocation)}
+                      fullWidth
+                      helperText={formik.touched.PickupLocation && formik.errors.PickupLocation}
+                      label="Pickup Location"
+                      name="PickupLocation"
+                      onBlur={formik.handleBlur}
+                      onChange={formik.handleChange}
+                      value={formik.values.PickupLocation}
                     />
                     <TextField
                       error={!!(formik.touched.DeliveryUser && formik.errors.DeliveryUser)}

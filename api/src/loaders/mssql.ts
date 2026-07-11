@@ -7,6 +7,7 @@ const sqlConfig: dbConfig = {
   database: database.name,
   password: database.password,
   server: database.server,
+  port: database.port,
   user: database.user,
   parseJSON: true,
   options: {

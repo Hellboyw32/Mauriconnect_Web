@@ -1,16 +1,54 @@
 import { FTPService } from '@/services/ftp';
-import { Router, type Request, type Response } from 'express';
+import { Router, type Request, type Response, type NextFunction } from 'express';
 import { Container } from 'typedi';
 import multer from 'multer';
+import * as path from 'path';
 
 const route = Router();
-const upload = multer({ storage: multer.memoryStorage() });
+
+const MAX_FILE_SIZE_BYTES = 10 * 1024 * 1024; // 10MB
+// Extension is checked rather than MIME type: browsers/OSes report inconsistent
+// or generic (e.g. application/octet-stream) MIME types for the same file type.
+const ALLOWED_EXTENSIONS = ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.pdf', '.doc', '.docx'];
+
+const upload = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: MAX_FILE_SIZE_BYTES },
+  fileFilter: (_req, file, cb) => {
+    const extension = path.extname(file.originalname).toLowerCase();
+
+    if (ALLOWED_EXTENSIONS.includes(extension)) {
+      cb(null, true);
+    } else {
+      cb(new Error('Invalid file type. Allowed types: images (jpg, png, gif, webp), PDF, and Word documents.'));
+    }
+  }
+});
+
+const handleUpload = (req: Request, res: Response, next: NextFunction) => {
+  upload.single('file')(req, res, (error: unknown) => {
+    if (!error) {
+      return next();
+    }
+
+    const message =
+      error instanceof multer.MulterError && error.code === 'LIMIT_FILE_SIZE'
+        ? 'File is too large. Maximum size is 10MB.'
+        : (error as Error).message || 'File upload error';
+
+    res.status(400).send({
+      status: 400,
+      message,
+      success: false
+    });
+  });
+};
 
 export default (app: Router) => {
   app.use('/files', route);
 
   // Upload file
-  route.post('/upload', upload.single('file'), async (req: Request, res: Response) => {
+  route.post('/upload', handleUpload, async (req: Request, res: Response) => {
     try {
       const referenceNo = req.body.referenceNo as string;
       const file = req.file;

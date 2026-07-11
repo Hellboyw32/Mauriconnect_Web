@@ -95,6 +95,7 @@ const Page = () => {
         </Container>
       </Box>
       <FileUploader
+        referenceNo={booking?.ReferenceNo ?? ''}
         onClose={uploadDialog.handleClose}
         open={uploadDialog.open}
       />

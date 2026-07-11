@@ -17,6 +17,7 @@ export default {
     name: process.env.DATABASE_NAME,
     password: process.env.DATABASE_PASSWORD,
     server: process.env.DATABASE_SERVER,
+    port: parseInt(process.env.DATABASE_PORT || '1433', 10),
     user: process.env.DATABASE_USER
   },
   logs: {

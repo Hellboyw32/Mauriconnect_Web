@@ -20,23 +20,46 @@ export class CarService implements ICarService {
 
   async getCars(carNumber?: string, categoryId?: number): Promise<Response<Cars>> {
     const storedProcedure = STORED_PROCEDURES.GET_CARS_JSON;
-    const inputs = [];
+
+    const result = await this.mssqlService.requestByStoredProcedure<Cars>(storedProcedure, [], false);
+
+    let cars: any[] = [];
+
+    if (result.data && Array.isArray(result.data) && result.data.length > 0) {
+      // FOR JSON PATH + parseJSON:true returns the entire cars array as result.data[0]
+      if (Array.isArray(result.data[0])) {
+        cars = result.data[0];
+      } else {
+        cars = result.data;
+      }
+    }
+
+    if (categoryId) {
+      cars = cars.filter((car) => {
+        if (car.CategoryId === categoryId) return true;
+        if (!car.CarCategory) return false;
+        if (typeof car.CarCategory === 'object') return car.CarCategory.CategoryId === categoryId;
+        if (typeof car.CarCategory === 'string') {
+          try { return JSON.parse(car.CarCategory).CategoryId === categoryId; } catch { return false; }
+        }
+        return false;
+      });
+    }
 
     if (carNumber) {
-      inputs.push({ 'CarNumber': carNumber });
-    }
-    if (categoryId) {
-      inputs.push({ 'CategoryId': categoryId });
+      cars = cars.filter((car) =>
+        car.CarNumber?.toLowerCase().includes(carNumber.toLowerCase())
+      );
     }
 
-    return await this.mssqlService.requestByStoredProcedure<Cars>(storedProcedure, inputs, true);
+    return { ...result, data: cars as Cars };
   }
 
   async getCar(carId: number): Promise<Response<Car>> {
     const storedProcedure = STORED_PROCEDURES.GET_CAR_JSON;
     const inputs = [{ 'CarId': carId }];
 
-    return await this.mssqlService.requestByStoredProcedure<Car>(storedProcedure, inputs, true);
+    return await this.mssqlService.requestByStoredProcedure<Car>(storedProcedure, inputs, false);
   }
 
   async createCar(car: CarFormValues): Promise<Response> {

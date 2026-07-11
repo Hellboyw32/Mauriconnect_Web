@@ -21,12 +21,12 @@ BEGIN
         c.SortOrder,
         c.LastModifiedTimeStamp,
         c.LastModifiedUserId,
-        (
+        JSON_QUERY((
             SELECT
                 ct.CategoryId,
                 ct.Category
             FOR JSON PATH, WITHOUT_ARRAY_WRAPPER
-        ) AS CarCategory
+        )) AS CarCategory
     FROM Cars c 
     JOIN CarCategory ct ON c.CategoryId = ct.CategoryId
     WHERE c.CarId = @CarId
