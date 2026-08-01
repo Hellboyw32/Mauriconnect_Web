@@ -23,6 +23,21 @@ export const paths = {
     create: '/cars/create',
     edit: '/cars/:carId/edit'
   },
+  carInsurance: {
+    index: '/car-insurance',
+    create: '/car-insurance/create',
+    edit: '/car-insurance/:carInsuranceId/edit'
+  },
+  roadTax: {
+    index: '/road-tax',
+    create: '/road-tax/create',
+    edit: '/road-tax/:roadTaxId/edit'
+  },
+  fitnessCertificate: {
+    index: '/fitness-certificate',
+    create: '/fitness-certificate/create',
+    edit: '/fitness-certificate/:fitnessId/edit'
+  },
   reports: {
     index: '/reports'
   }

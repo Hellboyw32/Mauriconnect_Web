@@ -7,6 +7,9 @@ import BarChartSquare02Icon from 'src/icons/untitled-ui/duocolor/bar-chart-squar
 import HomeSmileIcon from 'src/icons/untitled-ui/duocolor/home-smile';
 import LayoutAlt02 from 'src/icons/untitled-ui/duocolor/layout-alt-02';
 import Truck01 from 'src/icons/untitled-ui/duocolor/truck-01';
+import ReceiptCheck from 'src/icons/untitled-ui/duocolor/receipt-check';
+import CreditCard01 from 'src/icons/untitled-ui/duocolor/credit-card-01';
+import File04 from 'src/icons/untitled-ui/duocolor/file-04';
 import { tokens } from 'src/locales/tokens';
 import { paths } from 'src/paths';
 
@@ -71,6 +74,33 @@ export const useSections = () => {
             icon: (
               <SvgIcon fontSize="small">
                 <Truck01 />
+              </SvgIcon>
+            )
+          },
+          {
+            title: t(tokens.nav.carInsurance),
+            path: paths.carInsurance.index,
+            icon: (
+              <SvgIcon fontSize="small">
+                <ReceiptCheck />
+              </SvgIcon>
+            )
+          },
+          {
+            title: t(tokens.nav.roadTax),
+            path: paths.roadTax.index,
+            icon: (
+              <SvgIcon fontSize="small">
+                <CreditCard01 />
+              </SvgIcon>
+            )
+          },
+          {
+            title: t(tokens.nav.fitnessCertificate),
+            path: paths.fitnessCertificate.index,
+            icon: (
+              <SvgIcon fontSize="small">
+                <File04 />
               </SvgIcon>
             )
           },

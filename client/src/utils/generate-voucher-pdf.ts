@@ -1,49 +1,55 @@
 import { format } from 'date-fns';
 import jsPDF from 'jspdf';
 import type { Booking } from '@libs/types';
+import { invoiceApi } from 'src/api/invoice';
 
 export const generateVoucherPDF = async (booking: Booking): Promise<void> => {
+  const { invoiceReferenceNo } = await invoiceApi.generateInvoiceReference({
+    customerName: booking.CustomerName || 'Guest'
+  });
+
   const doc = new jsPDF();
   const pageWidth = doc.internal.pageSize.getWidth();
   const margin = 20;
   const contentWidth = pageWidth - 2 * margin;
 
+  // VAT Invoice title
+  doc.setFontSize(14);
+  doc.setFont('helvetica', 'bold');
+  doc.text('VAT INVOICE', pageWidth / 2, 8, { align: 'center' });
+
   // Load and add logo
-  const logoUrl = '/assets/mauriconnectIcon.jpg';
+  const logoUrl = '/assets/TanTejLogo.png';
   try {
     const img = new Image();
     img.src = logoUrl;
-    doc.addImage(img, 'JPEG', margin, 10, 25, 18);
+    doc.addImage(img, 'PNG', margin, 14, 54, 15.6);
   } catch (error) {
     console.error('Error loading logo:', error);
   }
 
-  // Header - Title (moved to accommodate logo)
-  doc.setFontSize(18);
-  doc.setFont('helvetica', 'bold');
-  doc.text('Mauriconnect', margin + 30, 16);
+  // Confirmation Number, Invoice Number, and Date (positioned to the right)
   doc.setFontSize(9);
   doc.setFont('helvetica', 'normal');
-  doc.text('CAR RENTAL & TOURISM', margin + 30, 22);
-
-  // Confirmation Number and Date (positioned higher and to the right)
-  doc.setFontSize(9);
-  doc.setFont('helvetica', 'normal');
-  doc.text('Car Rental Provider Confirmation No:', pageWidth - margin - 30, 12, { align: 'right' });
+  doc.text('Car Rental Provider Confirmation No:', pageWidth - margin - 30, 16, { align: 'right' });
   doc.setFontSize(16);
   doc.setFont('helvetica', 'bold');
   const confirmationNo =
     booking.ReferenceNo || `MC${booking.BookingId.toString().padStart(7, '0')}`;
-  doc.text(confirmationNo, pageWidth - margin, 18, {
+  doc.text(confirmationNo, pageWidth - margin, 22, {
     align: 'right'
   });
   doc.setFontSize(9);
   doc.setFont('helvetica', 'normal');
-  doc.text('Date Prepared:', pageWidth - margin - 30, 24, { align: 'right' });
-  doc.text(format(new Date(), 'yyyy/MM/dd'), pageWidth - margin, 24, { align: 'right' });
+  doc.text('Invoice No:', pageWidth - margin - 30, 28, { align: 'right' });
+  doc.setFont('helvetica', 'bold');
+  doc.text(invoiceReferenceNo, pageWidth - margin, 28, { align: 'right' });
+  doc.setFont('helvetica', 'normal');
+  doc.text('Date Prepared:', pageWidth - margin - 30, 34, { align: 'right' });
+  doc.text(format(new Date(), 'yyyy/MM/dd'), pageWidth - margin, 34, { align: 'right' });
 
   // Meeting Point
-  let yPos = 35;
+  let yPos = 45;
   doc.setFontSize(10);
   doc.setFont('helvetica', 'bold');
   doc.text('MEETING POINT:', margin, yPos);

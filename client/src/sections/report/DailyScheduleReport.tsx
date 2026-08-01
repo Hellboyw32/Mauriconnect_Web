@@ -183,7 +183,7 @@ export default function DailyScheduleReport({
       field: 'FlightNo',
       headerName: 'FlightNo.',
       type: 'string',
-      width: 70
+      width: 90
     },
     {
       field: 'NumberOfDays',
@@ -276,7 +276,7 @@ export default function DailyScheduleReport({
     <Box sx={{ width: '100%' }}>
       {/* Pickup Schedule */}
       <Box sx={{ mb: 4 }}>
-        <div style={{ height: 700, width: '99%' }}>
+        <div style={{ width: '99%' }}>
           <DataGrid
             getRowId={(row) => row.BookingId}
             columns={pickupColumns}
@@ -285,6 +285,8 @@ export default function DailyScheduleReport({
               toolbar: PickupToolbar
             }}
             getRowHeight={() => 'auto'}
+            autoHeight
+            disableVirtualization
             sx={{
               boxShadow: 2,
               border: 2,
@@ -303,6 +305,16 @@ export default function DailyScheduleReport({
                 maxHeight: 'none !important'
               },
               '@media print': {
+                width: 'max-content !important',
+                minWidth: '100% !important',
+                fontSize: '10px !important',
+                '& .MuiDataGrid-main': {
+                  overflow: 'visible !important'
+                },
+                '& .MuiDataGrid-virtualScroller': {
+                  overflow: 'visible !important',
+                  height: 'auto !important'
+                },
                 '& .MuiDataGrid-cell': {
                   whiteSpace: 'normal !important',
                   wordWrap: 'break-word !important',
@@ -311,7 +323,8 @@ export default function DailyScheduleReport({
                   maxWidth: '200px !important'
                 },
                 '& .MuiDataGrid-row': {
-                  pageBreakInside: 'avoid'
+                  pageBreakInside: 'avoid',
+                  maxHeight: 'none !important'
                 }
               }
             }}
@@ -321,7 +334,7 @@ export default function DailyScheduleReport({
 
       {/* Drop-off Schedule */}
       <Box sx={{ mt: 4 }}>
-        <div style={{ height: 700, width: '99%' }}>
+        <div style={{ width: '99%' }}>
           <DataGrid
             getRowId={(row) => row.BookingId}
             columns={columns}
@@ -330,6 +343,8 @@ export default function DailyScheduleReport({
               toolbar: DropoffToolbar
             }}
             getRowHeight={() => 'auto'}
+            autoHeight
+            disableVirtualization
             sx={{
               boxShadow: 2,
               border: 2,
@@ -348,6 +363,16 @@ export default function DailyScheduleReport({
                 maxHeight: 'none !important'
               },
               '@media print': {
+                width: 'max-content !important',
+                minWidth: '100% !important',
+                fontSize: '10px !important',
+                '& .MuiDataGrid-main': {
+                  overflow: 'visible !important'
+                },
+                '& .MuiDataGrid-virtualScroller': {
+                  overflow: 'visible !important',
+                  height: 'auto !important'
+                },
                 '& .MuiDataGrid-cell': {
                   whiteSpace: 'normal !important',
                   wordWrap: 'break-word !important',
@@ -356,7 +381,8 @@ export default function DailyScheduleReport({
                   maxWidth: '200px !important'
                 },
                 '& .MuiDataGrid-row': {
-                  pageBreakInside: 'avoid'
+                  pageBreakInside: 'avoid',
+                  maxHeight: 'none !important'
                 }
               }
             }}

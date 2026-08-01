@@ -4,6 +4,9 @@ import type { RouteObject } from 'react-router';
 import { authRoutes } from './auth';
 import { bookingRoutes } from './bookings';
 import { carRoutes } from './cars';
+import { carInsuranceRoutes } from './car-insurance';
+import { roadTaxRoutes } from './road-tax';
+import { fitnessCertificateRoutes } from './fitness-certificate';
 import { reportRoutes } from './reports';
 import { dashboardRoutes } from './dashboard';
 
@@ -15,6 +18,9 @@ export const routes: RouteObject[] = [
   ...authRoutes,
   ...bookingRoutes,
   ...carRoutes,
+  ...carInsuranceRoutes,
+  ...roadTaxRoutes,
+  ...fitnessCertificateRoutes,
   ...reportRoutes,
   ...dashboardRoutes,
   {

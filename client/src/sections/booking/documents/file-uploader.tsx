@@ -76,16 +76,7 @@ export const FileUploader: FC<FileUploaderProps> = (props) => {
     setUploading(true);
 
     try {
-      const uploadPromises = files.map(async (file) => {
-        // Convert File from FileDropzone to native File object
-        if (!file.path) {
-          throw new Error(`File ${file.name} has no path`);
-        }
-        const blob = await fetch(file.path).then((r) => r.blob());
-        const nativeFile = new window.File([blob], file.name, { type: blob.type });
-
-        return fileApi.uploadFile(referenceNo, nativeFile);
-      });
+      const uploadPromises = files.map((file) => fileApi.uploadFile(referenceNo, file));
 
       const results = await Promise.all(uploadPromises);
       const successCount = results.filter((r) => r.success).length;
