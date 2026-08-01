@@ -7,22 +7,22 @@ import SvgIcon from '@mui/material/SvgIcon';
 import Typography from '@mui/material/Typography';
 import ArrowLeftIcon from '@untitled-ui/icons-react/build/esm/ArrowLeft';
 import Upload01Icon from '@untitled-ui/icons-react/build/esm/Upload01';
-import { useCallback } from 'react';
+import { useCallback, useState } from 'react';
 import { RouterLink } from 'src/components/router-link';
 import { Seo } from 'src/components/seo';
 import { useBooking as useSingleBooking } from 'src/hooks/bookings/use-single-booking';
 import { useDialog } from 'src/hooks/use-dialog';
 import { paths } from 'src/paths';
-import { DocumentList } from 'src/sections/booking/documents/document-list';
+import { FileList } from 'src/sections/booking/documents/file-list';
 import { FileUploader } from 'src/sections/booking/documents/file-uploader';
 
 const Page = () => {
   const booking = useSingleBooking();
   const uploadDialog = useDialog();
+  const [refreshTrigger, setRefreshTrigger] = useState(0);
 
-  const handleDelete = useCallback((documentId: string): void => {
-    // TODO: Implement delete of file
-    console.log('Handle the delete of the file..', documentId);
+  const handleUploadComplete = useCallback((): void => {
+    setRefreshTrigger((prev) => prev + 1);
   }, []);
 
   return (
@@ -86,9 +86,9 @@ const Page = () => {
                 lg: 4
               }}
             >
-              <DocumentList
-                documents={booking?.documents}
-                onDelete={handleDelete}
+              <FileList
+                referenceNo={booking?.ReferenceNo ?? ''}
+                refreshTrigger={refreshTrigger}
               />
             </Stack>
           </Stack>
@@ -97,6 +97,7 @@ const Page = () => {
       <FileUploader
         referenceNo={booking?.ReferenceNo ?? ''}
         onClose={uploadDialog.handleClose}
+        onUploadComplete={handleUploadComplete}
         open={uploadDialog.open}
       />
     </>

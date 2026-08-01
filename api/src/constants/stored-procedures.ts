@@ -26,6 +26,27 @@ export enum CAR_STORED_PROCEDURES {
   GET_CAR_CATEGORY_DISTRIBUTION = 'spGetCarCategoryDistribution'
 }
 
+export enum CAR_INSURANCE_STORED_PROCEDURES {
+  GET_CAR_INSURANCES_JSON = 'spGetAllCarInsuranceJson',
+  GET_CAR_INSURANCE_JSON = 'spGetSingleCarInsuranceJson',
+  UPDATE_CAR_INSURANCE = 'spUpdateCarInsuranceDetails',
+  DELETE_CAR_INSURANCE = 'spDeleteCarInsurance'
+}
+
+export enum ROAD_TAX_STORED_PROCEDURES {
+  GET_ROAD_TAXES_JSON = 'spGetAllRoadTaxJson',
+  GET_ROAD_TAX_JSON = 'spGetSingleRoadTaxJson',
+  UPDATE_ROAD_TAX = 'spUpdateRoadTaxDetails',
+  DELETE_ROAD_TAX = 'spDeleteRoadTax'
+}
+
+export enum FITNESS_CERTIFICATE_STORED_PROCEDURES {
+  GET_FITNESS_CERTIFICATES_JSON = 'spGetAllFitnessCertificateJson',
+  GET_FITNESS_CERTIFICATE_JSON = 'spGetSingleFitnessCertificateJson',
+  UPDATE_FITNESS_CERTIFICATE = 'spUpdateFitnessCertificateDetails',
+  DELETE_FITNESS_CERTIFICATE = 'spDeleteFitnessCertificate'
+}
+
 export enum DELIVERY_USER_STORED_PROCEDURES {
   GET_DELIVERY_USERS = 'spGetDeliveryUsers'
 }

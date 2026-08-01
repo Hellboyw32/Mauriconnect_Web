@@ -82,13 +82,17 @@ const useCarsIds = (cars: Car[] = []) => {
 
 const Page = () => {
   const carsSearch = useCarsSearch();
-  const { cars, isLoading, refetch } = useCars(carsSearch.state.filters);
+  const { cars, isLoading } = useCars(carsSearch.state.filters);
   const carsIds = useCarsIds(cars);
   const carsSelection = useSelection<number>(carsIds);
 
   const handleRefresh = useCallback((): void => {
-    refetch(carsSearch.state.filters);
-  }, [refetch, carsSearch.state.filters]);
+    // Reset filters to initial state; the fetch re-runs reactively
+    carsSearch.handleFiltersChange({
+      carNumber: undefined,
+      categoryId: undefined
+    });
+  }, [carsSearch]);
 
   return (
     <>
@@ -146,6 +150,7 @@ const Page = () => {
                 onSortChange={carsSearch.handleSortChange}
                 sortBy={carsSearch.state.sortBy}
                 sortDir={carsSearch.state.sortDir}
+                filters={carsSearch.state.filters}
               />
               <CarListTable
                 count={cars.length}

@@ -36,10 +36,13 @@ const ALLOWED_EXTENSIONS = ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.pdf', '.
 const FTP_ROOT_WINDOWS_PATH =
   process.env.FTP_ROOT_WINDOWS_PATH || 'C:\\inetpub\\MauriconnectFileUpload';
 
+const FALLBACK_RETRY_INTERVAL_MS = 60 * 1000;
+
 @Service()
 export class FTPService {
   private config: FTPConfig;
   private useFallback: boolean = false;
+  private fallbackSince: number = 0;
   private localStoragePath: string = path.join(process.cwd(), 'uploads');
 
   @Inject()
@@ -52,7 +55,7 @@ export class FTPService {
       port: parseInt(process.env.FTP_PORT || '21'),
       user: process.env.FTP_USER || 'anonymous',
       password: process.env.FTP_PASSWORD || '',
-      secure: false // Force non-secure connection first
+      secure: process.env.FTP_SECURE === 'true' // Force non-secure connection first
     };
 
     // Create local storage directory if it doesn't exist
@@ -63,8 +66,12 @@ export class FTPService {
 
   private async getClient(): Promise<ftp.Client | null> {
     if (this.useFallback) {
-      console.log('Using local file storage fallback');
-      return null;
+      if (Date.now() - this.fallbackSince < FALLBACK_RETRY_INTERVAL_MS) {
+        console.log('Using local file storage fallback');
+        return null;
+      }
+      // Retry interval elapsed - give the FTP server another chance
+      console.log('Fallback retry interval elapsed, retrying FTP connection');
     }
 
     const client = new ftp.Client();
@@ -75,22 +82,23 @@ export class FTPService {
       console.log('Attempting FTP connection to:', this.config.host);
       console.log('Using username:', this.config.user);
 
-      // Explicitly force non-secure connection
       await client.access({
         host: this.config.host,
         port: this.config.port,
         user: this.config.user,
         password: this.config.password,
-        secure: false,
+        secure: this.config.secure,
         secureOptions: {
           rejectUnauthorized: false
         }
       });
 
       console.log('FTP connection successful');
+      this.useFallback = false;
       return client;
     } catch (error) {
-      console.error('FTP connection error:', error);
+      const err = error as { message?: string; code?: string };
+      console.error('FTP connection error:', err.message || err, err.code ? `(code: ${err.code})` : '');
       console.error('FTP Config (password hidden):', {
         host: this.config.host,
         port: this.config.port,
@@ -99,6 +107,7 @@ export class FTPService {
       });
       console.warn('Falling back to local file storage');
       this.useFallback = true;
+      this.fallbackSince = Date.now();
       return null;
     }
   }
@@ -211,8 +220,21 @@ export class FTPService {
 
       // Write buffer to temporary file
       fs.writeFileSync(tempFilePath, request.fileBuffer);
+      const tempFileSize = fs.statSync(tempFilePath).size;
+      console.log(`Uploading ${storedFileName}: source buffer ${request.fileBuffer.length} bytes, temp file ${tempFileSize} bytes`);
 
       await client.uploadFrom(tempFilePath, filePath);
+
+      const remoteSize = await client.size(filePath).catch((error) => {
+        console.error('Could not verify remote file size after upload:', error);
+        return -1;
+      });
+
+      if (remoteSize !== tempFileSize) {
+        console.warn(`FTP upload size mismatch for ${filePath}: local ${tempFileSize} bytes, remote reports ${remoteSize} bytes`);
+      } else {
+        console.log(`FTP upload verified for ${filePath}: ${remoteSize} bytes`);
+      }
 
       // Clean up temporary file
       fs.unlinkSync(tempFilePath);

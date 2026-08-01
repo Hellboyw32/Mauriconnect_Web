@@ -61,7 +61,7 @@ export const BookingListSearch: FC<BookingListSearchProps> = (props) => {
   // Reset fields when filters are cleared from parent
   useUpdateEffect(() => {
     if (!filters?.customerName && !filters?.pickupDate && !filters?.dropoffDate) {
-      setChips([]);
+      setChips((prevChips) => (prevChips.length > 0 ? [] : prevChips));
       setPickupDate(null);
       setDropoffDate(null);
       if (queryRef.current) {

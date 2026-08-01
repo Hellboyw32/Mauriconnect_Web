@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { carsApi } from 'src/api/car';
 import type { Cars, CarFilters } from '@libs/types';
 
@@ -13,6 +13,7 @@ export const useCars = (initialFilters?: CarFilters): UseCarsResult => {
   const [cars, setCars] = useState<Cars>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const prevFiltersRef = useRef<string>();
 
   const fetchCars = async (filters?: CarFilters) => {
     try {
@@ -29,8 +30,13 @@ export const useCars = (initialFilters?: CarFilters): UseCarsResult => {
   };
 
   useEffect(() => {
-    fetchCars(initialFilters);
-  }, []);
+    const currentFilters = JSON.stringify(initialFilters);
+    if (prevFiltersRef.current !== currentFilters) {
+      prevFiltersRef.current = currentFilters;
+      fetchCars(initialFilters);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [initialFilters]);
 
   const refetch = (filters?: CarFilters) => {
     fetchCars(filters);

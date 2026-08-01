@@ -1,6 +1,7 @@
 import type { CarFilters } from '@libs/types';
 import { CarCategoryOptions } from '@libs/types';
 import Box from '@mui/material/Box';
+import Button from '@mui/material/Button';
 import Chip from '@mui/material/Chip';
 import Divider from '@mui/material/Divider';
 import InputAdornment from '@mui/material/InputAdornment';
@@ -62,12 +63,23 @@ interface CarListSearchProps {
   onSortChange?: (sort: { sortBy: string; sortDir: SortDir }) => void;
   sortBy?: string;
   sortDir?: SortDir;
+  filters?: CarFilters;
 }
 
 export const CarListSearch: FC<CarListSearchProps> = (props) => {
-  const { onFiltersChange, onSortChange, sortBy, sortDir } = props;
+  const { onFiltersChange, onSortChange, sortBy, sortDir, filters } = props;
   const queryRef = useRef<HTMLInputElement | null>(null);
   const [chips, setChips] = useState<SearchChip[]>([]);
+
+  // Reset fields when filters are cleared from parent
+  useUpdateEffect(() => {
+    if (!filters?.carNumber && !filters?.categoryId) {
+      setChips((prevChips) => (prevChips.length > 0 ? [] : prevChips));
+      if (queryRef.current) {
+        queryRef.current.value = '';
+      }
+    }
+  }, [filters]);
 
   const handleChipsUpdate = useCallback(() => {
     const filters: CarFilters = {
@@ -140,10 +152,6 @@ export const CarListSearch: FC<CarListSearchProps> = (props) => {
 
       return prevChips;
     });
-
-    if (queryRef.current) {
-      queryRef.current.value = '';
-    }
   }, []);
 
   const handleCategoryChange = useCallback((event: ChangeEvent<HTMLInputElement>): void => {
@@ -201,6 +209,13 @@ export const CarListSearch: FC<CarListSearchProps> = (props) => {
             </InputAdornment>
           }
         />
+        <Button
+          type="submit"
+          variant="contained"
+          sx={{ minWidth: 100, height: 56 }}
+        >
+          Search
+        </Button>
         <TextField
           label="Category"
           name="category"

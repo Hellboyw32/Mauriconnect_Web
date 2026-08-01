@@ -5,6 +5,8 @@ export const en = {
   [tokens.nav.analytics]: 'Analytics',
   [tokens.nav.auth]: 'Auth',
   [tokens.nav.bookings]: 'Bookings',
+  [tokens.nav.cars]: 'Cars',
+  [tokens.nav.carInsurance]: 'Car Insurance',
   [tokens.nav.dashboard]: 'Dashboard',
   [tokens.nav.details]: 'Details',
   [tokens.nav.ecommerce]: 'E-Commerce',
@@ -12,6 +14,7 @@ export const en = {
   [tokens.nav.error]: 'Error',
   [tokens.nav.feed]: 'Feed',
   [tokens.nav.finance]: 'Finance',
+  [tokens.nav.fitnessCertificate]: 'Fitness Certificate',
   [tokens.nav.fleet]: 'Fleet',
   [tokens.nav.forgotPassword]: 'Forgot Password',
   [tokens.nav.list]: 'List',
@@ -29,5 +32,6 @@ export const en = {
   [tokens.nav.productList]: 'Products',
   [tokens.nav.profile]: 'Profile',
   [tokens.nav.reports]: 'Reports',
+  [tokens.nav.roadTax]: 'Road Tax',
   [tokens.nav.verifyCode]: 'Verify Code'
 };

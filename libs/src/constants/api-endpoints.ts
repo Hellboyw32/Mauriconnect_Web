@@ -2,5 +2,9 @@ export enum API_ENDPOINTS {
   BOOKINGS = '/bookings',
   REPORTS = '/reports',
   FILES = '/files',
-  CARS = '/cars'
+  CARS = '/cars',
+  CAR_INSURANCE = '/car-insurance',
+  ROAD_TAX = '/road-tax',
+  FITNESS_CERTIFICATE = '/fitness-certificate',
+  INVOICE = '/invoice'
 }
