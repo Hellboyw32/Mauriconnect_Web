@@ -7,10 +7,15 @@ import Typography from '@mui/material/Typography';
 import ArrowLeftIcon from '@untitled-ui/icons-react/build/esm/ArrowLeft';
 import { RouterLink } from 'src/components/router-link';
 import { Seo } from 'src/components/seo';
+import { useSearchParams } from 'src/hooks/use-search-params';
 import { paths } from 'src/paths';
 import { RoadTaxForm } from 'src/sections/road-tax/road-tax-form';
 
 const Page = () => {
+  const searchParams = useSearchParams();
+  const carIdParam = searchParams.get('carId');
+  const returnTo = searchParams.get('returnTo');
+
   return (
     <>
       <Seo title="Road Tax: Create" />
@@ -27,7 +32,7 @@ const Page = () => {
               <Link
                 color="text.primary"
                 component={RouterLink}
-                href={paths.roadTax.index}
+                href={returnTo || paths.roadTax.index}
                 sx={{
                   alignItems: 'center',
                   display: 'inline-flex'
@@ -49,7 +54,11 @@ const Page = () => {
                 <Typography variant="h4">Create Road Tax Record</Typography>
               </Stack>
             </Stack>
-            <RoadTaxForm mode="create" />
+            <RoadTaxForm
+              mode="create"
+              presetCarId={carIdParam ? Number(carIdParam) : undefined}
+              backHref={returnTo || undefined}
+            />
           </Stack>
         </Container>
       </Box>

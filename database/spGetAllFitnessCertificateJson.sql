@@ -18,6 +18,8 @@ BEGIN
         fc.StartDate,
         fc.EndDate,
         fc.Note,
+        fc.CertificateNumber,
+        fc.IssuedBy,
         fc.IsActive,
         fc.LastModifiedTimeStamp,
         fc.LastModifiedUserId,

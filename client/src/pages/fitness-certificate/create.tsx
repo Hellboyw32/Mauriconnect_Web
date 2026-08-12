@@ -7,10 +7,15 @@ import Typography from '@mui/material/Typography';
 import ArrowLeftIcon from '@untitled-ui/icons-react/build/esm/ArrowLeft';
 import { RouterLink } from 'src/components/router-link';
 import { Seo } from 'src/components/seo';
+import { useSearchParams } from 'src/hooks/use-search-params';
 import { paths } from 'src/paths';
 import { FitnessCertificateForm } from 'src/sections/fitness-certificate/fitness-certificate-form';
 
 const Page = () => {
+  const searchParams = useSearchParams();
+  const carIdParam = searchParams.get('carId');
+  const returnTo = searchParams.get('returnTo');
+
   return (
     <>
       <Seo title="Fitness Certificate: Create" />
@@ -27,7 +32,7 @@ const Page = () => {
               <Link
                 color="text.primary"
                 component={RouterLink}
-                href={paths.fitnessCertificate.index}
+                href={returnTo || paths.fitnessCertificate.index}
                 sx={{
                   alignItems: 'center',
                   display: 'inline-flex'
@@ -49,7 +54,11 @@ const Page = () => {
                 <Typography variant="h4">Create Fitness Certificate Record</Typography>
               </Stack>
             </Stack>
-            <FitnessCertificateForm mode="create" />
+            <FitnessCertificateForm
+              mode="create"
+              presetCarId={carIdParam ? Number(carIdParam) : undefined}
+              backHref={returnTo || undefined}
+            />
           </Stack>
         </Container>
       </Box>

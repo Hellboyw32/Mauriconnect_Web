@@ -11,7 +11,7 @@ import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
 import Grid from '@mui/material/Unstable_Grid2';
 import { useFormik } from 'formik';
-import type { FC } from 'react';
+import type { FC, ReactNode } from 'react';
 import { toast } from 'react-hot-toast';
 import { useRouter } from 'src/hooks/use-router';
 import { paths } from 'src/paths';
@@ -22,6 +22,7 @@ interface CarCreateFormProps {
   mode?: 'create' | 'edit';
   initialValues?: Partial<CarFormValues>;
   carId?: number;
+  children?: ReactNode;
 }
 
 const defaultInitialValues: CarFormValues = {
@@ -59,7 +60,7 @@ const carCategories = [
 ];
 
 export const CarForm: FC<CarCreateFormProps> = (props) => {
-  const { mode = 'create', initialValues, carId } = props;
+  const { mode = 'create', initialValues, carId, children } = props;
   const router = useRouter();
 
   const formik = useFormik({
@@ -232,6 +233,8 @@ export const CarForm: FC<CarCreateFormProps> = (props) => {
             </Grid>
           </CardContent>
         </Card>
+
+        {children}
 
         <Stack
           alignItems="center"

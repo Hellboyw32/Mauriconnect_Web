@@ -12,6 +12,9 @@ import { Seo } from 'src/components/seo';
 import { useCar } from 'src/hooks/cars/use-car';
 import { paths } from 'src/paths';
 import { CarForm } from 'src/sections/car/car-form';
+import { CarFitnessSection } from 'src/sections/car/car-fitness-section';
+import { CarInsuranceSection } from 'src/sections/car/car-insurance-section';
+import { CarRoadTaxSection } from 'src/sections/car/car-road-tax-section';
 import type { CarFormValues } from '@libs/types';
 
 const Page = () => {
@@ -104,7 +107,22 @@ const Page = () => {
               mode="edit"
               initialValues={initialValues}
               carId={car.CarId}
-            />
+            >
+              <Stack spacing={3}>
+                <CarRoadTaxSection
+                  carId={car.CarId}
+                  carNumber={car.CarNumber}
+                />
+                <CarFitnessSection
+                  carId={car.CarId}
+                  carNumber={car.CarNumber}
+                />
+                <CarInsuranceSection
+                  carId={car.CarId}
+                  carNumber={car.CarNumber}
+                />
+              </Stack>
+            </CarForm>
           </Stack>
         </Container>
       </Box>

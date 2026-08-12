@@ -14,6 +14,7 @@ export const useRoadTaxes = (initialFilters?: RoadTaxFilters): UseRoadTaxesResul
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const prevFiltersRef = useRef<string>();
+  const hasFetchedRef = useRef(false);
 
   const fetchRoadTaxes = async (filters?: RoadTaxFilters) => {
     try {
@@ -31,7 +32,8 @@ export const useRoadTaxes = (initialFilters?: RoadTaxFilters): UseRoadTaxesResul
 
   useEffect(() => {
     const currentFilters = JSON.stringify(initialFilters);
-    if (prevFiltersRef.current !== currentFilters) {
+    if (!hasFetchedRef.current || prevFiltersRef.current !== currentFilters) {
+      hasFetchedRef.current = true;
       prevFiltersRef.current = currentFilters;
       fetchRoadTaxes(initialFilters);
     }

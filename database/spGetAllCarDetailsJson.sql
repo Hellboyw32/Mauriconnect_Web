@@ -3,7 +3,7 @@
 -- Create date: 2025-12-13
 -- Description:	Get car details with filter support
 -- =============================================
-CREATE PROCEDURE [dbo].[spGetAllCarDetailsJson]
+CREATE OR ALTER PROCEDURE [dbo].[spGetAllCarDetailsJson]
     @CarNumber VARCHAR(300) = NULL,
     @CategoryId INT = NULL
 AS  
@@ -30,6 +30,8 @@ BEGIN
     JOIN CarCategory ct ON c.CategoryId = ct.CategoryId
     WHERE c.IsActive = 1
         AND ct.IsActive = 1
+        AND c.CarNumber NOT LIKE '%show%'
+        AND c.CarNumber NOT LIKE '%source%'
         AND (@CarNumber IS NULL OR c.CarNumber LIKE '%' + @CarNumber + '%')
         AND (@CategoryId IS NULL OR c.CategoryId = @CategoryId)
     ORDER BY c.SortOrder, c.Model

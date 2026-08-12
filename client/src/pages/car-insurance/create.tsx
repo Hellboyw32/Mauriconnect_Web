@@ -7,10 +7,15 @@ import Typography from '@mui/material/Typography';
 import ArrowLeftIcon from '@untitled-ui/icons-react/build/esm/ArrowLeft';
 import { RouterLink } from 'src/components/router-link';
 import { Seo } from 'src/components/seo';
+import { useSearchParams } from 'src/hooks/use-search-params';
 import { paths } from 'src/paths';
 import { CarInsuranceForm } from 'src/sections/car-insurance/car-insurance-form';
 
 const Page = () => {
+  const searchParams = useSearchParams();
+  const carIdParam = searchParams.get('carId');
+  const returnTo = searchParams.get('returnTo');
+
   return (
     <>
       <Seo title="Car Insurance: Create" />
@@ -27,7 +32,7 @@ const Page = () => {
               <Link
                 color="text.primary"
                 component={RouterLink}
-                href={paths.carInsurance.index}
+                href={returnTo || paths.carInsurance.index}
                 sx={{
                   alignItems: 'center',
                   display: 'inline-flex'
@@ -49,7 +54,11 @@ const Page = () => {
                 <Typography variant="h4">Create Car Insurance Record</Typography>
               </Stack>
             </Stack>
-            <CarInsuranceForm mode="create" />
+            <CarInsuranceForm
+              mode="create"
+              presetCarId={carIdParam ? Number(carIdParam) : undefined}
+              backHref={returnTo || undefined}
+            />
           </Stack>
         </Container>
       </Box>

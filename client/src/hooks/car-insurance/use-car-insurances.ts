@@ -14,6 +14,7 @@ export const useCarInsurances = (initialFilters?: CarInsuranceFilters): UseCarIn
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const prevFiltersRef = useRef<string>();
+  const hasFetchedRef = useRef(false);
 
   const fetchCarInsurances = async (filters?: CarInsuranceFilters) => {
     try {
@@ -31,7 +32,8 @@ export const useCarInsurances = (initialFilters?: CarInsuranceFilters): UseCarIn
 
   useEffect(() => {
     const currentFilters = JSON.stringify(initialFilters);
-    if (prevFiltersRef.current !== currentFilters) {
+    if (!hasFetchedRef.current || prevFiltersRef.current !== currentFilters) {
+      hasFetchedRef.current = true;
       prevFiltersRef.current = currentFilters;
       fetchCarInsurances(initialFilters);
     }

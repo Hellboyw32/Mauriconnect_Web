@@ -32,4 +32,70 @@ export default (app: Router) => {
         res.send(error).status(500);
       });
   });
+
+  route.get('/road-tax-renewals', (req: Request, res: Response) => {
+    const year = Number(req.query.year);
+    const month = Number(req.query.month);
+
+    if (!year || !month) {
+      return res.status(400).send({
+        success: false,
+        message: 'year and month query params are required'
+      });
+    }
+
+    const reportService = Container.get(ReportService);
+    reportService
+      .getRoadTaxRenewalsByMonth(year, month)
+      .then((result) => {
+        res.send(result).status(200);
+      })
+      .catch((error) => {
+        res.send(error).status(500);
+      });
+  });
+
+  route.get('/car-fitness-renewals', (req: Request, res: Response) => {
+    const year = Number(req.query.year);
+    const month = Number(req.query.month);
+
+    if (!year || !month) {
+      return res.status(400).send({
+        success: false,
+        message: 'year and month query params are required'
+      });
+    }
+
+    const reportService = Container.get(ReportService);
+    reportService
+      .getCarFitnessRenewalsByMonth(year, month)
+      .then((result) => {
+        res.send(result).status(200);
+      })
+      .catch((error) => {
+        res.send(error).status(500);
+      });
+  });
+
+  route.get('/car-insurance-renewals', (req: Request, res: Response) => {
+    const year = Number(req.query.year);
+    const month = Number(req.query.month);
+
+    if (!year || !month) {
+      return res.status(400).send({
+        success: false,
+        message: 'year and month query params are required'
+      });
+    }
+
+    const reportService = Container.get(ReportService);
+    reportService
+      .getCarInsuranceRenewalsByMonth(year, month)
+      .then((result) => {
+        res.send(result).status(200);
+      })
+      .catch((error) => {
+        res.send(error).status(500);
+      });
+  });
 };
