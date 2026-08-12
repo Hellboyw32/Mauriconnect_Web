@@ -240,6 +240,35 @@ export default function DailyScheduleReport({
     ...columns.slice(pickupLocationColumnIndex)
   ];
 
+  const dropoffLocationColumnIndex = columns.findIndex(
+    (column) => column.field === 'SpecialRequest'
+  );
+  const dropoffColumns: GridColDef[] = [
+    ...columns.slice(0, dropoffLocationColumnIndex).map((column) =>
+      column.field === 'Category'
+        ? {
+            field: 'CarNumber',
+            headerName: 'Car Number',
+            type: 'string',
+            width: 160
+          }
+        : column
+    ),
+    {
+      field: 'DropOffPlace',
+      headerName: 'Drop-off Location',
+      type: 'string',
+      width: 150
+    },
+    {
+      field: 'DeliveredBy',
+      headerName: 'Delivered By',
+      type: 'string',
+      width: 130
+    },
+    ...columns.slice(dropoffLocationColumnIndex)
+  ];
+
   const PickupToolbar = () => (
     <GridToolbarContainer>
       <div
@@ -337,7 +366,7 @@ export default function DailyScheduleReport({
         <div style={{ width: '99%' }}>
           <DataGrid
             getRowId={(row) => row.BookingId}
-            columns={columns}
+            columns={dropoffColumns}
             rows={dropoffBookings}
             slots={{
               toolbar: DropoffToolbar
