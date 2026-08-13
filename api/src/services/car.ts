@@ -13,6 +13,21 @@ export interface ICarService {
   getTopRentedCars(topCount?: number): Promise<Response<TopRentedCars>>;
 }
 
+// The deployed spGetAllCarDetailsJson/spGetSingleCarDetailsJson procedures return CarCategory
+// as an escaped JSON string instead of a nested JSON object (unlike the RoadTax/CarInsurance/
+// FitnessCertificate procedures, which embed their nested Car object correctly) — normalize it
+// here so callers always get a real object.
+const normalizeCarCategory = (car: any) => {
+  if (car && typeof car.CarCategory === 'string') {
+    try {
+      car.CarCategory = JSON.parse(car.CarCategory);
+    } catch {
+      car.CarCategory = null;
+    }
+  }
+  return car;
+};
+
 @Service()
 export class CarService implements ICarService {
   @Inject()
@@ -52,6 +67,8 @@ export class CarService implements ICarService {
       );
     }
 
+    cars = cars.map(normalizeCarCategory);
+
     return { ...result, data: cars as Cars };
   }
 
@@ -59,7 +76,16 @@ export class CarService implements ICarService {
     const storedProcedure = STORED_PROCEDURES.GET_CAR_JSON;
     const inputs = [{ 'CarId': carId }];
 
-    return await this.mssqlService.requestByStoredProcedure<Car>(storedProcedure, inputs, false);
+    const result = await this.mssqlService.requestByStoredProcedure<Car>(
+      storedProcedure,
+      inputs,
+      false
+    );
+
+    // FOR JSON PATH, WITHOUT_ARRAY_WRAPPER + parseJSON:true returns the object as result.data[0]
+    const item = Array.isArray(result.data) ? result.data[0] : result.data;
+
+    return { ...result, data: normalizeCarCategory(item) as Car };
   }
 
   async createCar(car: CarFormValues): Promise<Response> {
