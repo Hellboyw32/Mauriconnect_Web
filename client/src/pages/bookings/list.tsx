@@ -24,7 +24,8 @@ const useBookingsSearch = () => {
     filters: {
       customerName: undefined,
       pickupDate: undefined,
-      dropoffDate: undefined
+      dropoffDate: undefined,
+      referenceNo: undefined
     },
     page: 0,
     rowsPerPage: 50,
@@ -93,7 +94,8 @@ const Page = () => {
     bookingsSearch.handleFiltersChange({
       customerName: undefined,
       pickupDate: undefined,
-      dropoffDate: undefined
+      dropoffDate: undefined,
+      referenceNo: undefined
     });
     // Trigger data refresh
     bookingsStore.handleBookingsGet();
