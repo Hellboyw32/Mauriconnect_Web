@@ -8,6 +8,14 @@ import { getByValue as getObjectFromArray } from 'src/utils/array';
 import { deepCopy } from 'src/utils/deep-copy';
 import { isMockData } from 'src/utils/verify-data-source';
 
+// Formats using local date parts (avoids the UTC shift toISOString() would introduce)
+const toLocalDateString = (date: Date): string => {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+};
+
 type GetBookingsRequest = {
   filters?: Filters;
   page?: number;
@@ -117,11 +125,11 @@ class BookingApi implements IBookingApi {
       }
 
       if (filters?.pickupDate) {
-        params.append('pickupDate', filters.pickupDate.toISOString());
+        params.append('pickupDate', toLocalDateString(filters.pickupDate));
       }
 
       if (filters?.dropoffDate) {
-        params.append('dropoffDate', filters.dropoffDate.toISOString());
+        params.append('dropoffDate', toLocalDateString(filters.dropoffDate));
       }
 
       if (filters?.referenceNo) {
@@ -153,7 +161,11 @@ class BookingApi implements IBookingApi {
         responseData = responseData[0];
       }
 
-      data = Array.isArray(responseData) ? responseData : [];
+      // No matches come back from the stored procedure as [null] rather than [];
+      // strip out null/undefined entries so the UI never gets a null "booking".
+      data = (Array.isArray(responseData) ? responseData : []).filter(
+        (item): item is Booking => item != null
+      );
 
       console.log('Final data array length:', data.length);
       console.log('First booking in final data:', data[0]);
