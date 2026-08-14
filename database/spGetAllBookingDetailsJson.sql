@@ -10,6 +10,7 @@ CREATE OR ALTER PROCEDURE [dbo].[spGetAllBookingDetailsJson]
     @CustomerName NVARCHAR(255) = NULL,
     @PickupDate DATETIME = NULL,
     @DropoffDate DATETIME = NULL,
+    @ReferenceNo NVARCHAR(255) = NULL,
     @TopCount INT = 50
 AS
 BEGIN
@@ -70,6 +71,7 @@ BEGIN
         AND (@CustomerName IS NULL OR b.CustomerName LIKE '%' + @CustomerName + '%')
         AND (@PickupDate IS NULL OR CAST(b.PickUpDate AS DATE) = CAST(@PickupDate AS DATE))
         AND (@DropoffDate IS NULL OR CAST(b.DropOffDate AS DATE) = CAST(@DropoffDate AS DATE))
+        AND (@ReferenceNo IS NULL OR b.ReferenceNo LIKE '%' + @ReferenceNo + '%')
     ORDER BY
         b.LastModifiedTimeStamp DESC
     FOR JSON PATH;

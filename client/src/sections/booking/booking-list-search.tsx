@@ -38,7 +38,7 @@ type SortDir = 'asc' | 'desc';
 
 interface SearchChip {
   label: string;
-  field: 'customerName' | 'pickupDate' | 'dropoffDate';
+  field: 'customerName' | 'pickupDate' | 'dropoffDate' | 'referenceNo';
   value: unknown;
   displayValue?: unknown;
 }
@@ -54,18 +54,27 @@ interface BookingListSearchProps {
 export const BookingListSearch: FC<BookingListSearchProps> = (props) => {
   const { onFiltersChange, onSortChange, sortBy, sortDir, filters } = props;
   const queryRef = useRef<HTMLInputElement | null>(null);
+  const referenceNoRef = useRef<HTMLInputElement | null>(null);
   const [chips, setChips] = useState<SearchChip[]>([]);
   const [pickupDate, setPickupDate] = useState<Date | null>(null);
   const [dropoffDate, setDropoffDate] = useState<Date | null>(null);
 
   // Reset fields when filters are cleared from parent
   useUpdateEffect(() => {
-    if (!filters?.customerName && !filters?.pickupDate && !filters?.dropoffDate) {
+    if (
+      !filters?.customerName &&
+      !filters?.pickupDate &&
+      !filters?.dropoffDate &&
+      !filters?.referenceNo
+    ) {
       setChips((prevChips) => (prevChips.length > 0 ? [] : prevChips));
       setPickupDate(null);
       setDropoffDate(null);
       if (queryRef.current) {
         queryRef.current.value = '';
+      }
+      if (referenceNoRef.current) {
+        referenceNoRef.current.value = '';
       }
     }
   }, [filters]);
@@ -74,7 +83,8 @@ export const BookingListSearch: FC<BookingListSearchProps> = (props) => {
     const filters: Filters = {
       customerName: undefined,
       pickupDate: undefined,
-      dropoffDate: undefined
+      dropoffDate: undefined,
+      referenceNo: undefined
     };
 
     chips.forEach((chip) => {
@@ -87,6 +97,9 @@ export const BookingListSearch: FC<BookingListSearchProps> = (props) => {
           break;
         case 'dropoffDate':
           filters.dropoffDate = chip.value as Date;
+          break;
+        case 'referenceNo':
+          filters.referenceNo = chip.value as string;
           break;
         default:
           break;
@@ -131,6 +144,7 @@ export const BookingListSearch: FC<BookingListSearchProps> = (props) => {
       }
 
       const customerName = queryRef.current?.value || '';
+      const referenceNo = referenceNoRef.current?.value || '';
       const newChips: SearchChip[] = [];
 
       // Add customer name chip
@@ -139,6 +153,15 @@ export const BookingListSearch: FC<BookingListSearchProps> = (props) => {
           label: 'Customer Name',
           field: 'customerName',
           value: customerName
+        });
+      }
+
+      // Add reference number chip
+      if (referenceNo) {
+        newChips.push({
+          label: 'Reference No',
+          field: 'referenceNo',
+          value: referenceNo
         });
       }
 
@@ -197,19 +220,40 @@ export const BookingListSearch: FC<BookingListSearchProps> = (props) => {
           onSubmit={handleSearchClick}
           sx={{ flexGrow: 1 }}
         >
-          <OutlinedInput
-            defaultValue=""
-            fullWidth
-            inputProps={{ ref: queryRef }}
-            placeholder="Search by customer name"
-            startAdornment={
-              <InputAdornment position="start">
-                <SvgIcon>
-                  <SearchMdIcon />
-                </SvgIcon>
-              </InputAdornment>
-            }
-          />
+          <Stack
+            direction="row"
+            flexWrap="wrap"
+            spacing={2}
+          >
+            <OutlinedInput
+              defaultValue=""
+              fullWidth
+              inputProps={{ ref: queryRef }}
+              placeholder="Search by customer name"
+              startAdornment={
+                <InputAdornment position="start">
+                  <SvgIcon>
+                    <SearchMdIcon />
+                  </SvgIcon>
+                </InputAdornment>
+              }
+              sx={{ flex: 1, minWidth: 240 }}
+            />
+            <OutlinedInput
+              defaultValue=""
+              fullWidth
+              inputProps={{ ref: referenceNoRef }}
+              placeholder="Search by reference no"
+              startAdornment={
+                <InputAdornment position="start">
+                  <SvgIcon>
+                    <SearchMdIcon />
+                  </SvgIcon>
+                </InputAdornment>
+              }
+              sx={{ flex: 1, minWidth: 240 }}
+            />
+          </Stack>
         </Box>
         <Stack
           alignItems="center"

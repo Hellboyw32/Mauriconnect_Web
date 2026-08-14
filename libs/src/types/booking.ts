@@ -57,6 +57,7 @@ export interface Filters {
   customerName?: string;
   dropoffDate: Date | undefined;
   pickupDate: Date | undefined;
+  referenceNo?: string;
 }
 
 export interface BookingFormValues {

@@ -93,6 +93,16 @@ class BookingApi implements IBookingApi {
             }
           }
 
+          if (typeof filters.referenceNo !== 'undefined' && filters.referenceNo !== '') {
+            const referenceMatched = booking!
+              .ReferenceNo?.toLowerCase()
+              .includes(filters.referenceNo.toLowerCase());
+
+            if (!referenceMatched) {
+              return false;
+            }
+          }
+
           return true;
         });
       }
@@ -112,6 +122,10 @@ class BookingApi implements IBookingApi {
 
       if (filters?.dropoffDate) {
         params.append('dropoffDate', filters.dropoffDate.toISOString());
+      }
+
+      if (filters?.referenceNo) {
+        params.append('referenceNo', filters.referenceNo);
       }
 
       if (params.toString()) {

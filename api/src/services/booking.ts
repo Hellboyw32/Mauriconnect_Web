@@ -9,6 +9,7 @@ export interface IBookingService {
     customerName?: string,
     pickupDate?: string,
     dropoffDate?: string,
+    referenceNo?: string,
     topCount?: number
   ): Promise<Response<Bookings>>;
   getBooking(bookingId: number): Promise<Response<Booking>>;
@@ -30,6 +31,7 @@ export class BookingService implements IBookingService {
     customerName?: string,
     pickupDate?: string,
     dropoffDate?: string,
+    referenceNo?: string,
     topCount: number = 50
   ): Promise<Response<Bookings>> {
     const storedProcedure = STORED_PROCEDURES.GET_BOOKINGS_DETAILS_JSON;
@@ -43,6 +45,9 @@ export class BookingService implements IBookingService {
     }
     if (dropoffDate) {
       inputs.push({ DropoffDate: dropoffDate });
+    }
+    if (referenceNo) {
+      inputs.push({ ReferenceNo: referenceNo });
     }
     // Add TopCount parameter with default value of 50
     inputs.push({ TopCount: topCount });
