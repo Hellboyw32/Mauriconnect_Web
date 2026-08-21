@@ -4,6 +4,9 @@ import Box from '@mui/material/Box';
 import Card from '@mui/material/Card';
 import CardContent from '@mui/material/CardContent';
 import CardMedia from '@mui/material/CardMedia';
+import Dialog from '@mui/material/Dialog';
+import DialogContent from '@mui/material/DialogContent';
+import DialogTitle from '@mui/material/DialogTitle';
 import Grid from '@mui/material/Grid';
 import IconButton from '@mui/material/IconButton';
 import Stack from '@mui/material/Stack';
@@ -13,6 +16,8 @@ import SvgIcon from '@mui/material/SvgIcon';
 import DownloadIcon from '@untitled-ui/icons-react/build/esm/Download01';
 import TrashIcon from '@untitled-ui/icons-react/build/esm/Trash01';
 import FileIcon from '@untitled-ui/icons-react/build/esm/File04';
+import EyeIcon from '@untitled-ui/icons-react/build/esm/Eye';
+import CloseIcon from '@untitled-ui/icons-react/build/esm/X';
 import { toast } from 'react-hot-toast';
 import { fileApi, type FileInfo } from 'src/api/files';
 import { format } from 'date-fns';
@@ -61,6 +66,9 @@ export const FileList: FC<FileListProps> = (props) => {
   const [files, setFiles] = useState<FileInfo[]>([]);
   const [loading, setLoading] = useState(true);
   const [thumbnails, setThumbnails] = useState<Record<string, string>>({});
+  const [previewFile, setPreviewFile] = useState<{ name: string; url: string; type: string } | null>(
+    null
+  );
 
   const loadFiles = useCallback(async () => {
     setLoading(true);
@@ -123,6 +131,25 @@ export const FileList: FC<FileListProps> = (props) => {
     [referenceNo]
   );
 
+  const handlePreview = useCallback(
+    async (fileName: string, fileType: string) => {
+      try {
+        const url =
+          thumbnails[fileName] ||
+          URL.createObjectURL(await fileApi.downloadFile(referenceNo, fileName));
+        setPreviewFile({ name: fileName, url, type: fileType });
+      } catch (error) {
+        console.error('Preview error:', error);
+        toast.error('Failed to preview file');
+      }
+    },
+    [referenceNo, thumbnails]
+  );
+
+  const handleClosePreview = useCallback(() => {
+    setPreviewFile(null);
+  }, []);
+
   const handleDelete = useCallback(
     async (fileName: string) => {
       if (!confirm(`Are you sure you want to delete ${fileName}?`)) {
@@ -174,13 +201,15 @@ export const FileList: FC<FileListProps> = (props) => {
   }
 
   return (
-    <Grid
-      container
-      spacing={2}
-    >
+    <>
+      <Grid
+        container
+        spacing={2}
+      >
       {files.map((file) => {
         const fileType = getFileIcon(file.name);
         const thumbnail = thumbnails[file.name];
+        const isPreviewable = fileType === 'image' || fileType === 'pdf';
 
         return (
           <Grid
@@ -198,16 +227,19 @@ export const FileList: FC<FileListProps> = (props) => {
                   height="140"
                   image={thumbnail}
                   alt={file.name}
-                  sx={{ objectFit: 'cover' }}
+                  onClick={() => handlePreview(file.name, fileType)}
+                  sx={{ objectFit: 'cover', cursor: 'pointer' }}
                 />
               ) : (
                 <Box
+                  onClick={isPreviewable ? () => handlePreview(file.name, fileType) : undefined}
                   sx={{
                     height: 140,
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    backgroundColor: 'neutral.100'
+                    backgroundColor: 'neutral.100',
+                    cursor: isPreviewable ? 'pointer' : 'default'
                   }}
                 >
                   <SvgIcon sx={{ fontSize: 48, color: 'text.secondary' }}>
@@ -253,6 +285,17 @@ export const FileList: FC<FileListProps> = (props) => {
                   direction="row"
                   spacing={1}
                 >
+                  {isPreviewable && (
+                    <IconButton
+                      size="small"
+                      onClick={() => handlePreview(file.name, fileType)}
+                      title="Preview"
+                    >
+                      <SvgIcon fontSize="small">
+                        <EyeIcon />
+                      </SvgIcon>
+                    </IconButton>
+                  )}
                   <IconButton
                     size="small"
                     onClick={() => handleDownload(file.name)}
@@ -278,6 +321,58 @@ export const FileList: FC<FileListProps> = (props) => {
           </Grid>
         );
       })}
-    </Grid>
+      </Grid>
+
+      <Dialog
+        open={!!previewFile}
+        onClose={handleClosePreview}
+        maxWidth="md"
+        fullWidth
+      >
+        <DialogTitle
+          sx={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            gap: 2
+          }}
+        >
+          <Typography
+            variant="subtitle1"
+            noWrap
+          >
+            {previewFile?.name}
+          </Typography>
+          <IconButton
+            size="small"
+            onClick={handleClosePreview}
+          >
+            <SvgIcon fontSize="small">
+              <CloseIcon />
+            </SvgIcon>
+          </IconButton>
+        </DialogTitle>
+        <DialogContent
+          dividers
+          sx={{ p: 0, height: '80vh', backgroundColor: 'neutral.100' }}
+        >
+          {previewFile?.type === 'image' ? (
+            <Box
+              component="img"
+              src={previewFile.url}
+              alt={previewFile.name}
+              sx={{ width: '100%', height: '100%', objectFit: 'contain' }}
+            />
+          ) : (
+            <Box
+              component="iframe"
+              src={previewFile?.url}
+              title={previewFile?.name}
+              sx={{ width: '100%', height: '100%', border: 'none' }}
+            />
+          )}
+        </DialogContent>
+      </Dialog>
+    </>
   );
 };

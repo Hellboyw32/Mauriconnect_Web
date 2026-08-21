@@ -53,5 +53,7 @@ export enum DELIVERY_USER_STORED_PROCEDURES {
 
 export enum REPORT_STORED_PROCEDURES {
   GET_PICKUP_SCHEDULE_BY_DATE = 'spGetPickScheduleByDate',
-  GET_DROPOFF_SCHEDULE_BY_DATE = 'spGetDropScheduleByDate'
+  GET_DROPOFF_SCHEDULE_BY_DATE = 'spGetDropScheduleByDate',
+  GET_SIM_CARD_REPORT = 'spGetSimCardReportByDate',
+  GET_INSURANCE_REPORT = 'spGetInsuranceReportByDate'
 }

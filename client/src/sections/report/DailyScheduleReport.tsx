@@ -244,16 +244,25 @@ export default function DailyScheduleReport({
     (column) => column.field === 'SpecialRequest'
   );
   const dropoffColumns: GridColDef[] = [
-    ...columns.slice(0, dropoffLocationColumnIndex).map((column) =>
-      column.field === 'Category'
-        ? {
-            field: 'CarNumber',
-            headerName: 'Car Number',
-            type: 'string',
-            width: 160
-          }
-        : column
-    ),
+    ...columns
+      .slice(0, dropoffLocationColumnIndex)
+      .filter((column) => column.field !== 'FlightNo' && column.field !== 'NumberOfDays')
+      .map((column) =>
+        column.field === 'Category'
+          ? {
+              field: 'CarNumber',
+              headerName: 'Car Number',
+              type: 'string',
+              width: 160
+            }
+          : column
+      ),
+    {
+      field: 'FuelLevel',
+      headerName: 'Fuel Level',
+      type: 'string',
+      width: 100
+    },
     {
       field: 'DropOffPlace',
       headerName: 'Drop-off Location',

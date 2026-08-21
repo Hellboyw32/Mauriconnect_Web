@@ -2,6 +2,7 @@ import { FTPService } from '@/services/ftp';
 import { Router, type Request, type Response, type NextFunction } from 'express';
 import { Container } from 'typedi';
 import multer from 'multer';
+import mime from 'mime';
 import * as path from 'path';
 
 const route = Router();
@@ -103,8 +104,9 @@ export default (app: Router) => {
       const result = await ftpService.downloadFile(referenceNo, fileName);
 
       if (result.success && result.data) {
+        const contentType = mime.lookup(fileName, 'application/octet-stream');
         res.setHeader('Content-Disposition', `attachment; filename="${fileName}"`);
-        res.setHeader('Content-Type', 'application/octet-stream');
+        res.setHeader('Content-Type', contentType);
         res.send(result.data);
       } else {
         res.status(result.status).send({
