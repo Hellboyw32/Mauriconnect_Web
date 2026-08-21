@@ -12,7 +12,22 @@ import * as React from 'react';
 import { useCallback, useMemo, useState } from 'react';
 import { useDailyScheduleReport } from 'src/hooks/reports/use-daily-schedule-report';
 import { useDropoffScheduleReport } from 'src/hooks/reports/use-dropoff-schedule-report';
+import { useInsuranceReport } from 'src/hooks/reports/use-insurance-report';
+import { useSimCardReport } from 'src/hooks/reports/use-simcard-report';
 import DailyScheduleReport from 'src/sections/report/DailyScheduleReport';
+import InsuranceReport from 'src/sections/report/InsuranceReport';
+import SimCardReport from 'src/sections/report/SimCardReport';
+
+// Report types that take a single Start/End date range rather than the pickup/drop pair
+const DATE_RANGE_REPORT_TYPES = ['40', '50'];
+
+// Formats using local date parts (avoids the UTC shift toISOString() would introduce)
+const toLocalDateString = (date: Date): string => {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+};
 
 const useBookingsSearch = () => {
   const [state, setState] = useState<BookingsSearchState>({
@@ -34,8 +49,12 @@ export default function SelectLabels() {
   const [dropoffReportData, setDropoffReportData] = React.useState<Booking[]>([]);
   const [pickupDate, setPickupDate] = React.useState<Date | null>(new Date());
   const [dropoffDate, setDropoffDate] = React.useState<Date | null>(new Date());
+  const [startDate, setStartDate] = React.useState<Date | null>(new Date());
+  const [endDate, setEndDate] = React.useState<Date | null>(new Date());
   const dailyScheduleStore = useDailyScheduleReport();
   const dropoffScheduleStore = useDropoffScheduleReport();
+  const simCardReportStore = useSimCardReport();
+  const insuranceReportStore = useInsuranceReport();
 
   const handleChange = (event: SelectChangeEvent) => {
     const report = event.target.value;
@@ -43,14 +62,15 @@ export default function SelectLabels() {
     // Reset report data when changing report type
     if (report !== '10') {
       setReportData([]);
+      setDropoffReportData([]);
     }
   };
 
   const handleRunReport = useCallback(async () => {
     if (reportType && reportType === '10') {
-      // Format the dates as ISO strings for the API
-      const pickupDateStr = pickupDate ? pickupDate.toISOString().split('T')[0] : undefined;
-      const dropoffDateStr = dropoffDate ? dropoffDate.toISOString().split('T')[0] : undefined;
+      // Format the dates using local date parts for the API
+      const pickupDateStr = pickupDate ? toLocalDateString(pickupDate) : undefined;
+      const dropoffDateStr = dropoffDate ? toLocalDateString(dropoffDate) : undefined;
 
       console.log(
         'Running report with pickup date:',
@@ -69,8 +89,35 @@ export default function SelectLabels() {
       setReportData(pickupData);
       setDropoffReportData(dropoffData);
     }
+
+    if (DATE_RANGE_REPORT_TYPES.includes(reportType)) {
+      const startDateStr = startDate ? toLocalDateString(startDate) : undefined;
+      const endDateStr = endDate ? toLocalDateString(endDate) : undefined;
+
+      if (!startDateStr || !endDateStr) {
+        return;
+      }
+
+      if (reportType === '40') {
+        await simCardReportStore.handleReportGet(startDateStr, endDateStr);
+      }
+
+      if (reportType === '50') {
+        await insuranceReportStore.handleReportGet(startDateStr, endDateStr);
+      }
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [reportType, dailyScheduleStore, dropoffScheduleStore, pickupDate, dropoffDate]);
+  }, [
+    reportType,
+    dailyScheduleStore,
+    dropoffScheduleStore,
+    pickupDate,
+    dropoffDate,
+    simCardReportStore,
+    insuranceReportStore,
+    startDate,
+    endDate
+  ]);
   return (
     <div>
       <FormControl sx={{ m: 1, minWidth: 300 }}>
@@ -88,24 +135,44 @@ export default function SelectLabels() {
           <MenuItem value="10">Daily Schedule Report</MenuItem>
           <MenuItem value="20">Availability Report</MenuItem>
           <MenuItem value="30">Settlement Report</MenuItem>
+          <MenuItem value="40">SimCard Report</MenuItem>
+          <MenuItem value="50">Insurance Report</MenuItem>
         </Select>
         {/* <FormHelperText>select report and click on run</FormHelperText> */}
       </FormControl>
-      <Box
-        component="div"
-        sx={{ p: 2, border: '1px grey' }}
-      >
-        <DatePicker
-          label="Pickup"
-          value={pickupDate}
-          onChange={(newValue) => setPickupDate(newValue)}
-        />
-        <DatePicker
-          label="Drop"
-          value={dropoffDate}
-          onChange={(newValue) => setDropoffDate(newValue)}
-        />
-      </Box>
+      {DATE_RANGE_REPORT_TYPES.includes(reportType) ? (
+        <Box
+          component="div"
+          sx={{ p: 2, border: '1px grey' }}
+        >
+          <DatePicker
+            label="Start Date"
+            value={startDate}
+            onChange={(newValue) => setStartDate(newValue)}
+          />
+          <DatePicker
+            label="End Date"
+            value={endDate}
+            onChange={(newValue) => setEndDate(newValue)}
+          />
+        </Box>
+      ) : (
+        <Box
+          component="div"
+          sx={{ p: 2, border: '1px grey' }}
+        >
+          <DatePicker
+            label="Pickup"
+            value={pickupDate}
+            onChange={(newValue) => setPickupDate(newValue)}
+          />
+          <DatePicker
+            label="Drop"
+            value={dropoffDate}
+            onChange={(newValue) => setDropoffDate(newValue)}
+          />
+        </Box>
+      )}
 
       <Box
         component="div"
@@ -126,6 +193,22 @@ export default function SelectLabels() {
           />
         </Box>
       )}
+      {reportType === '40' && simCardReportStore.rows.length > 0 && (
+        <Box>
+          <SimCardReport rows={simCardReportStore.rows} />
+        </Box>
+      )}
+      {reportType === '50' && insuranceReportStore.rows.length > 0 && (
+        <Box>
+          <InsuranceReport rows={insuranceReportStore.rows} />
+        </Box>
+      )}
+      <Backdrop
+        open={simCardReportStore.isLoading || insuranceReportStore.isLoading}
+        sx={{ color: '#fff', zIndex: (theme) => theme.zIndex.drawer + 1 }}
+      >
+        <CircularProgress color="inherit" />
+      </Backdrop>
     </div>
   );
 }

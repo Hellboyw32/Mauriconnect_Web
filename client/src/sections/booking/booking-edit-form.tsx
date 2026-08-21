@@ -1,4 +1,4 @@
-import type { Booking, BookingFormValues } from '@libs/types';
+import type { Booking, BookingFormValues, Car } from '@libs/types';
 import Button from '@mui/material/Button';
 import Card from '@mui/material/Card';
 import CardContent from '@mui/material/CardContent';
@@ -22,6 +22,8 @@ import { useFormik } from 'formik';
 import { useState, type FC, type ChangeEvent } from 'react';
 import { toast } from 'react-hot-toast';
 import { bookingApi } from 'src/api/booking';
+import { carInsurancesApi } from 'src/api/car-insurance';
+import { roadTaxesApi } from 'src/api/road-tax';
 import { RouterLink } from 'src/components/router-link';
 import { useAuth } from 'src/hooks/use-auth';
 import { useCars } from 'src/hooks/cars/use-cars';
@@ -158,6 +160,54 @@ export const BookingEditForm: FC<BookingEditFormProps> = ({ booking }) => {
     formik.setFieldValue('CarCategory', e.target.value);
     formik.setFieldValue('car', '');
     refetchCars({ categoryId });
+  };
+
+  // Prefers the active coverage record; falls back to the one with the latest end date.
+  const pickRelevantRecord = <T extends { EndDate?: string | null; IsActive?: boolean | null }>(
+    records: T[]
+  ): T | undefined => {
+    const pool = records.some((record) => record.IsActive)
+      ? records.filter((record) => record.IsActive)
+      : records;
+
+    return pool.reduce<T | undefined>((latest, record) => {
+      if (!record.EndDate) return latest;
+      if (!latest?.EndDate || new Date(record.EndDate) > new Date(latest.EndDate)) {
+        return record;
+      }
+      return latest;
+    }, undefined);
+  };
+
+  const handleCarSelect = async (selected: Car | null) => {
+    formik.setFieldValue('car', selected?.CarId ?? '');
+    formik.setFieldValue('Mileage', selected?.CurrentMileage ?? 0);
+
+    if (!selected?.CarNumber) {
+      return;
+    }
+
+    try {
+      const [insurances, roadTaxes] = await Promise.all([
+        carInsurancesApi.getCarInsurances({ filters: { carNumber: selected.CarNumber } }),
+        roadTaxesApi.getRoadTaxes({ filters: { carNumber: selected.CarNumber } })
+      ]);
+
+      // The API match on carNumber is a partial (LIKE) match server-side, so narrow
+      // down to the exact car in case another car's number is a substring match.
+      const insurance = pickRelevantRecord(
+        insurances.filter((record) => record.CarId === selected.CarId)
+      );
+      const roadTax = pickRelevantRecord(
+        roadTaxes.filter((record) => record.CarId === selected.CarId)
+      );
+
+      formik.setFieldValue('CarInsurance', insurance?.EndDate ? new Date(insurance.EndDate) : null);
+      formik.setFieldValue('RoadTax', roadTax?.EndDate ? new Date(roadTax.EndDate) : null);
+    } catch (error) {
+      console.error('Failed to load car insurance/road tax details:', error);
+      toast.error('Failed to auto-fill car insurance/road tax dates');
+    }
   };
 
   const [showAllCarsState, setShowAllCarsState] = useState<boolean>(true);
@@ -406,9 +456,7 @@ export const BookingEditForm: FC<BookingEditFormProps> = ({ booking }) => {
                       options={cars}
                       getOptionLabel={(car) => `${car.Model} - ${car.CarNumber}`}
                       value={cars.find((c) => c.CarId === formik.values.car) ?? null}
-                      onChange={(_, selected) => {
-                        formik.setFieldValue('car', selected?.CarId ?? '');
-                      }}
+                      onChange={(_, selected) => handleCarSelect(selected)}
                       onBlur={() => formik.setFieldTouched('car', true)}
                       isOptionEqualToValue={(option, value) => option.CarId === value.CarId}
                       renderInput={(params) => (
