@@ -46,7 +46,9 @@ interface BookingEditFormProps {
 const validationSchema = Yup.object({
   CustomerName: Yup.string().required('Customer name is required'),
   ContractNumber: Yup.string().required('Contract number is required'),
-  Price: Yup.string().required('Price is required'),
+  Price: Yup.string()
+    .required('Price is required')
+    .matches(/^\d+(\.\d+)?$/, 'Price must be a number (no letters or commas)'),
   CarCategory: Yup.string().required('Car category is required')
 });
 
@@ -161,6 +163,13 @@ export const BookingEditForm: FC<BookingEditFormProps> = ({ booking }) => {
     formik.setFieldValue('CarCategory', e.target.value);
     formik.setFieldValue('car', '');
     refetchCars({ categoryId });
+  };
+
+  // Only allow digits and a single decimal point (no letters, no commas)
+  const handlePriceChange = (event: ChangeEvent<HTMLInputElement>): void => {
+    if (/^\d*\.?\d*$/.test(event.target.value)) {
+      formik.handleChange(event);
+    }
   };
 
   // Prefers the active coverage record; falls back to the one with the latest end date.
@@ -328,8 +337,9 @@ export const BookingEditForm: FC<BookingEditFormProps> = ({ booking }) => {
                       label="Price"
                       name="Price"
                       required
+                      inputMode="decimal"
                       onBlur={formik.handleBlur}
-                      onChange={formik.handleChange}
+                      onChange={handlePriceChange}
                       value={formik.values.Price}
                     />
                     <TextField

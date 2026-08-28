@@ -37,7 +37,10 @@ export const TopNav: FC<TopNavProps> = (props) => {
         width: {
           lg: `calc(100% - ${SIDE_NAV_WIDTH}px)`
         },
-        zIndex: (theme) => theme.zIndex.appBar
+        zIndex: (theme) => theme.zIndex.appBar,
+        '@media print': {
+          display: 'none'
+        }
       }}
       {...other}
     >

@@ -20,6 +20,9 @@ const VerticalLayoutRoot = styled('div')(({ theme }) => ({
   maxWidth: '100%',
   [theme.breakpoints.up('lg')]: {
     paddingLeft: SIDE_NAV_WIDTH
+  },
+  '@media print': {
+    paddingLeft: 0
   }
 }));
 

@@ -18,7 +18,7 @@ import { DateTimePicker } from '@mui/x-date-pickers/DateTimePicker';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import { differenceInDays, format } from 'date-fns';
 import { useFormik } from 'formik';
-import type { FC } from 'react';
+import type { ChangeEvent, FC } from 'react';
 import { useState } from 'react';
 import { toast } from 'react-hot-toast';
 import { bookingApi } from 'src/api/booking';
@@ -52,7 +52,9 @@ const initialValues: BookingFormValues = {
 
 const validationSchema = Yup.object({
   CustomerName: Yup.string().required('Customer name is required'),
-  Price: Yup.string().required('Price is required'),
+  Price: Yup.string()
+    .required('Price is required')
+    .matches(/^\d+(\.\d+)?$/, 'Price must be a number (no letters or commas)'),
   CarCategory: Yup.string().required('Car category is required')
 });
 
@@ -113,6 +115,13 @@ export const BookingCreateForm: FC = (props) => {
   const handleGenerateRefNumber = () => {
     const generatedRefNumber = generateRefNumber();
     formik.setFieldValue('ReferenceNo', generatedRefNumber);
+  };
+
+  // Only allow digits and a single decimal point (no letters, no commas)
+  const handlePriceChange = (event: ChangeEvent<HTMLInputElement>): void => {
+    if (/^\d*\.?\d*$/.test(event.target.value)) {
+      formik.handleChange(event);
+    }
   };
 
   return (
@@ -226,8 +235,9 @@ export const BookingCreateForm: FC = (props) => {
                       label="Price"
                       name="Price"
                       required
+                      inputMode="decimal"
                       onBlur={formik.handleBlur}
-                      onChange={formik.handleChange}
+                      onChange={handlePriceChange}
                       value={formik.values.Price}
                     />
                     <TextField
