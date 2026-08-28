@@ -95,6 +95,24 @@ export const BookingEditForm: FC<BookingEditFormProps> = ({ booking }) => {
     enableReinitialize: true,
     initialValues,
     validationSchema,
+    validate: (values) => {
+      const errors: Partial<Record<keyof BookingFormValues, string>> = {};
+      const selectedCar = cars.find((c) => c.CarId === values.car);
+      const enteredMileage = Number(values.Mileage);
+
+      if (
+        selectedCar?.CurrentMileage != null &&
+        values.Mileage !== undefined &&
+        values.Mileage !== null &&
+        String(values.Mileage) !== '' &&
+        !Number.isNaN(enteredMileage) &&
+        enteredMileage < selectedCar.CurrentMileage
+      ) {
+        errors.Mileage = `Mileage cannot be less than the car's current mileage (${selectedCar.CurrentMileage.toLocaleString()} km)`;
+      }
+
+      return errors;
+    },
     onSubmit: async (values) => {
       try {
         setIsSubmitting(true);

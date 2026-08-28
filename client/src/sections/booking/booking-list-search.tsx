@@ -16,7 +16,7 @@ import { ChangeEvent, useCallback, useRef, useState } from 'react';
 import { useUpdateEffect } from 'src/hooks/use-update-effect';
 import { timestampToDate } from 'src/utils/date-locale';
 
-type SortValue = 'CreatedOn|desc' | 'CreatedOn|asc';
+type SortValue = 'LastModifiedTimeStamp|desc' | 'LastModifiedTimeStamp|asc';
 
 interface SortOption {
   label: string;
@@ -25,12 +25,12 @@ interface SortOption {
 
 const sortOptions: SortOption[] = [
   {
-    label: 'Created on (newest)',
-    value: 'CreatedOn|desc'
+    label: 'Last modified (newest)',
+    value: 'LastModifiedTimeStamp|desc'
   },
   {
-    label: 'Created on (oldest)',
-    value: 'CreatedOn|asc'
+    label: 'Last modified (oldest)',
+    value: 'LastModifiedTimeStamp|asc'
   }
 ];
 
@@ -38,7 +38,7 @@ type SortDir = 'asc' | 'desc';
 
 interface SearchChip {
   label: string;
-  field: 'customerName' | 'pickupDate' | 'dropoffDate' | 'referenceNo';
+  field: 'customerName' | 'pickupDate' | 'dropoffDate' | 'referenceNo' | 'carNumber';
   value: unknown;
   displayValue?: unknown;
 }
@@ -55,6 +55,7 @@ export const BookingListSearch: FC<BookingListSearchProps> = (props) => {
   const { onFiltersChange, onSortChange, sortBy, sortDir, filters } = props;
   const queryRef = useRef<HTMLInputElement | null>(null);
   const referenceNoRef = useRef<HTMLInputElement | null>(null);
+  const carNumberRef = useRef<HTMLInputElement | null>(null);
   const [chips, setChips] = useState<SearchChip[]>([]);
   const [pickupDate, setPickupDate] = useState<Date | null>(null);
   const [dropoffDate, setDropoffDate] = useState<Date | null>(null);
@@ -65,7 +66,8 @@ export const BookingListSearch: FC<BookingListSearchProps> = (props) => {
       !filters?.customerName &&
       !filters?.pickupDate &&
       !filters?.dropoffDate &&
-      !filters?.referenceNo
+      !filters?.referenceNo &&
+      !filters?.carNumber
     ) {
       setChips((prevChips) => (prevChips.length > 0 ? [] : prevChips));
       setPickupDate(null);
@@ -76,6 +78,9 @@ export const BookingListSearch: FC<BookingListSearchProps> = (props) => {
       if (referenceNoRef.current) {
         referenceNoRef.current.value = '';
       }
+      if (carNumberRef.current) {
+        carNumberRef.current.value = '';
+      }
     }
   }, [filters]);
 
@@ -84,7 +89,8 @@ export const BookingListSearch: FC<BookingListSearchProps> = (props) => {
       customerName: undefined,
       pickupDate: undefined,
       dropoffDate: undefined,
-      referenceNo: undefined
+      referenceNo: undefined,
+      carNumber: undefined
     };
 
     chips.forEach((chip) => {
@@ -100,6 +106,9 @@ export const BookingListSearch: FC<BookingListSearchProps> = (props) => {
           break;
         case 'referenceNo':
           filters.referenceNo = chip.value as string;
+          break;
+        case 'carNumber':
+          filters.carNumber = chip.value as string;
           break;
         default:
           break;
@@ -145,6 +154,7 @@ export const BookingListSearch: FC<BookingListSearchProps> = (props) => {
 
       const customerName = queryRef.current?.value || '';
       const referenceNo = referenceNoRef.current?.value || '';
+      const carNumber = carNumberRef.current?.value || '';
       const newChips: SearchChip[] = [];
 
       // Add customer name chip
@@ -162,6 +172,15 @@ export const BookingListSearch: FC<BookingListSearchProps> = (props) => {
           label: 'Reference No',
           field: 'referenceNo',
           value: referenceNo
+        });
+      }
+
+      // Add car number chip
+      if (carNumber) {
+        newChips.push({
+          label: 'Car Number',
+          field: 'carNumber',
+          value: carNumber
         });
       }
 
@@ -209,89 +228,88 @@ export const BookingListSearch: FC<BookingListSearchProps> = (props) => {
   return (
     <>
       <Stack
-        alignItems="center"
-        direction="row"
-        flexWrap="wrap"
-        spacing={3}
+        component="form"
+        onSubmit={handleSearchClick}
+        direction={{ xs: 'column', md: 'row' }}
+        flexWrap={{ md: 'wrap' }}
+        alignItems={{ xs: 'stretch', md: 'center' }}
+        spacing={2}
         sx={{ p: 3 }}
       >
-        <Box
-          component="form"
-          onSubmit={handleSearchClick}
-          sx={{ flexGrow: 1 }}
+        <OutlinedInput
+          defaultValue=""
+          inputProps={{ ref: queryRef }}
+          placeholder="Search by customer name"
+          startAdornment={
+            <InputAdornment position="start">
+              <SvgIcon>
+                <SearchMdIcon />
+              </SvgIcon>
+            </InputAdornment>
+          }
+          sx={{ width: '100%', flex: { md: '1 1 0' }, minWidth: { md: 200 } }}
+        />
+        <OutlinedInput
+          defaultValue=""
+          inputProps={{ ref: referenceNoRef }}
+          placeholder="Search by reference no"
+          startAdornment={
+            <InputAdornment position="start">
+              <SvgIcon>
+                <SearchMdIcon />
+              </SvgIcon>
+            </InputAdornment>
+          }
+          sx={{ width: '100%', flex: { md: '1 1 0' }, minWidth: { md: 200 } }}
+        />
+        <OutlinedInput
+          defaultValue=""
+          inputProps={{ ref: carNumberRef }}
+          placeholder="Search by car number"
+          startAdornment={
+            <InputAdornment position="start">
+              <SvgIcon>
+                <SearchMdIcon />
+              </SvgIcon>
+            </InputAdornment>
+          }
+          sx={{ width: '100%', flex: { md: '1 1 0' }, minWidth: { md: 200 } }}
+        />
+        <DatePicker
+          format="dd/MM/yyyy"
+          label="Pickup Date"
+          onChange={handlePickupDateChange}
+          value={pickupDate}
+          slotProps={{
+            actionBar: {
+              actions: ['clear', 'accept']
+            },
+            textField: {
+              sx: { width: { xs: '100%', md: 200 } }
+            }
+          }}
+        />
+        <DatePicker
+          format="dd/MM/yyyy"
+          label="Dropoff Date"
+          onChange={handleDropoffDateChange}
+          value={dropoffDate}
+          slotProps={{
+            actionBar: {
+              actions: ['clear', 'accept']
+            },
+            textField: {
+              sx: { width: { xs: '100%', md: 200 } }
+            }
+          }}
+        />
+        <Button
+          onClick={handleSearchClick}
+          variant="contained"
+          sx={{ width: { xs: '100%', md: 120 }, height: 56, flexShrink: 0 }}
         >
-          <Stack
-            direction="row"
-            flexWrap="wrap"
-            spacing={2}
-          >
-            <OutlinedInput
-              defaultValue=""
-              fullWidth
-              inputProps={{ ref: queryRef }}
-              placeholder="Search by customer name"
-              startAdornment={
-                <InputAdornment position="start">
-                  <SvgIcon>
-                    <SearchMdIcon />
-                  </SvgIcon>
-                </InputAdornment>
-              }
-              sx={{ flex: 1, minWidth: 240 }}
-            />
-            <OutlinedInput
-              defaultValue=""
-              fullWidth
-              inputProps={{ ref: referenceNoRef }}
-              placeholder="Search by reference no"
-              startAdornment={
-                <InputAdornment position="start">
-                  <SvgIcon>
-                    <SearchMdIcon />
-                  </SvgIcon>
-                </InputAdornment>
-              }
-              sx={{ flex: 1, minWidth: 240 }}
-            />
-          </Stack>
-        </Box>
-        <Stack
-          alignItems="center"
-          direction="row"
-          flexWrap="wrap"
-          spacing={1}
-          sx={{ p: 1 }}
-        >
-          <DatePicker
-            format="dd/MM/yyyy"
-            label="Pickup Date"
-            onChange={handlePickupDateChange}
-            value={pickupDate}
-            slotProps={{
-              actionBar: {
-                actions: ['clear', 'accept']
-              }
-            }}
-          />
-          <DatePicker
-            format="dd/MM/yyyy"
-            label="Dropoff Date"
-            onChange={handleDropoffDateChange}
-            value={dropoffDate}
-            slotProps={{
-              actionBar: {
-                actions: ['clear', 'accept']
-              }
-            }}
-          />
-          <Button
-            onClick={handleSearchClick}
-            variant="contained"
-            sx={{ minWidth: 100, height: 56 }}
-          >
-            Search
-          </Button>
-        </Stack>
+          Search
+        </Button>
         <TextField
           label="Sort By"
           name="sort"
@@ -299,6 +317,7 @@ export const BookingListSearch: FC<BookingListSearchProps> = (props) => {
           select
           SelectProps={{ native: true }}
           value={`${sortBy}|${sortDir}`}
+          sx={{ width: { xs: '100%', md: 220 }, flexShrink: 0 }}
         >
           {sortOptions.map((option) => (
             <option

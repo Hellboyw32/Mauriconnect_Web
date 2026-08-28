@@ -111,6 +111,16 @@ class BookingApi implements IBookingApi {
             }
           }
 
+          if (typeof filters.carNumber !== 'undefined' && filters.carNumber !== '') {
+            const carNumberMatched = booking!
+              .Car?.CarNumber?.toLowerCase()
+              .includes(filters.carNumber.toLowerCase());
+
+            if (!carNumberMatched) {
+              return false;
+            }
+          }
+
           return true;
         });
       }
@@ -134,6 +144,10 @@ class BookingApi implements IBookingApi {
 
       if (filters?.referenceNo) {
         params.append('referenceNo', filters.referenceNo);
+      }
+
+      if (filters?.carNumber) {
+        params.append('carNumber', filters.carNumber);
       }
 
       if (params.toString()) {

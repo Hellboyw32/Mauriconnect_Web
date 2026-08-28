@@ -10,6 +10,7 @@ export const tokens = {
     carInsurance: 'carInsurance',
     roadTax: 'roadTax',
     fitnessCertificate: 'fitnessCertificate',
+    carServicing: 'carServicing',
     dashboard: 'nav.dashboard',
     details: 'nav.details',
     ecommerce: 'nav.ecommerce',
