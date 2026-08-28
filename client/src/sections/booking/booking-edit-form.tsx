@@ -25,6 +25,7 @@ import { bookingApi } from 'src/api/booking';
 import { carInsurancesApi } from 'src/api/car-insurance';
 import { roadTaxesApi } from 'src/api/road-tax';
 import { RouterLink } from 'src/components/router-link';
+import { useDeliveryUsers } from 'src/hooks/delivery-users/use-delivery-users';
 import { useAuth } from 'src/hooks/use-auth';
 import { useCars } from 'src/hooks/cars/use-cars';
 import { useRouter } from 'src/hooks/use-router';
@@ -35,7 +36,6 @@ import {
   paymentMethods,
   posMachines
 } from 'src/mock/booking';
-import { deliveryUsers } from 'src/mock/delivery-user';
 import { paths } from 'src/paths';
 import * as Yup from 'yup';
 
@@ -154,6 +154,7 @@ export const BookingEditForm: FC<BookingEditFormProps> = ({ booking }) => {
   const { cars, refetch: refetchCars } = useCars(
     initialCategoryId ? { categoryId: initialCategoryId } : undefined
   );
+  const { deliveryUsers } = useDeliveryUsers();
 
   const handleCategoryChange = (e: ChangeEvent<HTMLInputElement>) => {
     const categoryId = Number(e.target.value);
