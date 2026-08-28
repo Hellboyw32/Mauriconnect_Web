@@ -172,6 +172,11 @@ export const SideNav: FC<SideNavProps> = (props) => {
           width: SIDE_NAV_WIDTH
         }
       }}
+      sx={{
+        '@media print': {
+          display: 'none'
+        }
+      }}
       variant="permanent"
     >
       <Scrollbar
