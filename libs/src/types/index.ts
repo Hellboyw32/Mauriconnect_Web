@@ -1,3 +1,5 @@
+export * from './admin-analytics';
+export * from './audit-log';
 export * from './base';
 export * from './booking';
 export * from './car';
@@ -7,6 +9,7 @@ export * from './delivery-user';
 export * from './documents';
 export * from './fitness-certificate';
 export * from './invoice';
+export * from './login-log';
 export * from './report';
 export * from './road-tax';
 export * from './settings';

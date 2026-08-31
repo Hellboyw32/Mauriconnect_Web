@@ -51,6 +51,27 @@ export enum DELIVERY_USER_STORED_PROCEDURES {
   GET_DELIVERY_USERS = 'spGetDeliveryUsers'
 }
 
+export enum USER_STORED_PROCEDURES {
+  GET_USERS_JSON = 'spGetAllUsersJson',
+  GET_USER_JSON = 'spGetSingleUserJson',
+  GET_USER_FOR_LOGIN_JSON = 'spGetUserForLoginJson',
+  CHECK_USERNAME_EXISTS = 'spCheckUsernameExists',
+  UPDATE_USER = 'spUpdateUserDetails',
+  LOCK_UNLOCK_USER = 'spLockUnlockUser',
+  CHANGE_USER_PASSWORD = 'spChangeUserPassword',
+  RECORD_LOGIN_SUCCESS = 'spRecordLoginSuccess',
+  RECORD_LOGIN_FAILURE = 'spRecordLoginFailure',
+  RECORD_LOGOUT = 'spRecordLogout',
+  GET_USER_LOGIN_LOGS_JSON = 'spGetUserLoginLogsJson',
+  GET_USER_ANALYTICS = 'spGetUserAnalytics',
+  GET_LOGIN_ANALYTICS = 'spGetLoginAnalytics'
+}
+
+export enum AUDIT_LOG_STORED_PROCEDURES {
+  INSERT_AUDIT_LOG = 'spInsertAuditLog',
+  GET_AUDIT_LOGS_JSON = 'spGetAuditLogsJson'
+}
+
 export enum REPORT_STORED_PROCEDURES {
   GET_PICKUP_SCHEDULE_BY_DATE = 'spGetPickScheduleByDate',
   GET_DROPOFF_SCHEDULE_BY_DATE = 'spGetDropScheduleByDate',

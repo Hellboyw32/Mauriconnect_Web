@@ -72,7 +72,7 @@ export const BookingListTableRow: FC<BookingListTableRowProps> = (props) => {
       setIsDeleting(true);
       const response = await bookingApi.deleteBooking({
         bookingId: booking.BookingId,
-        createdBy: user?.email || 'system'
+        createdBy: user?.username || 'system'
       });
 
       toast.success(response.message || 'Booking deleted successfully');

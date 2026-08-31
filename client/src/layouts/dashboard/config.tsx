@@ -10,8 +10,12 @@ import Truck01 from 'src/icons/untitled-ui/duocolor/truck-01';
 import ReceiptCheck from 'src/icons/untitled-ui/duocolor/receipt-check';
 import CreditCard01 from 'src/icons/untitled-ui/duocolor/credit-card-01';
 import File04 from 'src/icons/untitled-ui/duocolor/file-04';
+import Users03 from 'src/icons/untitled-ui/duocolor/users-03';
+import LogOut01 from 'src/icons/untitled-ui/duocolor/log-out-01';
+import Lock01 from 'src/icons/untitled-ui/duocolor/lock-01';
 import { tokens } from 'src/locales/tokens';
 import { paths } from 'src/paths';
+import { useAuth } from 'src/hooks/use-auth';
 
 export interface Item {
   disabled?: boolean;
@@ -30,9 +34,11 @@ export interface Section {
 
 export const useSections = () => {
   const { t } = useTranslation();
+  const { user } = useAuth();
+  const isAdmin = user?.userType === 'Admin';
 
   return useMemo(() => {
-    return [
+    const sections: Section[] = [
       {
         items: [
           {
@@ -57,7 +63,7 @@ export const useSections = () => {
       },
 
       {
-        subheader: t(tokens.nav.pages),
+        subheader: t(tokens.nav.pages) ?? undefined,
         items: [
           {
             title: t(tokens.nav.bookings),
@@ -116,5 +122,55 @@ export const useSections = () => {
         ]
       }
     ];
-  }, [t]);
+
+    // Admin-only navigation. This is a UI convenience, not the security
+    // boundary - RoleGuard on the routes and requireRole('Admin') on the API
+    // are what actually keep normal users out (see src/guards/role-guard.tsx
+    // and api/src/middlewares/auth.ts).
+    if (isAdmin) {
+      sections.push({
+        subheader: 'Administration',
+        items: [
+          {
+            title: 'Users',
+            path: paths.admin.users.index,
+            icon: (
+              <SvgIcon fontSize="small">
+                <Users03 />
+              </SvgIcon>
+            )
+          },
+          {
+            title: 'User Activity',
+            path: paths.admin.loginLogs.index,
+            icon: (
+              <SvgIcon fontSize="small">
+                <LogOut01 />
+              </SvgIcon>
+            )
+          },
+          {
+            title: 'Audit Logs',
+            path: paths.admin.auditLogs.index,
+            icon: (
+              <SvgIcon fontSize="small">
+                <Lock01 />
+              </SvgIcon>
+            )
+          },
+          {
+            title: 'Analytics',
+            path: paths.admin.analytics.index,
+            icon: (
+              <SvgIcon fontSize="small">
+                <BarChartSquare02Icon />
+              </SvgIcon>
+            )
+          }
+        ]
+      });
+    }
+
+    return sections;
+  }, [t, isAdmin]);
 };

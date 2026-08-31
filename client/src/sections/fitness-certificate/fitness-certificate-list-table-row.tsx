@@ -50,7 +50,7 @@ export const FitnessCertificateListTableRow: FC<FitnessCertificateListTableRowPr
       setIsDeleting(true);
       const response = await fitnessCertificatesApi.deleteFitnessCertificate({
         fitnessId: fitnessCertificate.FitnessId,
-        createdBy: user?.email || 'system'
+        createdBy: user?.username || 'system'
       });
 
       toast.success(response.message || 'Fitness certificate record deleted successfully');

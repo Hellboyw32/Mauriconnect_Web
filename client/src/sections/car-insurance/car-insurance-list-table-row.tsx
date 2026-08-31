@@ -50,7 +50,7 @@ export const CarInsuranceListTableRow: FC<CarInsuranceListTableRowProps> = (prop
       setIsDeleting(true);
       const response = await carInsurancesApi.deleteCarInsurance({
         carInsuranceId: carInsurance.CarInsuranceId,
-        createdBy: user?.email || 'system'
+        createdBy: user?.username || 'system'
       });
 
       toast.success(response.message || 'Car insurance record deleted successfully');

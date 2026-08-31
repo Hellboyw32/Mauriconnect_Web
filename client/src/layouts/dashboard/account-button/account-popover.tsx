@@ -17,7 +17,6 @@ import toast from 'react-hot-toast';
 
 import { RouterLink } from 'src/components/router-link';
 import { useAuth } from 'src/hooks/use-auth';
-import { useMockedUser } from 'src/hooks/use-mocked-user';
 import { useRouter } from 'src/hooks/use-router';
 import { paths } from 'src/paths';
 import { Issuer } from 'src/utils/auth';
@@ -32,7 +31,7 @@ export const AccountPopover: FC<AccountPopoverProps> = (props) => {
   const { anchorEl, onClose, open, ...other } = props;
   const router = useRouter();
   const auth = useAuth();
-  const user = useMockedUser();
+  const { user } = auth;
 
   const handleLogout = useCallback(async (): Promise<void> => {
     try {
@@ -70,12 +69,12 @@ export const AccountPopover: FC<AccountPopoverProps> = (props) => {
       {...other}
     >
       <Box sx={{ p: 2 }}>
-        <Typography variant="body1">{user.name}</Typography>
+        <Typography variant="body1">{user?.username}</Typography>
         <Typography
           color="text.secondary"
           variant="body2"
         >
-          demo@inncarsholiday.com
+          {user?.emailAccount}
         </Typography>
       </Box>
       <Divider />

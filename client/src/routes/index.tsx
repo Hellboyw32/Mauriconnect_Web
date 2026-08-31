@@ -1,6 +1,7 @@
 import { lazy } from 'react';
 import type { RouteObject } from 'react-router';
 
+import { adminRoutes } from './admin';
 import { authRoutes } from './auth';
 import { bookingRoutes } from './bookings';
 import { carRoutes } from './cars';
@@ -16,6 +17,7 @@ const Error500Page = lazy(() => import('src/pages/500'));
 
 export const routes: RouteObject[] = [
   ...authRoutes,
+  ...adminRoutes,
   ...bookingRoutes,
   ...carRoutes,
   ...carInsuranceRoutes,

@@ -133,7 +133,7 @@ export const BookingEditForm: FC<BookingEditFormProps> = ({ booking }) => {
           FuelLevel: values.FuelLevel,
           CarInsurance: toLocalDateString(values.CarInsurance ?? null),
           RoadTax: toLocalDateString(values.RoadTax ?? null),
-          LastModifiedUserId: user?.email || 'system'
+          LastModifiedUserId: user?.username || 'system'
         };
 
         const response = await bookingApi.updateBooking({

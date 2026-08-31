@@ -1,5 +1,37 @@
 import axios, { isAxiosError, type AxiosResponse } from 'axios';
 
+const ACCESS_TOKEN_STORAGE_KEY = 'accessToken';
+
+// Attach the session's JWT to every outgoing request - the api now requires
+// it on every route except /auth/login (see api/src/api/index.ts).
+axios.interceptors.request.use((requestConfig) => {
+  const accessToken = sessionStorage.getItem(ACCESS_TOKEN_STORAGE_KEY);
+
+  if (accessToken) {
+    requestConfig.headers.Authorization = `Bearer ${accessToken}`;
+  }
+
+  return requestConfig;
+});
+
+// A 401 means the token is missing/expired/invalid - drop it and send the
+// user back to the login page rather than leaving them stuck on a page that
+// silently fails every request.
+axios.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (isAxiosError(error) && error.response?.status === 401) {
+      sessionStorage.removeItem(ACCESS_TOKEN_STORAGE_KEY);
+
+      if (window.location.pathname !== '/') {
+        window.location.href = '/';
+      }
+    }
+
+    return Promise.reject(error);
+  }
+);
+
 type Response<T> = {
   data?: T;
   message?: string;
@@ -29,7 +61,7 @@ class ApiService {
     } catch (error) {
       if (isAxiosError(error)) {
         return {
-          message: error.message,
+          message: (error.response?.data as { message?: string })?.message || error.message,
           status: error.response?.status as number
         };
       }
@@ -49,7 +81,7 @@ class ApiService {
     } catch (error) {
       if (isAxiosError(error)) {
         return {
-          message: error.message,
+          message: (error.response?.data as { message?: string })?.message || error.message,
           status: error.response?.status as number
         };
       }
@@ -69,7 +101,7 @@ class ApiService {
     } catch (error) {
       if (isAxiosError(error)) {
         return {
-          message: error.message,
+          message: (error.response?.data as { message?: string })?.message || error.message,
           status: error.response?.status as number
         };
       }
@@ -89,7 +121,7 @@ class ApiService {
     } catch (error) {
       if (isAxiosError(error)) {
         return {
-          message: error.message,
+          message: (error.response?.data as { message?: string })?.message || error.message,
           status: error.response?.status as number
         };
       }

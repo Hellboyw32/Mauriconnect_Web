@@ -40,5 +40,21 @@ export const paths = {
   },
   reports: {
     index: '/reports'
+  },
+  admin: {
+    users: {
+      index: '/admin/users',
+      create: '/admin/users/create',
+      edit: '/admin/users/:userId/edit'
+    },
+    loginLogs: {
+      index: '/admin/login-logs'
+    },
+    auditLogs: {
+      index: '/admin/audit-logs'
+    },
+    analytics: {
+      index: '/admin/analytics'
+    }
   }
 };
