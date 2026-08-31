@@ -18,6 +18,8 @@ import TrashIcon from '@untitled-ui/icons-react/build/esm/Trash01';
 import FileIcon from '@untitled-ui/icons-react/build/esm/File04';
 import EyeIcon from '@untitled-ui/icons-react/build/esm/Eye';
 import CloseIcon from '@untitled-ui/icons-react/build/esm/X';
+import RotateLeftIcon from '@untitled-ui/icons-react/build/esm/RefreshCcw01';
+import RotateRightIcon from '@untitled-ui/icons-react/build/esm/RefreshCw01';
 import { toast } from 'react-hot-toast';
 import { fileApi, type FileInfo } from 'src/api/files';
 import { format } from 'date-fns';
@@ -69,6 +71,7 @@ export const FileList: FC<FileListProps> = (props) => {
   const [previewFile, setPreviewFile] = useState<{ name: string; url: string; type: string } | null>(
     null
   );
+  const [rotation, setRotation] = useState(0);
 
   const loadFiles = useCallback(async () => {
     setLoading(true);
@@ -137,6 +140,7 @@ export const FileList: FC<FileListProps> = (props) => {
         const url =
           thumbnails[fileName] ||
           URL.createObjectURL(await fileApi.downloadFile(referenceNo, fileName));
+        setRotation(0);
         setPreviewFile({ name: fileName, url, type: fileType });
       } catch (error) {
         console.error('Preview error:', error);
@@ -148,6 +152,15 @@ export const FileList: FC<FileListProps> = (props) => {
 
   const handleClosePreview = useCallback(() => {
     setPreviewFile(null);
+    setRotation(0);
+  }, []);
+
+  const handleRotateLeft = useCallback(() => {
+    setRotation((prev) => (prev - 90 + 360) % 360);
+  }, []);
+
+  const handleRotateRight = useCallback(() => {
+    setRotation((prev) => (prev + 90) % 360);
   }, []);
 
   const handleDelete = useCallback(
@@ -343,14 +356,42 @@ export const FileList: FC<FileListProps> = (props) => {
           >
             {previewFile?.name}
           </Typography>
-          <IconButton
-            size="small"
-            onClick={handleClosePreview}
+          <Stack
+            direction="row"
+            spacing={1}
+            alignItems="center"
           >
-            <SvgIcon fontSize="small">
-              <CloseIcon />
-            </SvgIcon>
-          </IconButton>
+            {previewFile?.type === 'image' && (
+              <>
+                <IconButton
+                  size="small"
+                  onClick={handleRotateLeft}
+                  title="Rotate left"
+                >
+                  <SvgIcon fontSize="small">
+                    <RotateLeftIcon />
+                  </SvgIcon>
+                </IconButton>
+                <IconButton
+                  size="small"
+                  onClick={handleRotateRight}
+                  title="Rotate right"
+                >
+                  <SvgIcon fontSize="small">
+                    <RotateRightIcon />
+                  </SvgIcon>
+                </IconButton>
+              </>
+            )}
+            <IconButton
+              size="small"
+              onClick={handleClosePreview}
+            >
+              <SvgIcon fontSize="small">
+                <CloseIcon />
+              </SvgIcon>
+            </IconButton>
+          </Stack>
         </DialogTitle>
         <DialogContent
           dividers
@@ -358,11 +399,28 @@ export const FileList: FC<FileListProps> = (props) => {
         >
           {previewFile?.type === 'image' ? (
             <Box
-              component="img"
-              src={previewFile.url}
-              alt={previewFile.name}
-              sx={{ width: '100%', height: '100%', objectFit: 'contain' }}
-            />
+              sx={{
+                width: '100%',
+                height: '100%',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                overflow: 'hidden'
+              }}
+            >
+              <Box
+                component="img"
+                src={previewFile.url}
+                alt={previewFile.name}
+                sx={{
+                  maxWidth: rotation % 180 === 0 ? '100%' : '80vh',
+                  maxHeight: rotation % 180 === 0 ? '100%' : '100%',
+                  objectFit: 'contain',
+                  transform: `rotate(${rotation}deg)`,
+                  transition: 'transform 0.2s ease-in-out'
+                }}
+              />
+            </Box>
           ) : (
             <Box
               component="iframe"

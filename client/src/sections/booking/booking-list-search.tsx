@@ -32,14 +32,56 @@ interface BookingListSearchProps {
   filters?: Filters;
 }
 
+const buildInitialChips = (filters?: Filters): SearchChip[] => {
+  const chips: SearchChip[] = [];
+
+  if (filters?.customerName) {
+    chips.push({ label: 'Customer Name', field: 'customerName', value: filters.customerName });
+  }
+
+  if (filters?.referenceNo) {
+    chips.push({ label: 'Reference No', field: 'referenceNo', value: filters.referenceNo });
+  }
+
+  if (filters?.carNumber) {
+    chips.push({ label: 'Car Number', field: 'carNumber', value: filters.carNumber });
+  }
+
+  if (filters?.pickupDate) {
+    const date = new Date(filters.pickupDate);
+    chips.push({
+      label: 'Pickup Date',
+      field: 'pickupDate',
+      value: date,
+      displayValue: timestampToDate(date)
+    });
+  }
+
+  if (filters?.dropoffDate) {
+    const date = new Date(filters.dropoffDate);
+    chips.push({
+      label: 'Dropoff Date',
+      field: 'dropoffDate',
+      value: date,
+      displayValue: timestampToDate(date)
+    });
+  }
+
+  return chips;
+};
+
 export const BookingListSearch: FC<BookingListSearchProps> = (props) => {
   const { onFiltersChange, filters } = props;
   const queryRef = useRef<HTMLInputElement | null>(null);
   const referenceNoRef = useRef<HTMLInputElement | null>(null);
   const carNumberRef = useRef<HTMLInputElement | null>(null);
-  const [chips, setChips] = useState<SearchChip[]>([]);
-  const [pickupDate, setPickupDate] = useState<Date | null>(null);
-  const [dropoffDate, setDropoffDate] = useState<Date | null>(null);
+  const [chips, setChips] = useState<SearchChip[]>(() => buildInitialChips(filters));
+  const [pickupDate, setPickupDate] = useState<Date | null>(
+    filters?.pickupDate ? new Date(filters.pickupDate) : null
+  );
+  const [dropoffDate, setDropoffDate] = useState<Date | null>(
+    filters?.dropoffDate ? new Date(filters.dropoffDate) : null
+  );
 
   // Reset fields when filters are cleared from parent
   useUpdateEffect(() => {
@@ -208,7 +250,7 @@ export const BookingListSearch: FC<BookingListSearchProps> = (props) => {
           spacing={2}
         >
           <OutlinedInput
-            defaultValue=""
+            defaultValue={filters?.customerName ?? ''}
             inputProps={{ ref: queryRef }}
             placeholder="Search by customer name"
             startAdornment={
@@ -221,7 +263,7 @@ export const BookingListSearch: FC<BookingListSearchProps> = (props) => {
             sx={{ flex: 1, minWidth: { xs: '100%', md: 200 } }}
           />
           <OutlinedInput
-            defaultValue=""
+            defaultValue={filters?.referenceNo ?? ''}
             inputProps={{ ref: referenceNoRef }}
             placeholder="Search by reference no"
             startAdornment={
@@ -234,7 +276,7 @@ export const BookingListSearch: FC<BookingListSearchProps> = (props) => {
             sx={{ flex: 1, minWidth: { xs: '100%', md: 200 } }}
           />
           <OutlinedInput
-            defaultValue=""
+            defaultValue={filters?.carNumber ?? ''}
             inputProps={{ ref: carNumberRef }}
             placeholder="Search by car number"
             startAdornment={
