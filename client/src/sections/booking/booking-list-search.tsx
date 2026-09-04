@@ -11,8 +11,8 @@ import TextField from '@mui/material/TextField';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import SearchMdIcon from '@untitled-ui/icons-react/build/esm/SearchMd';
 import PropTypes from 'prop-types';
-import type { FC } from 'react';
-import { ChangeEvent, useCallback, useRef, useState } from 'react';
+import type { ChangeEvent, FC } from 'react';
+import { useCallback, useRef, useState } from 'react';
 import { useUpdateEffect } from 'src/hooks/use-update-effect';
 import { timestampToDate } from 'src/utils/date-locale';
 
@@ -51,14 +51,56 @@ interface BookingListSearchProps {
   filters?: Filters;
 }
 
+const buildInitialChips = (filters?: Filters): SearchChip[] => {
+  const chips: SearchChip[] = [];
+
+  if (filters?.customerName) {
+    chips.push({ label: 'Customer Name', field: 'customerName', value: filters.customerName });
+  }
+
+  if (filters?.referenceNo) {
+    chips.push({ label: 'Reference No', field: 'referenceNo', value: filters.referenceNo });
+  }
+
+  if (filters?.carNumber) {
+    chips.push({ label: 'Car Number', field: 'carNumber', value: filters.carNumber });
+  }
+
+  if (filters?.pickupDate) {
+    const date = new Date(filters.pickupDate);
+    chips.push({
+      label: 'Pickup Date',
+      field: 'pickupDate',
+      value: date,
+      displayValue: timestampToDate(date)
+    });
+  }
+
+  if (filters?.dropoffDate) {
+    const date = new Date(filters.dropoffDate);
+    chips.push({
+      label: 'Dropoff Date',
+      field: 'dropoffDate',
+      value: date,
+      displayValue: timestampToDate(date)
+    });
+  }
+
+  return chips;
+};
+
 export const BookingListSearch: FC<BookingListSearchProps> = (props) => {
   const { onFiltersChange, onSortChange, sortBy, sortDir, filters } = props;
   const queryRef = useRef<HTMLInputElement | null>(null);
   const referenceNoRef = useRef<HTMLInputElement | null>(null);
   const carNumberRef = useRef<HTMLInputElement | null>(null);
-  const [chips, setChips] = useState<SearchChip[]>([]);
-  const [pickupDate, setPickupDate] = useState<Date | null>(null);
-  const [dropoffDate, setDropoffDate] = useState<Date | null>(null);
+  const [chips, setChips] = useState<SearchChip[]>(() => buildInitialChips(filters));
+  const [pickupDate, setPickupDate] = useState<Date | null>(
+    filters?.pickupDate ? new Date(filters.pickupDate) : null
+  );
+  const [dropoffDate, setDropoffDate] = useState<Date | null>(
+    filters?.dropoffDate ? new Date(filters.dropoffDate) : null
+  );
 
   // Reset fields when filters are cleared from parent
   useUpdateEffect(() => {
@@ -146,6 +188,18 @@ export const BookingListSearch: FC<BookingListSearchProps> = (props) => {
     setDropoffDate(date);
   }, []);
 
+  const handleSortChange = useCallback(
+    (event: ChangeEvent<HTMLInputElement>): void => {
+      const [sortBy, sortDir] = event.target.value.split('|') as [string, SortDir];
+
+      onSortChange?.({
+        sortBy,
+        sortDir
+      });
+    },
+    [onSortChange]
+  );
+
   const handleSearchClick = useCallback(
     (event?: any): void => {
       if (event) {
@@ -211,124 +265,115 @@ export const BookingListSearch: FC<BookingListSearchProps> = (props) => {
     [pickupDate, dropoffDate]
   );
 
-  const handleSortChange = useCallback(
-    (event: ChangeEvent<HTMLInputElement>): void => {
-      const [sortBy, sortDir] = event.target.value.split('|') as [string, SortDir];
-
-      onSortChange?.({
-        sortBy,
-        sortDir
-      });
-    },
-    [onSortChange]
-  );
-
   const showChips = chips.length > 0;
 
   return (
     <>
-      <Stack
+      <Box
         component="form"
         onSubmit={handleSearchClick}
-        direction={{ xs: 'column', md: 'row' }}
-        flexWrap={{ md: 'wrap' }}
-        alignItems={{ xs: 'stretch', md: 'center' }}
-        spacing={2}
         sx={{ p: 3 }}
       >
-        <OutlinedInput
-          defaultValue=""
-          inputProps={{ ref: queryRef }}
-          placeholder="Search by customer name"
-          startAdornment={
-            <InputAdornment position="start">
-              <SvgIcon>
-                <SearchMdIcon />
-              </SvgIcon>
-            </InputAdornment>
-          }
-          sx={{ width: '100%', flex: { md: '1 1 0' }, minWidth: { md: 200 } }}
-        />
-        <OutlinedInput
-          defaultValue=""
-          inputProps={{ ref: referenceNoRef }}
-          placeholder="Search by reference no"
-          startAdornment={
-            <InputAdornment position="start">
-              <SvgIcon>
-                <SearchMdIcon />
-              </SvgIcon>
-            </InputAdornment>
-          }
-          sx={{ width: '100%', flex: { md: '1 1 0' }, minWidth: { md: 200 } }}
-        />
-        <OutlinedInput
-          defaultValue=""
-          inputProps={{ ref: carNumberRef }}
-          placeholder="Search by car number"
-          startAdornment={
-            <InputAdornment position="start">
-              <SvgIcon>
-                <SearchMdIcon />
-              </SvgIcon>
-            </InputAdornment>
-          }
-          sx={{ width: '100%', flex: { md: '1 1 0' }, minWidth: { md: 200 } }}
-        />
-        <DatePicker
-          format="dd/MM/yyyy"
-          label="Pickup Date"
-          onChange={handlePickupDateChange}
-          value={pickupDate}
-          slotProps={{
-            actionBar: {
-              actions: ['clear', 'accept']
-            },
-            textField: {
-              sx: { width: { xs: '100%', md: 200 } }
-            }
-          }}
-        />
-        <DatePicker
-          format="dd/MM/yyyy"
-          label="Dropoff Date"
-          onChange={handleDropoffDateChange}
-          value={dropoffDate}
-          slotProps={{
-            actionBar: {
-              actions: ['clear', 'accept']
-            },
-            textField: {
-              sx: { width: { xs: '100%', md: 200 } }
-            }
-          }}
-        />
-        <Button
-          onClick={handleSearchClick}
-          variant="contained"
-          sx={{ width: { xs: '100%', md: 120 }, height: 56, flexShrink: 0 }}
+        <Stack
+          alignItems={{ xs: 'stretch', md: 'center' }}
+          direction={{ xs: 'column', md: 'row' }}
+          flexWrap="wrap"
+          spacing={2}
         >
-          Search
-        </Button>
-        <TextField
-          label="Sort By"
-          name="sort"
-          onChange={handleSortChange}
-          select
-          SelectProps={{ native: true }}
-          value={`${sortBy}|${sortDir}`}
-          sx={{ width: { xs: '100%', md: 220 }, flexShrink: 0 }}
-        >
-          {sortOptions.map((option) => (
-            <option
-              key={option.value}
-              value={option.value}
-            >
-              {option.label}
-            </option>
-          ))}
-        </TextField>
-      </Stack>
+          <OutlinedInput
+            defaultValue={filters?.customerName ?? ''}
+            inputProps={{ ref: queryRef }}
+            placeholder="Search by customer name"
+            startAdornment={
+              <InputAdornment position="start">
+                <SvgIcon>
+                  <SearchMdIcon />
+                </SvgIcon>
+              </InputAdornment>
+            }
+            sx={{ flex: 1, minWidth: { xs: '100%', md: 200 } }}
+          />
+          <OutlinedInput
+            defaultValue={filters?.referenceNo ?? ''}
+            inputProps={{ ref: referenceNoRef }}
+            placeholder="Search by reference no"
+            startAdornment={
+              <InputAdornment position="start">
+                <SvgIcon>
+                  <SearchMdIcon />
+                </SvgIcon>
+              </InputAdornment>
+            }
+            sx={{ flex: 1, minWidth: { xs: '100%', md: 200 } }}
+          />
+          <OutlinedInput
+            defaultValue={filters?.carNumber ?? ''}
+            inputProps={{ ref: carNumberRef }}
+            placeholder="Search by car number"
+            startAdornment={
+              <InputAdornment position="start">
+                <SvgIcon>
+                  <SearchMdIcon />
+                </SvgIcon>
+              </InputAdornment>
+            }
+            sx={{ flex: 1, minWidth: { xs: '100%', md: 200 } }}
+          />
+          <DatePicker
+            format="dd/MM/yyyy"
+            label="Pickup Date"
+            onChange={handlePickupDateChange}
+            value={pickupDate}
+            slotProps={{
+              actionBar: {
+                actions: ['clear', 'accept']
+              },
+              textField: {
+                sx: { flex: 1, minWidth: { xs: '100%', md: 180 } }
+              }
+            }}
+          />
+          <DatePicker
+            format="dd/MM/yyyy"
+            label="Dropoff Date"
+            onChange={handleDropoffDateChange}
+            value={dropoffDate}
+            slotProps={{
+              actionBar: {
+                actions: ['clear', 'accept']
+              },
+              textField: {
+                sx: { flex: 1, minWidth: { xs: '100%', md: 180 } }
+              }
+            }}
+          />
+          <Button
+            type="submit"
+            variant="contained"
+            sx={{ minWidth: { xs: '100%', md: 100 }, height: 56 }}
+          >
+            Search
+          </Button>
+          <TextField
+            label="Sort By"
+            name="sort"
+            onChange={handleSortChange}
+            select
+            SelectProps={{ native: true }}
+            value={`${sortBy}|${sortDir}`}
+            sx={{ minWidth: { xs: '100%', md: 220 }, flexShrink: 0 }}
+          >
+            {sortOptions.map((option) => (
+              <option
+                key={option.value}
+                value={option.value}
+              >
+                {option.label}
+              </option>
+            ))}
+          </TextField>
+        </Stack>
+      </Box>
       <Divider />
       {showChips && (
         <Stack

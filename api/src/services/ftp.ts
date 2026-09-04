@@ -166,14 +166,18 @@ export class FTPService {
       };
     }
 
-    const year = await this.getBookingYear(request.referenceNo);
+    // Reference numbers can carry stray leading/trailing whitespace from data
+    // entry; left untrimmed, the folder name built from it gets rejected by
+    // Windows-backed FTP servers ("550 Invalid file name or path").
+    const referenceNo = request.referenceNo.trim();
+    const year = await this.getBookingYear(referenceNo);
     const storedFileName = this.buildStoredFileName(request.fileName);
     const client = await this.getClient();
 
     // Use local file storage if FTP is unavailable
     if (!client) {
       try {
-        const dirPath = path.join(this.localStoragePath, String(year), request.referenceNo);
+        const dirPath = path.join(this.localStoragePath, String(year), referenceNo);
         if (!fs.existsSync(dirPath)) {
           fs.mkdirSync(dirPath, { recursive: true });
         }
@@ -200,7 +204,7 @@ export class FTPService {
 
     try {
       // Create year/referenceNo directory structure for the booking
-      const dirPath = `/${year}/${request.referenceNo}`;
+      const dirPath = `/${year}/${referenceNo}`;
 
       try {
         await client.ensureDir(dirPath);
@@ -242,7 +246,7 @@ export class FTPService {
       return {
         status: 200,
         message: 'File uploaded successfully',
-        data: { filePath: path.win32.join(FTP_ROOT_WINDOWS_PATH, String(year), request.referenceNo, storedFileName) },
+        data: { filePath: path.win32.join(FTP_ROOT_WINDOWS_PATH, String(year), referenceNo, storedFileName) },
         success: true
       };
     } catch (error) {
@@ -259,6 +263,7 @@ export class FTPService {
   }
 
   async listFiles(referenceNo: string): Promise<Response<FileInfo[]>> {
+    referenceNo = referenceNo.trim();
     const year = await this.getBookingYear(referenceNo);
     const client = await this.getClient();
 
@@ -338,6 +343,7 @@ export class FTPService {
   }
 
   async downloadFile(referenceNo: string, fileName: string): Promise<Response<Buffer>> {
+    referenceNo = referenceNo.trim();
     const year = await this.getBookingYear(referenceNo);
     const client = await this.getClient();
 
@@ -403,6 +409,7 @@ export class FTPService {
   }
 
   async deleteFile(referenceNo: string, fileName: string): Promise<Response<void>> {
+    referenceNo = referenceNo.trim();
     const year = await this.getBookingYear(referenceNo);
     const client = await this.getClient();
 
