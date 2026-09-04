@@ -210,6 +210,14 @@ export default function DailyScheduleReport({
       type: 'string',
       width: 200,
       flex: 1,
+      valueGetter: ({ row }) => {
+        const comments = row?.SpecialRequest ? String(row.SpecialRequest) : '';
+        const contactDetails = row?.ContactDetails ? String(row.ContactDetails) : '';
+        if (!contactDetails) return comments;
+        // Pipe-separate so the appended contact number can't be mistaken for
+        // part of the comments text.
+        return comments ? `${comments} | ${contactDetails}` : `| ${contactDetails}`;
+      },
       renderCell: (params) => (
         <div
           style={{

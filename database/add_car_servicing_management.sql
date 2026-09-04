@@ -97,7 +97,7 @@ BEGIN
     JOIN dbo.Cars c ON c.CarId = s.CarId
     WHERE s.IsDeleted = 0
         AND (@CarNumber IS NULL OR c.CarNumber LIKE '%' + @CarNumber + '%')
-    ORDER BY s.DateServiced DESC, s.CreatedOn DESC
+    ORDER BY s.LastModifiedTimeStamp DESC
     FOR JSON PATH;
 END
 GO
