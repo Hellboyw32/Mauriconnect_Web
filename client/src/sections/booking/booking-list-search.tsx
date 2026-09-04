@@ -7,13 +7,32 @@ import InputAdornment from '@mui/material/InputAdornment';
 import OutlinedInput from '@mui/material/OutlinedInput';
 import Stack from '@mui/material/Stack';
 import SvgIcon from '@mui/material/SvgIcon';
+import TextField from '@mui/material/TextField';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import SearchMdIcon from '@untitled-ui/icons-react/build/esm/SearchMd';
 import PropTypes from 'prop-types';
-import type { FC } from 'react';
+import type { ChangeEvent, FC } from 'react';
 import { useCallback, useRef, useState } from 'react';
 import { useUpdateEffect } from 'src/hooks/use-update-effect';
 import { timestampToDate } from 'src/utils/date-locale';
+
+type SortValue = 'LastModifiedTimeStamp|desc' | 'LastModifiedTimeStamp|asc';
+
+interface SortOption {
+  label: string;
+  value: SortValue;
+}
+
+const sortOptions: SortOption[] = [
+  {
+    label: 'Last modified (newest)',
+    value: 'LastModifiedTimeStamp|desc'
+  },
+  {
+    label: 'Last modified (oldest)',
+    value: 'LastModifiedTimeStamp|asc'
+  }
+];
 
 type SortDir = 'asc' | 'desc';
 
@@ -71,7 +90,7 @@ const buildInitialChips = (filters?: Filters): SearchChip[] => {
 };
 
 export const BookingListSearch: FC<BookingListSearchProps> = (props) => {
-  const { onFiltersChange, filters } = props;
+  const { onFiltersChange, onSortChange, sortBy, sortDir, filters } = props;
   const queryRef = useRef<HTMLInputElement | null>(null);
   const referenceNoRef = useRef<HTMLInputElement | null>(null);
   const carNumberRef = useRef<HTMLInputElement | null>(null);
@@ -168,6 +187,18 @@ export const BookingListSearch: FC<BookingListSearchProps> = (props) => {
   const handleDropoffDateChange = useCallback((date: Date | null): void => {
     setDropoffDate(date);
   }, []);
+
+  const handleSortChange = useCallback(
+    (event: ChangeEvent<HTMLInputElement>): void => {
+      const [sortBy, sortDir] = event.target.value.split('|') as [string, SortDir];
+
+      onSortChange?.({
+        sortBy,
+        sortDir
+      });
+    },
+    [onSortChange]
+  );
 
   const handleSearchClick = useCallback(
     (event?: any): void => {
@@ -323,6 +354,24 @@ export const BookingListSearch: FC<BookingListSearchProps> = (props) => {
           >
             Search
           </Button>
+          <TextField
+            label="Sort By"
+            name="sort"
+            onChange={handleSortChange}
+            select
+            SelectProps={{ native: true }}
+            value={`${sortBy}|${sortDir}`}
+            sx={{ minWidth: { xs: '100%', md: 220 }, flexShrink: 0 }}
+          >
+            {sortOptions.map((option) => (
+              <option
+                key={option.value}
+                value={option.value}
+              >
+                {option.label}
+              </option>
+            ))}
+          </TextField>
         </Stack>
       </Box>
       <Divider />

@@ -10,6 +10,7 @@ import Truck01 from 'src/icons/untitled-ui/duocolor/truck-01';
 import ReceiptCheck from 'src/icons/untitled-ui/duocolor/receipt-check';
 import CreditCard01 from 'src/icons/untitled-ui/duocolor/credit-card-01';
 import File04 from 'src/icons/untitled-ui/duocolor/file-04';
+import Tool01Icon from '@untitled-ui/icons-react/build/esm/Tool01';
 import { tokens } from 'src/locales/tokens';
 import { paths } from 'src/paths';
 
@@ -101,6 +102,15 @@ export const useSections = () => {
             icon: (
               <SvgIcon fontSize="small">
                 <File04 />
+              </SvgIcon>
+            )
+          },
+          {
+            title: t(tokens.nav.carServicing),
+            path: paths.carServicing.index,
+            icon: (
+              <SvgIcon fontSize="small">
+                <Tool01Icon />
               </SvgIcon>
             )
           },

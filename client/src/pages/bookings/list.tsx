@@ -31,8 +31,8 @@ const defaultSearchState: BookingsSearchState = {
   },
   page: 0,
   rowsPerPage: 50,
-  sortBy: 'customerName',
-  sortDir: 'asc'
+  sortBy: 'LastModifiedTimeStamp',
+  sortDir: 'desc'
 };
 
 // Restores the search/filter/sort/page state saved by the effect below, so

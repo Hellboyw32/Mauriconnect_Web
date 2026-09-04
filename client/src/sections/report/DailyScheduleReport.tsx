@@ -217,7 +217,14 @@ export default function DailyScheduleReport({
       type: 'string',
       minWidth: 200,
       flex: 1,
-      valueGetter: ({ row }) => getBookingComments(row),
+      valueGetter: ({ row }) => {
+        const comments = getBookingComments(row);
+        const contactDetails = row?.ContactDetails ? String(row.ContactDetails) : '';
+        if (!contactDetails) return comments;
+        // Pipe-separate so the appended contact number can't be mistaken for
+        // part of the comments text.
+        return comments ? `${comments} | ${contactDetails}` : `| ${contactDetails}`;
+      },
       renderCell: (params) => (
         <div
           style={{
