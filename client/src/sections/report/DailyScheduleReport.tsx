@@ -5,14 +5,21 @@ import {
   GridToolbarExport,
   type GridColDef
 } from '@mui/x-data-grid';
+import { PDFDownloadLink } from '@react-pdf/renderer';
 import { format } from 'date-fns';
 import * as React from 'react';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import Box from '@mui/material/Box';
+import Button from '@mui/material/Button';
+import Stack from '@mui/material/Stack';
+import SvgIcon from '@mui/material/SvgIcon';
 import Typography from '@mui/material/Typography';
+import Download01Icon from '@untitled-ui/icons-react/build/esm/Download01';
 import { bookingApi } from 'src/api/booking';
 import { reportApi } from 'src/api/report';
 import { useMounted } from 'src/hooks/use-mounted';
+import { getBookingComments } from 'src/utils/format-booking-comments';
+import { DailySchedulePdfDocument } from './daily-schedule-pdf-document';
 
 export default function DailyScheduleReport({
   bookings,
@@ -208,8 +215,16 @@ export default function DailyScheduleReport({
       field: 'SpecialRequest',
       headerName: ' Comments',
       type: 'string',
-      width: 200,
+      minWidth: 200,
       flex: 1,
+      valueGetter: ({ row }) => {
+        const comments = getBookingComments(row);
+        const contactDetails = row?.ContactDetails ? String(row.ContactDetails) : '';
+        if (!contactDetails) return comments;
+        // Pipe-separate so the appended contact number can't be mistaken for
+        // part of the comments text.
+        return comments ? `${comments} | ${contactDetails}` : `| ${contactDetails}`;
+      },
       renderCell: (params) => (
         <div
           style={{
@@ -244,7 +259,25 @@ export default function DailyScheduleReport({
     (column) => column.field === 'SpecialRequest'
   );
   const dropoffColumns: GridColDef[] = [
-    ...columns.slice(0, dropoffLocationColumnIndex),
+    ...columns
+      .slice(0, dropoffLocationColumnIndex)
+      .filter((column) => column.field !== 'FlightNo' && column.field !== 'NumberOfDays')
+      .map((column) =>
+        column.field === 'Category'
+          ? {
+              field: 'CarNumber',
+              headerName: 'Car Number',
+              type: 'string',
+              width: 160
+            }
+          : column
+      ),
+    {
+      field: 'FuelLevel',
+      headerName: 'Fuel Level',
+      type: 'string',
+      width: 100
+    },
     {
       field: 'DropOffPlace',
       headerName: 'Drop-off Location',
@@ -272,7 +305,7 @@ export default function DailyScheduleReport({
       >
         Pickup Schedule
       </div>
-      <GridToolbarExport />
+      <GridToolbarExport printOptions={{ disableToolbarButton: true }} />
     </GridToolbarContainer>
   );
 
@@ -288,15 +321,44 @@ export default function DailyScheduleReport({
       >
         Drop-off Schedule
       </div>
-      <GridToolbarExport />
+      <GridToolbarExport printOptions={{ disableToolbarButton: true }} />
     </GridToolbarContainer>
   );
 
   return (
     <Box sx={{ width: '100%' }}>
+      <Stack
+        direction="row"
+        justifyContent="flex-end"
+        sx={{ mb: 2 }}
+      >
+        <PDFDownloadLink
+          document={
+            <DailySchedulePdfDocument
+              bookings={bookings}
+              dropoffBookings={dropoffBookings}
+            />
+          }
+          fileName={`daily-schedule-${format(new Date(), 'yyyy-MM-dd')}.pdf`}
+        >
+          {({ loading }) => (
+            <Button
+              variant="contained"
+              startIcon={
+                <SvgIcon>
+                  <Download01Icon />
+                </SvgIcon>
+              }
+              disabled={loading}
+            >
+              {loading ? 'Preparing PDF...' : 'Download PDF'}
+            </Button>
+          )}
+        </PDFDownloadLink>
+      </Stack>
       {/* Pickup Schedule */}
       <Box sx={{ mb: 4 }}>
-        <div style={{ width: '99%' }}>
+        <div style={{ width: '100%' }}>
           <DataGrid
             getRowId={(row) => row.BookingId}
             columns={pickupColumns}
@@ -308,6 +370,7 @@ export default function DailyScheduleReport({
             autoHeight
             disableVirtualization
             sx={{
+              width: '100%',
               boxShadow: 2,
               border: 2,
               borderColor: 'primary.light',
@@ -325,8 +388,7 @@ export default function DailyScheduleReport({
                 maxHeight: 'none !important'
               },
               '@media print': {
-                width: 'max-content !important',
-                minWidth: '100% !important',
+                width: '100% !important',
                 fontSize: '10px !important',
                 '& .MuiDataGrid-main': {
                   overflow: 'visible !important'
@@ -345,6 +407,10 @@ export default function DailyScheduleReport({
                 '& .MuiDataGrid-row': {
                   pageBreakInside: 'avoid',
                   maxHeight: 'none !important'
+                },
+                // Force a page break after every 10th row so at most 10 records print per page
+                '& .MuiDataGrid-row:nth-of-type(10n):not(:last-of-type)': {
+                  pageBreakAfter: 'always !important'
                 }
               }
             }}
@@ -354,7 +420,7 @@ export default function DailyScheduleReport({
 
       {/* Drop-off Schedule */}
       <Box sx={{ mt: 4 }}>
-        <div style={{ width: '99%' }}>
+        <div style={{ width: '100%' }}>
           <DataGrid
             getRowId={(row) => row.BookingId}
             columns={dropoffColumns}
@@ -366,6 +432,7 @@ export default function DailyScheduleReport({
             autoHeight
             disableVirtualization
             sx={{
+              width: '100%',
               boxShadow: 2,
               border: 2,
               borderColor: 'primary.light',
@@ -383,8 +450,7 @@ export default function DailyScheduleReport({
                 maxHeight: 'none !important'
               },
               '@media print': {
-                width: 'max-content !important',
-                minWidth: '100% !important',
+                width: '100% !important',
                 fontSize: '10px !important',
                 '& .MuiDataGrid-main': {
                   overflow: 'visible !important'
@@ -403,6 +469,10 @@ export default function DailyScheduleReport({
                 '& .MuiDataGrid-row': {
                   pageBreakInside: 'avoid',
                   maxHeight: 'none !important'
+                },
+                // Force a page break after every 10th row so at most 10 records print per page
+                '& .MuiDataGrid-row:nth-of-type(10n):not(:last-of-type)': {
+                  pageBreakAfter: 'always !important'
                 }
               }
             }}

@@ -33,6 +33,54 @@ export default (app: Router) => {
       });
   });
 
+  route.get('/simcard', (req: Request, res: Response) => {
+    const startDate = req.query.startDate as string | undefined;
+    const endDate = req.query.endDate as string | undefined;
+
+    if (!startDate || !endDate) {
+      res.send({
+        status: 400,
+        message: 'startDate and endDate are required',
+        success: false
+      }).status(400);
+      return;
+    }
+
+    const reportService = Container.get(ReportService);
+    reportService
+      .getSimCardReport(startDate, endDate)
+      .then((result) => {
+        res.send(result).status(200);
+      })
+      .catch((error) => {
+        res.send(error).status(500);
+      });
+  });
+
+  route.get('/insurance', (req: Request, res: Response) => {
+    const startDate = req.query.startDate as string | undefined;
+    const endDate = req.query.endDate as string | undefined;
+
+    if (!startDate || !endDate) {
+      res.send({
+        status: 400,
+        message: 'startDate and endDate are required',
+        success: false
+      }).status(400);
+      return;
+    }
+
+    const reportService = Container.get(ReportService);
+    reportService
+      .getInsuranceReport(startDate, endDate)
+      .then((result) => {
+        res.send(result).status(200);
+      })
+      .catch((error) => {
+        res.send(error).status(500);
+      });
+  });
+
   route.get('/road-tax-renewals', (req: Request, res: Response) => {
     const year = Number(req.query.year);
     const month = Number(req.query.month);

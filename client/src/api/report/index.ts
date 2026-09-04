@@ -4,7 +4,9 @@ import type {
   CarInsuranceRenewalReportItem,
   Filters,
   FitnessRenewalReportItem,
-  RoadTaxRenewalReportItem
+  InsuranceReportRow,
+  RoadTaxRenewalReportItem,
+  SimCardReportRow
 } from '@libs/types';
 import { bookings as bookingsData } from 'src/mock/booking';
 import { api } from 'src/services/api.service';
@@ -60,6 +62,20 @@ type GetCarInsuranceRenewalReportRequest = {
 
 type GetCarInsuranceRenewalReportResponse = Promise<CarInsuranceRenewalReportItem[]>;
 
+type GetSimCardReportRequest = {
+  startDate: string;
+  endDate: string;
+};
+
+type GetSimCardReportResponse = Promise<SimCardReportRow[]>;
+
+type GetInsuranceReportRequest = {
+  startDate: string;
+  endDate: string;
+};
+
+type GetInsuranceReportResponse = Promise<InsuranceReportRow[]>;
+
 interface IReportApi {
   getDailyScheduleReports(request: GetDailyScheduleReportsRequest): GetDailyScheduleReportsResponse;
   getDailyScheduleReport(request?: GetDailyScheduleReportRequest): GetDailyScheduleReportResponse;
@@ -75,6 +91,8 @@ interface IReportApi {
   getCarInsuranceRenewalReport(
     request: GetCarInsuranceRenewalReportRequest
   ): GetCarInsuranceRenewalReportResponse;
+  getSimCardReport(request: GetSimCardReportRequest): GetSimCardReportResponse;
+  getInsuranceReport(request: GetInsuranceReportRequest): GetInsuranceReportResponse;
 }
 
 class ReportApi implements IReportApi {
@@ -209,6 +227,40 @@ class ReportApi implements IReportApi {
     );
 
     return Promise.resolve(apiResponse.data || []);
+  }
+
+  public async getSimCardReport(request: GetSimCardReportRequest): GetSimCardReportResponse {
+    const { startDate, endDate } = request;
+    const params = new URLSearchParams({ startDate, endDate });
+    const apiResponse = await api.get<SimCardReportRow[]>(
+      `${API_ENDPOINTS.REPORTS}/simcard?${params.toString()}`
+    );
+
+    let data = apiResponse.data;
+
+    // FOR JSON PATH + parseJSON:true quirks don't apply here (plain recordset), but
+    // stay defensive in case the driver ever surfaces a null/nested-array entry.
+    if (Array.isArray(data) && data.length > 0 && Array.isArray(data[0])) {
+      data = data[0];
+    }
+
+    return Array.isArray(data) ? data.filter((item) => item != null) : [];
+  }
+
+  public async getInsuranceReport(request: GetInsuranceReportRequest): GetInsuranceReportResponse {
+    const { startDate, endDate } = request;
+    const params = new URLSearchParams({ startDate, endDate });
+    const apiResponse = await api.get<InsuranceReportRow[]>(
+      `${API_ENDPOINTS.REPORTS}/insurance?${params.toString()}`
+    );
+
+    let data = apiResponse.data;
+
+    if (Array.isArray(data) && data.length > 0 && Array.isArray(data[0])) {
+      data = data[0];
+    }
+
+    return Array.isArray(data) ? data.filter((item) => item != null) : [];
   }
 }
 export const reportApi = new ReportApi();

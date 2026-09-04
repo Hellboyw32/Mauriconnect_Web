@@ -10,7 +10,7 @@ import Typography from '@mui/material/Typography';
 import PlusIcon from '@untitled-ui/icons-react/build/esm/Plus';
 import RefreshCcw01Icon from '@untitled-ui/icons-react/build/esm/RefreshCcw01';
 import type { ChangeEvent, MouseEvent } from 'react';
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { RouterLink } from 'src/components/router-link';
 import { Seo } from 'src/components/seo';
 import { useBookings as useBookingsStore } from 'src/hooks/bookings/use-bookings';
@@ -19,18 +19,60 @@ import { paths } from 'src/paths';
 import { BookingListSearch } from 'src/sections/booking/booking-list-search';
 import { BookingListTable } from 'src/sections/booking/booking-list-table';
 
+const SEARCH_STATE_STORAGE_KEY = 'bookings-list-search-state';
+
+const defaultSearchState: BookingsSearchState = {
+  filters: {
+    customerName: undefined,
+    pickupDate: undefined,
+    dropoffDate: undefined,
+    referenceNo: undefined,
+    carNumber: undefined
+  },
+  page: 0,
+  rowsPerPage: 50,
+  sortBy: 'LastModifiedTimeStamp',
+  sortDir: 'desc'
+};
+
+// Restores the search/filter/sort/page state saved by the effect below, so
+// navigating away (e.g. to edit a booking) and back doesn't lose the search
+// the user had set up - the list page unmounts on navigation, which would
+// otherwise reset this plain useState.
+const loadPersistedSearchState = (): BookingsSearchState => {
+  try {
+    const raw = sessionStorage.getItem(SEARCH_STATE_STORAGE_KEY);
+    if (!raw) {
+      return defaultSearchState;
+    }
+
+    const parsed = JSON.parse(raw) as BookingsSearchState;
+    return {
+      ...defaultSearchState,
+      ...parsed,
+      filters: {
+        ...defaultSearchState.filters,
+        ...parsed.filters,
+        pickupDate: parsed.filters?.pickupDate ? new Date(parsed.filters.pickupDate) : undefined,
+        dropoffDate: parsed.filters?.dropoffDate ? new Date(parsed.filters.dropoffDate) : undefined
+      }
+    };
+  } catch (error) {
+    console.error('Failed to restore bookings search state:', error);
+    return defaultSearchState;
+  }
+};
+
 const useBookingsSearch = () => {
-  const [state, setState] = useState<BookingsSearchState>({
-    filters: {
-      customerName: undefined,
-      pickupDate: undefined,
-      dropoffDate: undefined
-    },
-    page: 0,
-    rowsPerPage: 50,
-    sortBy: 'customerName',
-    sortDir: 'asc'
-  });
+  const [state, setState] = useState<BookingsSearchState>(loadPersistedSearchState);
+
+  useEffect(() => {
+    try {
+      sessionStorage.setItem(SEARCH_STATE_STORAGE_KEY, JSON.stringify(state));
+    } catch (error) {
+      console.error('Failed to persist bookings search state:', error);
+    }
+  }, [state]);
 
   const handleFiltersChange = useCallback((filters: Filters): void => {
     setState((prevState) => ({
@@ -93,7 +135,9 @@ const Page = () => {
     bookingsSearch.handleFiltersChange({
       customerName: undefined,
       pickupDate: undefined,
-      dropoffDate: undefined
+      dropoffDate: undefined,
+      referenceNo: undefined,
+      carNumber: undefined
     });
     // Trigger data refresh
     bookingsStore.handleBookingsGet();

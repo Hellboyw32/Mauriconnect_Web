@@ -51,10 +51,19 @@ export enum DELIVERY_USER_STORED_PROCEDURES {
   GET_DELIVERY_USERS = 'spGetDeliveryUsers'
 }
 
+export enum SERVICING_STORED_PROCEDURES {
+  ADD_SERVICING_RECORD = 'spAddServicingRecord',
+  GET_SERVICING_HISTORY_JSON = 'spGetServicingHistoryJson',
+  GET_SINGLE_SERVICING_RECORD_JSON = 'spGetSingleServicingRecordJson',
+  UPDATE_SERVICING_RECORD = 'spUpdateServicingRecord'
+}
+
 export enum REPORT_STORED_PROCEDURES {
   GET_PICKUP_SCHEDULE_BY_DATE = 'spGetPickScheduleByDate',
   GET_DROPOFF_SCHEDULE_BY_DATE = 'spGetDropScheduleByDate',
   GET_ROAD_TAX_RENEWALS_BY_MONTH = 'spGetRoadTaxRenewalsByMonth',
   GET_CAR_FITNESS_RENEWALS_BY_MONTH = 'spGetCarFitnessRenewalsByMonth',
-  GET_CAR_INSURANCE_RENEWALS_BY_MONTH = 'spGetCarInsuranceRenewalsByMonth'
+  GET_CAR_INSURANCE_RENEWALS_BY_MONTH = 'spGetCarInsuranceRenewalsByMonth',
+  GET_SIM_CARD_REPORT = 'spGetSimCardReportByDate',
+  GET_INSURANCE_REPORT = 'spGetInsuranceReportByDate'
 }

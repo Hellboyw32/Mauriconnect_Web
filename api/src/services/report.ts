@@ -46,4 +46,16 @@ export class ReportService {
     const inputs = [{ 'Year': year, 'Month': month }];
     return await this.mssqlService.requestByStoredProcedure(storedProcedure, inputs);
   }
+
+  async getSimCardReport(startDate: string, endDate: string) {
+    const storedProcedure = STORED_PROCEDURES.GET_SIM_CARD_REPORT;
+    const inputs = [{ 'StartDate': startDate }, { 'EndDate': endDate }];
+    return await this.mssqlService.requestByStoredProcedure(storedProcedure, inputs);
+  }
+
+  async getInsuranceReport(startDate: string, endDate: string) {
+    const storedProcedure = STORED_PROCEDURES.GET_INSURANCE_REPORT;
+    const inputs = [{ 'StartDate': startDate }, { 'EndDate': endDate }];
+    return await this.mssqlService.requestByStoredProcedure(storedProcedure, inputs);
+  }
 }

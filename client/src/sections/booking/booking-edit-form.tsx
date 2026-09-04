@@ -1,4 +1,4 @@
-import type { Booking, BookingFormValues } from '@libs/types';
+import type { Booking, BookingFormValues, Car } from '@libs/types';
 import Button from '@mui/material/Button';
 import Card from '@mui/material/Card';
 import CardContent from '@mui/material/CardContent';
@@ -22,7 +22,10 @@ import { useFormik } from 'formik';
 import { useState, type FC, type ChangeEvent } from 'react';
 import { toast } from 'react-hot-toast';
 import { bookingApi } from 'src/api/booking';
+import { carInsurancesApi } from 'src/api/car-insurance';
+import { roadTaxesApi } from 'src/api/road-tax';
 import { RouterLink } from 'src/components/router-link';
+import { useDeliveryUsers } from 'src/hooks/delivery-users/use-delivery-users';
 import { useAuth } from 'src/hooks/use-auth';
 import { useCars } from 'src/hooks/cars/use-cars';
 import { useRouter } from 'src/hooks/use-router';
@@ -33,7 +36,6 @@ import {
   paymentMethods,
   posMachines
 } from 'src/mock/booking';
-import { deliveryUsers } from 'src/mock/delivery-user';
 import { paths } from 'src/paths';
 import * as Yup from 'yup';
 
@@ -44,7 +46,9 @@ interface BookingEditFormProps {
 const validationSchema = Yup.object({
   CustomerName: Yup.string().required('Customer name is required'),
   ContractNumber: Yup.string().required('Contract number is required'),
-  Price: Yup.string().required('Price is required'),
+  Price: Yup.string()
+    .required('Price is required')
+    .matches(/^\d+(\.\d+)?$/, 'Price must be a number (no letters or commas)'),
   CarCategory: Yup.string().required('Car category is required')
 });
 
@@ -93,6 +97,24 @@ export const BookingEditForm: FC<BookingEditFormProps> = ({ booking }) => {
     enableReinitialize: true,
     initialValues,
     validationSchema,
+    validate: (values) => {
+      const errors: Partial<Record<keyof BookingFormValues, string>> = {};
+      const selectedCar = cars.find((c) => c.CarId === values.car);
+      const enteredMileage = Number(values.Mileage);
+
+      if (
+        selectedCar?.CurrentMileage != null &&
+        values.Mileage !== undefined &&
+        values.Mileage !== null &&
+        String(values.Mileage) !== '' &&
+        !Number.isNaN(enteredMileage) &&
+        enteredMileage < selectedCar.CurrentMileage
+      ) {
+        errors.Mileage = `Mileage cannot be less than the car's current mileage (${selectedCar.CurrentMileage.toLocaleString()} km)`;
+      }
+
+      return errors;
+    },
     onSubmit: async (values) => {
       try {
         setIsSubmitting(true);
@@ -152,12 +174,68 @@ export const BookingEditForm: FC<BookingEditFormProps> = ({ booking }) => {
   const { cars, refetch: refetchCars } = useCars(
     initialCategoryId ? { categoryId: initialCategoryId } : undefined
   );
+  const { deliveryUsers } = useDeliveryUsers();
 
   const handleCategoryChange = (e: ChangeEvent<HTMLInputElement>) => {
     const categoryId = Number(e.target.value);
     formik.setFieldValue('CarCategory', e.target.value);
     formik.setFieldValue('car', '');
     refetchCars({ categoryId });
+  };
+
+  // Only allow digits and a single decimal point (no letters, no commas)
+  const handlePriceChange = (event: ChangeEvent<HTMLInputElement>): void => {
+    if (/^\d*\.?\d*$/.test(event.target.value)) {
+      formik.handleChange(event);
+    }
+  };
+
+  // Prefers the active coverage record; falls back to the one with the latest end date.
+  const pickRelevantRecord = <T extends { EndDate?: string | null; IsActive?: boolean | null }>(
+    records: T[]
+  ): T | undefined => {
+    const pool = records.some((record) => record.IsActive)
+      ? records.filter((record) => record.IsActive)
+      : records;
+
+    return pool.reduce<T | undefined>((latest, record) => {
+      if (!record.EndDate) return latest;
+      if (!latest?.EndDate || new Date(record.EndDate) > new Date(latest.EndDate)) {
+        return record;
+      }
+      return latest;
+    }, undefined);
+  };
+
+  const handleCarSelect = async (selected: Car | null) => {
+    formik.setFieldValue('car', selected?.CarId ?? '');
+    formik.setFieldValue('Mileage', selected?.CurrentMileage ?? 0);
+
+    if (!selected?.CarNumber) {
+      return;
+    }
+
+    try {
+      const [insurances, roadTaxes] = await Promise.all([
+        carInsurancesApi.getCarInsurances({ filters: { carNumber: selected.CarNumber } }),
+        roadTaxesApi.getRoadTaxes({ filters: { carNumber: selected.CarNumber } })
+      ]);
+
+      // The API match on carNumber is a partial (LIKE) match server-side, so narrow
+      // down to the exact car in case another car's number is a substring match.
+      const insurance = pickRelevantRecord(
+        insurances.filter((record) => record.CarId === selected.CarId)
+      );
+      const roadTax = pickRelevantRecord(
+        roadTaxes.filter((record) => record.CarId === selected.CarId)
+      );
+
+      formik.setFieldValue('CarInsurance', insurance?.EndDate ? new Date(insurance.EndDate) : null);
+      formik.setFieldValue('RoadTax', roadTax?.EndDate ? new Date(roadTax.EndDate) : null);
+    } catch (error) {
+      console.error('Failed to load car insurance/road tax details:', error);
+      toast.error('Failed to auto-fill car insurance/road tax dates');
+    }
   };
 
   const [showAllCarsState, setShowAllCarsState] = useState<boolean>(true);
@@ -277,8 +355,9 @@ export const BookingEditForm: FC<BookingEditFormProps> = ({ booking }) => {
                       label="Price"
                       name="Price"
                       required
+                      inputMode="decimal"
                       onBlur={formik.handleBlur}
-                      onChange={formik.handleChange}
+                      onChange={handlePriceChange}
                       value={formik.values.Price}
                     />
                     <TextField
@@ -406,9 +485,7 @@ export const BookingEditForm: FC<BookingEditFormProps> = ({ booking }) => {
                       options={cars}
                       getOptionLabel={(car) => `${car.Model} - ${car.CarNumber}`}
                       value={cars.find((c) => c.CarId === formik.values.car) ?? null}
-                      onChange={(_, selected) => {
-                        formik.setFieldValue('car', selected?.CarId ?? '');
-                      }}
+                      onChange={(_, selected) => handleCarSelect(selected)}
                       onBlur={() => formik.setFieldTouched('car', true)}
                       isOptionEqualToValue={(option, value) => option.CarId === value.CarId}
                       renderInput={(params) => (
@@ -522,26 +599,36 @@ export const BookingEditForm: FC<BookingEditFormProps> = ({ booking }) => {
                       onChange={formik.handleChange}
                       value={formik.values.PickupLocation}
                     />
-                    <TextField
-                      error={!!(formik.touched.DeliveryUser && formik.errors.DeliveryUser)}
-                      fullWidth
-                      label="Delivered By"
-                      name="DeliveryUser"
-                      onBlur={formik.handleBlur}
-                      onChange={formik.handleChange}
-                      select
-                      value={formik.values.DeliveryUser}
-                      helperText={formik.touched.DeliveryUser && formik.errors.DeliveryUser}
-                    >
-                      {deliveryUsers.map((deliveryUser) => (
-                        <MenuItem
-                          key={deliveryUser.DeliveryUserId}
-                          value={deliveryUser.DeliveryUserId}
-                        >
-                          {deliveryUser.Name}
-                        </MenuItem>
-                      ))}
-                    </TextField>
+                    <Autocomplete
+                      options={deliveryUsers}
+                      getOptionLabel={(deliveryUser) => deliveryUser.Name}
+                      value={
+                        deliveryUsers.find(
+                          (deliveryUser) =>
+                            String(deliveryUser.DeliveryUserId) === String(formik.values.DeliveryUser)
+                        ) ?? null
+                      }
+                      onChange={(_, selected) => {
+                        formik.setFieldValue(
+                          'DeliveryUser',
+                          selected ? String(selected.DeliveryUserId) : ''
+                        );
+                      }}
+                      onBlur={() => formik.setFieldTouched('DeliveryUser', true)}
+                      isOptionEqualToValue={(option, value) =>
+                        option.DeliveryUserId === value.DeliveryUserId
+                      }
+                      renderInput={(params) => (
+                        <TextField
+                          {...params}
+                          fullWidth
+                          label="Delivered By"
+                          name="DeliveryUser"
+                          error={!!(formik.touched.DeliveryUser && formik.errors.DeliveryUser)}
+                          helperText={formik.touched.DeliveryUser && formik.errors.DeliveryUser}
+                        />
+                      )}
+                    />
                   </Stack>
                 </Grid>
               </Grid>

@@ -4,7 +4,9 @@ import type {
   CarInsuranceRenewalReportItem,
   Filters,
   FitnessRenewalReportItem,
-  RoadTaxRenewalReportItem
+  InsuranceReportRow,
+  RoadTaxRenewalReportItem,
+  SimCardReportRow
 } from '@libs/types';
 import Backdrop from '@mui/material/Backdrop';
 import Box from '@mui/material/Box';
@@ -21,13 +23,29 @@ import { useCarFitnessRenewalReport } from 'src/hooks/reports/use-car-fitness-re
 import { useCarInsuranceRenewalReport } from 'src/hooks/reports/use-car-insurance-renewal-report';
 import { useDailyScheduleReport } from 'src/hooks/reports/use-daily-schedule-report';
 import { useDropoffScheduleReport } from 'src/hooks/reports/use-dropoff-schedule-report';
+import { useInsuranceReport } from 'src/hooks/reports/use-insurance-report';
 import { useRoadTaxRenewalReport } from 'src/hooks/reports/use-road-tax-renewal-report';
+import { useSimCardReport } from 'src/hooks/reports/use-simcard-report';
 import CarFitnessRenewalReport from 'src/sections/report/CarFitnessRenewalReport';
 import CarInsuranceRenewalReport from 'src/sections/report/CarInsuranceRenewalReport';
 import DailyScheduleReport from 'src/sections/report/DailyScheduleReport';
+import InsuranceReport from 'src/sections/report/InsuranceReport';
 import RoadTaxRenewalReport from 'src/sections/report/RoadTaxRenewalReport';
+import SimCardReport from 'src/sections/report/SimCardReport';
 
+// Report types that take a single Year/Month picker (renewal-style reports)
 const MONTH_ONLY_REPORT_TYPES = ['40', '50', '60'];
+
+// Report types that take a single Start/End date range rather than the pickup/drop pair
+const DATE_RANGE_REPORT_TYPES = ['70', '80'];
+
+// Formats using local date parts (avoids the UTC shift toISOString() would introduce)
+const toLocalDateString = (date: Date): string => {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+};
 
 const useBookingsSearch = () => {
   const [state, setState] = useState<BookingsSearchState>({
@@ -59,11 +77,15 @@ export default function SelectLabels() {
   const [carInsuranceReportData, setCarInsuranceReportData] = React.useState<
     CarInsuranceRenewalReportItem[]
   >([]);
+  const [startDate, setStartDate] = React.useState<Date | null>(new Date());
+  const [endDate, setEndDate] = React.useState<Date | null>(new Date());
   const dailyScheduleStore = useDailyScheduleReport();
   const dropoffScheduleStore = useDropoffScheduleReport();
   const roadTaxRenewalStore = useRoadTaxRenewalReport();
   const carFitnessRenewalStore = useCarFitnessRenewalReport();
   const carInsuranceRenewalStore = useCarInsuranceRenewalReport();
+  const simCardReportStore = useSimCardReport();
+  const insuranceReportStore = useInsuranceReport();
 
   const handleChange = (event: SelectChangeEvent) => {
     const report = event.target.value;
@@ -71,6 +93,7 @@ export default function SelectLabels() {
     // Reset report data when changing report type
     if (report !== '10') {
       setReportData([]);
+      setDropoffReportData([]);
     }
     if (report !== '40') {
       setRoadTaxReportData([]);
@@ -85,9 +108,9 @@ export default function SelectLabels() {
 
   const handleRunReport = useCallback(async () => {
     if (reportType && reportType === '10') {
-      // Format the dates as ISO strings for the API
-      const pickupDateStr = pickupDate ? pickupDate.toISOString().split('T')[0] : undefined;
-      const dropoffDateStr = dropoffDate ? dropoffDate.toISOString().split('T')[0] : undefined;
+      // Format the dates using local date parts for the API
+      const pickupDateStr = pickupDate ? toLocalDateString(pickupDate) : undefined;
+      const dropoffDateStr = dropoffDate ? toLocalDateString(dropoffDate) : undefined;
 
       console.log(
         'Running report with pickup date:',
@@ -122,6 +145,23 @@ export default function SelectLabels() {
         setCarInsuranceReportData(data);
       }
     }
+
+    if (DATE_RANGE_REPORT_TYPES.includes(reportType)) {
+      const startDateStr = startDate ? toLocalDateString(startDate) : undefined;
+      const endDateStr = endDate ? toLocalDateString(endDate) : undefined;
+
+      if (!startDateStr || !endDateStr) {
+        return;
+      }
+
+      if (reportType === '70') {
+        await simCardReportStore.handleReportGet(startDateStr, endDateStr);
+      }
+
+      if (reportType === '80') {
+        await insuranceReportStore.handleReportGet(startDateStr, endDateStr);
+      }
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     reportType,
@@ -132,7 +172,11 @@ export default function SelectLabels() {
     roadTaxRenewalStore,
     carFitnessRenewalStore,
     carInsuranceRenewalStore,
-    renewalMonth
+    renewalMonth,
+    simCardReportStore,
+    insuranceReportStore,
+    startDate,
+    endDate
   ]);
   return (
     <div>
@@ -154,6 +198,8 @@ export default function SelectLabels() {
           <MenuItem value="40">RoadTax ReNew</MenuItem>
           <MenuItem value="50">Car Fitness ReNew</MenuItem>
           <MenuItem value="60">Car Insurance ReNew</MenuItem>
+          <MenuItem value="70">SimCard Report</MenuItem>
+          <MenuItem value="80">Insurance Report</MenuItem>
         </Select>
         {/* <FormHelperText>select report and click on run</FormHelperText> */}
       </FormControl>
@@ -169,6 +215,22 @@ export default function SelectLabels() {
             format="MM/yyyy"
             value={renewalMonth}
             onChange={(newValue) => setRenewalMonth(newValue)}
+          />
+        </Box>
+      ) : DATE_RANGE_REPORT_TYPES.includes(reportType) ? (
+        <Box
+          component="div"
+          sx={{ p: 2, border: '1px grey' }}
+        >
+          <DatePicker
+            label="Start Date"
+            value={startDate}
+            onChange={(newValue) => setStartDate(newValue)}
+          />
+          <DatePicker
+            label="End Date"
+            value={endDate}
+            onChange={(newValue) => setEndDate(newValue)}
           />
         </Box>
       ) : (
@@ -223,6 +285,22 @@ export default function SelectLabels() {
           <CarInsuranceRenewalReport items={carInsuranceReportData} />
         </Box>
       )}
+      {reportType === '70' && simCardReportStore.rows.length > 0 && (
+        <Box>
+          <SimCardReport rows={simCardReportStore.rows} />
+        </Box>
+      )}
+      {reportType === '80' && insuranceReportStore.rows.length > 0 && (
+        <Box>
+          <InsuranceReport rows={insuranceReportStore.rows} />
+        </Box>
+      )}
+      <Backdrop
+        open={simCardReportStore.isLoading || insuranceReportStore.isLoading}
+        sx={{ color: '#fff', zIndex: (theme) => theme.zIndex.drawer + 1 }}
+      >
+        <CircularProgress color="inherit" />
+      </Backdrop>
     </div>
   );
 }

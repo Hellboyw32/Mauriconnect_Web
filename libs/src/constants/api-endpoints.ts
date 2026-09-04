@@ -6,5 +6,7 @@ export enum API_ENDPOINTS {
   CAR_INSURANCE = '/car-insurance',
   ROAD_TAX = '/road-tax',
   FITNESS_CERTIFICATE = '/fitness-certificate',
-  INVOICE = '/invoice'
+  INVOICE = '/invoice',
+  SERVICING = '/servicing',
+  DELIVERY_USERS = '/delivery-users'
 }

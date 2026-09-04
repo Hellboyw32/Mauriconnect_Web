@@ -7,6 +7,8 @@ export * from './delivery-user';
 export * from './documents';
 export * from './fitness-certificate';
 export * from './invoice';
+export * from './report';
 export * from './road-tax';
+export * from './servicing';
 export * from './settings';
 export * from './user';

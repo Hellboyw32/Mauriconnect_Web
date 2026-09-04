@@ -9,6 +9,7 @@ import deliveryUsers from './routes/delivery-users';
 import reports from './routes/reports';
 import files from './routes/files';
 import invoice from './routes/invoice';
+import servicing from './routes/servicing';
 
 export default () => {
   const app = Router();
@@ -22,6 +23,7 @@ export default () => {
   reports(app);
   files(app);
   invoice(app);
+  servicing(app);
 
   return app;
 };

@@ -1,5 +1,6 @@
 import type { CarFormValues } from '@libs/types';
 import { CarCategoryOptions } from '@libs/types';
+import Autocomplete from '@mui/material/Autocomplete';
 import Button from '@mui/material/Button';
 import Card from '@mui/material/Card';
 import CardContent from '@mui/material/CardContent';
@@ -11,12 +12,13 @@ import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
 import Grid from '@mui/material/Unstable_Grid2';
 import { useFormik } from 'formik';
-import type { FC, ReactNode } from 'react';
+import { useMemo, type FC, type ReactNode } from 'react';
 import { toast } from 'react-hot-toast';
+import { carsApi } from 'src/api/car';
+import { useCars } from 'src/hooks/cars/use-cars';
 import { useRouter } from 'src/hooks/use-router';
 import { paths } from 'src/paths';
 import * as Yup from 'yup';
-import { carsApi } from 'src/api/car';
 
 interface CarCreateFormProps {
   mode?: 'create' | 'edit';
@@ -62,6 +64,17 @@ const carCategories = [
 export const CarForm: FC<CarCreateFormProps> = (props) => {
   const { mode = 'create', initialValues, carId, children } = props;
   const router = useRouter();
+  const { cars } = useCars();
+
+  const modelOptions = useMemo(() => {
+    const uniqueModels = new Set<string>();
+    cars.forEach((car) => {
+      if (car.Model) {
+        uniqueModels.add(car.Model);
+      }
+    });
+    return Array.from(uniqueModels).sort((a, b) => a.localeCompare(b));
+  }, [cars]);
 
   const formik = useFormik({
     initialValues: { ...defaultInitialValues, ...initialValues },
@@ -103,16 +116,28 @@ export const CarForm: FC<CarCreateFormProps> = (props) => {
                 <Stack spacing={3}>
                   <Typography variant="h6">Car Details</Typography>
 
-                  <TextField
-                    error={!!(formik.touched.Model && formik.errors.Model)}
-                    fullWidth
-                    helperText={formik.touched.Model && formik.errors.Model}
-                    required
-                    label="Model"
-                    name="Model"
-                    onBlur={formik.handleBlur}
-                    onChange={formik.handleChange}
-                    value={formik.values.Model}
+                  <Autocomplete
+                    freeSolo
+                    options={modelOptions}
+                    inputValue={formik.values.Model}
+                    onInputChange={(_, newInputValue) => {
+                      formik.setFieldValue('Model', newInputValue);
+                    }}
+                    onBlur={() => formik.setFieldTouched('Model', true)}
+                    renderInput={(params) => (
+                      <TextField
+                        {...params}
+                        error={!!(formik.touched.Model && formik.errors.Model)}
+                        fullWidth
+                        helperText={
+                          (formik.touched.Model && formik.errors.Model) ||
+                          'Choose an existing model or type a new one'
+                        }
+                        required
+                        label="Model"
+                        name="Model"
+                      />
+                    )}
                   />
 
                   <TextField
