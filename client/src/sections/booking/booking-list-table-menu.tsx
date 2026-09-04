@@ -6,9 +6,11 @@ import Edit02Icon from '@untitled-ui/icons-react/build/esm/Edit02';
 import FileAttachment04 from '@untitled-ui/icons-react/build/esm/FileAttachment04';
 import Ticket01 from '@untitled-ui/icons-react/build/esm/Ticket01';
 import Trash02Icon from '@untitled-ui/icons-react/build/esm/Trash02';
+import { hasPermission } from '@libs/permissions';
 import PropTypes from 'prop-types';
 import type { FC } from 'react';
 import { RouterLink } from 'src/components/router-link';
+import { useAuth } from 'src/hooks/use-auth';
 
 interface BookingListTableMenuProps {
   anchorEl?: HTMLElement | null;
@@ -32,6 +34,9 @@ export const BookingListTableMenu: FC<BookingListTableMenuProps> = (props) => {
     onClose,
     open = false
   } = props;
+  const { user } = useAuth();
+  const canEdit = hasPermission(user, 'Bookings', 'Edit');
+  const canDelete = hasPermission(user, 'Bookings', 'Delete');
 
   return (
     <Menu
@@ -55,15 +60,17 @@ export const BookingListTableMenu: FC<BookingListTableMenuProps> = (props) => {
         vertical: 'top'
       }}
     >
-      <MenuItem
-        component={RouterLink}
-        href={bookingEditLink}
-      >
-        <SvgIcon fontSize="small">
-          <Edit02Icon />
-        </SvgIcon>
-        Edit
-      </MenuItem>
+      {canEdit && (
+        <MenuItem
+          component={RouterLink}
+          href={bookingEditLink}
+        >
+          <SvgIcon fontSize="small">
+            <Edit02Icon />
+          </SvgIcon>
+          Edit
+        </MenuItem>
+      )}
       <MenuItem
         component={RouterLink}
         href={bookingDocumentLink}
@@ -89,15 +96,17 @@ export const BookingListTableMenu: FC<BookingListTableMenuProps> = (props) => {
         )}
         {isGeneratingVoucher ? 'Generating...' : 'Generate Voucher'}
       </MenuItem>
-      <MenuItem
-        onClick={onDeleteDialogOpen}
-        sx={{ color: 'error.main' }}
-      >
-        <SvgIcon fontSize="small">
-          <Trash02Icon />
-        </SvgIcon>
-        Delete
-      </MenuItem>
+      {canDelete && (
+        <MenuItem
+          onClick={onDeleteDialogOpen}
+          sx={{ color: 'error.main' }}
+        >
+          <SvgIcon fontSize="small">
+            <Trash02Icon />
+          </SvgIcon>
+          Delete
+        </MenuItem>
+      )}
     </Menu>
   );
 };

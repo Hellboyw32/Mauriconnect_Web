@@ -1,6 +1,14 @@
 import config from '@/config';
 import { USER_STORED_PROCEDURES } from '@/constants';
-import type { ManagedUser, User } from '@libs/types';
+import { synthesizeAdminPermissions, synthesizeAdminReportTypes } from '@libs/permissions';
+import type {
+  ManagedUser,
+  ModulePermission,
+  RawModulePermission,
+  RawReportTypePermission,
+  ReportTypePermission,
+  User
+} from '@libs/types';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { Inject, Service } from 'typedi';
@@ -15,6 +23,8 @@ interface UserForLogin {
   IsAccountLocked: boolean;
   IsActive: boolean;
   FailedLoginAttempts: number;
+  Permissions?: RawModulePermission[] | null;
+  ReportTypes?: RawReportTypePermission[] | null;
 }
 
 export interface LoginResult {
@@ -31,13 +41,46 @@ export interface IAuthService {
   getMe(userId: number): Promise<User | null>;
 }
 
+const mapPermissions = (record: ManagedUser | UserForLogin): ModulePermission[] => {
+  if (record.UserType === 'Admin') {
+    return synthesizeAdminPermissions();
+  }
+
+  const rows = 'Permissions' in record ? record.Permissions : undefined;
+
+  return (rows || []).map((row) => ({
+    module: row.Module as ModulePermission['module'],
+    canView: row.CanView,
+    canCreate: row.CanCreate,
+    canEdit: row.CanEdit,
+    canDelete: row.CanDelete,
+    maxDaysBeforeToday: row.MaxDaysBeforeToday ?? null,
+    maxDaysAfterToday: row.MaxDaysAfterToday ?? null
+  }));
+};
+
+const mapReportTypes = (record: ManagedUser | UserForLogin): ReportTypePermission[] => {
+  if (record.UserType === 'Admin') {
+    return synthesizeAdminReportTypes();
+  }
+
+  const rows = 'ReportTypes' in record ? record.ReportTypes : undefined;
+
+  return (rows || []).map((row) => ({
+    reportType: row.ReportType as ReportTypePermission['reportType'],
+    isAllowed: row.IsAllowed
+  }));
+};
+
 const mapToAuthUser = (record: ManagedUser | UserForLogin): User => ({
   userId: record.UserId,
   username: record.Username,
   emailAccount: record.EmailAccount,
   userType: record.UserType,
   isAccountLocked: record.IsAccountLocked,
-  lastLoggedIn: 'LastLoggedIn' in record ? record.LastLoggedIn : undefined
+  lastLoggedIn: 'LastLoggedIn' in record ? record.LastLoggedIn : undefined,
+  permissions: mapPermissions(record),
+  reportTypes: mapReportTypes(record)
 });
 
 @Service()
@@ -127,7 +170,13 @@ export class AuthService implements IAuthService {
     const user = mapToAuthUser(record);
 
     const accessToken = jwt.sign(
-      { userId: user.userId, username: user.username, userType: user.userType },
+      {
+        userId: user.userId,
+        username: user.username,
+        userType: user.userType,
+        permissions: user.permissions,
+        reportTypes: user.reportTypes
+      },
       config.auth.jwtSecret,
       // @types/jsonwebtoken narrows expiresIn to a branded StringValue type
       // (e.g. "8h"); config.auth.jwtExpiresIn is a validated env string of

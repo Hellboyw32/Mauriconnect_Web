@@ -8,8 +8,11 @@ import InputLabel from '@mui/material/InputLabel';
 import MenuItem from '@mui/material/MenuItem';
 import Select, { type SelectChangeEvent } from '@mui/material/Select';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
+import { canRunReport, getReportDateBounds } from '@libs/permissions';
+import type { ReportType } from '@libs/types';
 import * as React from 'react';
 import { useCallback, useMemo, useState } from 'react';
+import { useAuth } from 'src/hooks/use-auth';
 import { useDailyScheduleReport } from 'src/hooks/reports/use-daily-schedule-report';
 import { useDropoffScheduleReport } from 'src/hooks/reports/use-dropoff-schedule-report';
 import { useInsuranceReport } from 'src/hooks/reports/use-insurance-report';
@@ -20,6 +23,15 @@ import SimCardReport from 'src/sections/report/SimCardReport';
 
 // Report types that take a single Start/End date range rather than the pickup/drop pair
 const DATE_RANGE_REPORT_TYPES = ['40', '50'];
+
+// Dropdown value -> permission catalog key (see libs/src/types/user.ts ReportType)
+const REPORT_TYPE_BY_VALUE: Record<string, ReportType> = {
+  '10': 'DailySchedule',
+  '20': 'Availability',
+  '30': 'Settlement',
+  '40': 'SimCard',
+  '50': 'Insurance'
+};
 
 // Formats using local date parts (avoids the UTC shift toISOString() would introduce)
 const toLocalDateString = (date: Date): string => {
@@ -44,6 +56,7 @@ const useBookingsSearch = () => {
 };
 
 export default function SelectLabels() {
+  const { user } = useAuth();
   const [reportType, setReportType] = React.useState('');
   const [reportData, setReportData] = React.useState<Booking[]>([]);
   const [dropoffReportData, setDropoffReportData] = React.useState<Booking[]>([]);
@@ -55,6 +68,8 @@ export default function SelectLabels() {
   const dropoffScheduleStore = useDropoffScheduleReport();
   const simCardReportStore = useSimCardReport();
   const insuranceReportStore = useInsuranceReport();
+
+  const { minDate, maxDate } = useMemo(() => getReportDateBounds(user), [user]);
 
   const handleChange = (event: SelectChangeEvent) => {
     const report = event.target.value;
@@ -132,11 +147,15 @@ export default function SelectLabels() {
           <MenuItem value="">
             <em>None</em>
           </MenuItem>
-          <MenuItem value="10">Daily Schedule Report</MenuItem>
-          <MenuItem value="20">Availability Report</MenuItem>
-          <MenuItem value="30">Settlement Report</MenuItem>
-          <MenuItem value="40">SimCard Report</MenuItem>
-          <MenuItem value="50">Insurance Report</MenuItem>
+          {canRunReport(user, 'DailySchedule') && (
+            <MenuItem value="10">Daily Schedule Report</MenuItem>
+          )}
+          {canRunReport(user, 'Availability') && (
+            <MenuItem value="20">Availability Report</MenuItem>
+          )}
+          {canRunReport(user, 'Settlement') && <MenuItem value="30">Settlement Report</MenuItem>}
+          {canRunReport(user, 'SimCard') && <MenuItem value="40">SimCard Report</MenuItem>}
+          {canRunReport(user, 'Insurance') && <MenuItem value="50">Insurance Report</MenuItem>}
         </Select>
         {/* <FormHelperText>select report and click on run</FormHelperText> */}
       </FormControl>
@@ -148,11 +167,15 @@ export default function SelectLabels() {
           <DatePicker
             label="Start Date"
             value={startDate}
+            minDate={minDate ?? undefined}
+            maxDate={maxDate ?? undefined}
             onChange={(newValue) => setStartDate(newValue)}
           />
           <DatePicker
             label="End Date"
             value={endDate}
+            minDate={minDate ?? undefined}
+            maxDate={maxDate ?? undefined}
             onChange={(newValue) => setEndDate(newValue)}
           />
         </Box>
@@ -164,11 +187,15 @@ export default function SelectLabels() {
           <DatePicker
             label="Pickup"
             value={pickupDate}
+            minDate={minDate ?? undefined}
+            maxDate={maxDate ?? undefined}
             onChange={(newValue) => setPickupDate(newValue)}
           />
           <DatePicker
             label="Drop"
             value={dropoffDate}
+            minDate={minDate ?? undefined}
+            maxDate={maxDate ?? undefined}
             onChange={(newValue) => setDropoffDate(newValue)}
           />
         </Box>

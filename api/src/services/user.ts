@@ -4,6 +4,10 @@ import type {
   LoginAnalytics,
   ManagedUser,
   ManagedUsers,
+  ModulePermission,
+  RawModulePermission,
+  RawReportTypePermission,
+  ReportTypePermission,
   UserAnalytics,
   UserFormValues
 } from '@libs/types';
@@ -39,6 +43,18 @@ export interface IUserService {
   ): Promise<Response>;
   getUserAnalytics(): Promise<Response<UserAnalytics>>;
   getLoginAnalytics(): Promise<Response<LoginAnalytics>>;
+  getUserPermissions(userId: number): Promise<Response<ModulePermission[]>>;
+  savePermissions(
+    userId: number,
+    permissions: ModulePermission[],
+    actingUser: { userId: number; username: string }
+  ): Promise<Response>;
+  getUserReportPermissions(userId: number): Promise<Response<ReportTypePermission[]>>;
+  saveReportTypePermissions(
+    userId: number,
+    reportTypes: ReportTypePermission[],
+    actingUser: { userId: number; username: string }
+  ): Promise<Response>;
 }
 
 @Service()
@@ -135,10 +151,20 @@ export class UserService implements IUserService {
       }
     ];
 
-    const result = await this.mssqlService.requestByStoredProcedure(
+    const result = await this.mssqlService.requestByStoredProcedure<{ UserId: number }>(
       USER_STORED_PROCEDURES.UPDATE_USER,
       inputs
     );
+
+    const newUserId = (result.data as unknown as { UserId: number }[])?.[0]?.UserId;
+
+    if (newUserId && values.Permissions?.length) {
+      await this.savePermissions(newUserId, values.Permissions, actingUser);
+    }
+
+    if (newUserId && values.ReportTypes?.length) {
+      await this.saveReportTypePermissions(newUserId, values.ReportTypes, actingUser);
+    }
 
     await this.auditLogService.log({
       userId: actingUser.userId,
@@ -191,6 +217,14 @@ export class UserService implements IUserService {
       USER_STORED_PROCEDURES.UPDATE_USER,
       inputs
     );
+
+    if (values.Permissions?.length) {
+      await this.savePermissions(userId, values.Permissions, actingUser);
+    }
+
+    if (values.ReportTypes?.length) {
+      await this.saveReportTypePermissions(userId, values.ReportTypes, actingUser);
+    }
 
     await this.auditLogService.log({
       userId: actingUser.userId,
@@ -296,5 +330,115 @@ export class UserService implements IUserService {
     const item = Array.isArray(result.data) ? result.data[0] : result.data;
 
     return { ...result, data: item as unknown as LoginAnalytics };
+  }
+
+  async getUserPermissions(userId: number): Promise<Response<ModulePermission[]>> {
+    const result = await this.mssqlService.requestByStoredProcedure<RawModulePermission[]>(
+      USER_STORED_PROCEDURES.GET_USER_PERMISSIONS_JSON,
+      [{ 'UserId': userId }],
+      false
+    );
+
+    const unwrapped = Array.isArray(result.data) && Array.isArray(result.data[0])
+      ? result.data[0]
+      : result.data;
+    const rows = Array.isArray(unwrapped) ? unwrapped.filter((item) => item != null) : [];
+
+    const permissions: ModulePermission[] = rows.map((row: RawModulePermission) => ({
+      module: row.Module as ModulePermission['module'],
+      canView: row.CanView,
+      canCreate: row.CanCreate,
+      canEdit: row.CanEdit,
+      canDelete: row.CanDelete,
+      maxDaysBeforeToday: row.MaxDaysBeforeToday ?? null,
+      maxDaysAfterToday: row.MaxDaysAfterToday ?? null
+    }));
+
+    return { ...result, data: permissions };
+  }
+
+  async savePermissions(
+    userId: number,
+    permissions: ModulePermission[],
+    actingUser: { userId: number; username: string }
+  ): Promise<Response> {
+    for (const permission of permissions) {
+      await this.mssqlService.requestByStoredProcedure(
+        USER_STORED_PROCEDURES.UPSERT_USER_PERMISSION,
+        [
+          {
+            'UserId': userId,
+            'Module': permission.module,
+            'CanView': permission.canView,
+            'CanCreate': permission.canCreate,
+            'CanEdit': permission.canEdit,
+            'CanDelete': permission.canDelete,
+            'MaxDaysBeforeToday': permission.maxDaysBeforeToday ?? null,
+            'MaxDaysAfterToday': permission.maxDaysAfterToday ?? null
+          }
+        ]
+      );
+    }
+
+    await this.auditLogService.log({
+      userId: actingUser.userId,
+      username: actingUser.username,
+      action: 'Permissions Updated',
+      entityType: 'User',
+      entityId: userId,
+      description: `Updated module permissions for user account #${userId}`
+    });
+
+    return { status: 200, message: 'Permissions updated.', success: true };
+  }
+
+  async getUserReportPermissions(userId: number): Promise<Response<ReportTypePermission[]>> {
+    const result = await this.mssqlService.requestByStoredProcedure<RawReportTypePermission[]>(
+      USER_STORED_PROCEDURES.GET_USER_REPORT_PERMISSIONS_JSON,
+      [{ 'UserId': userId }],
+      false
+    );
+
+    const unwrapped = Array.isArray(result.data) && Array.isArray(result.data[0])
+      ? result.data[0]
+      : result.data;
+    const rows = Array.isArray(unwrapped) ? unwrapped.filter((item) => item != null) : [];
+
+    const reportTypes: ReportTypePermission[] = rows.map((row: RawReportTypePermission) => ({
+      reportType: row.ReportType as ReportTypePermission['reportType'],
+      isAllowed: row.IsAllowed
+    }));
+
+    return { ...result, data: reportTypes };
+  }
+
+  async saveReportTypePermissions(
+    userId: number,
+    reportTypes: ReportTypePermission[],
+    actingUser: { userId: number; username: string }
+  ): Promise<Response> {
+    for (const reportType of reportTypes) {
+      await this.mssqlService.requestByStoredProcedure(
+        USER_STORED_PROCEDURES.UPSERT_USER_REPORT_PERMISSION,
+        [
+          {
+            'UserId': userId,
+            'ReportType': reportType.reportType,
+            'IsAllowed': reportType.isAllowed
+          }
+        ]
+      );
+    }
+
+    await this.auditLogService.log({
+      userId: actingUser.userId,
+      username: actingUser.username,
+      action: 'Report Permissions Updated',
+      entityType: 'User',
+      entityId: userId,
+      description: `Updated report permissions for user account #${userId}`
+    });
+
+    return { status: 200, message: 'Report permissions updated.', success: true };
   }
 }

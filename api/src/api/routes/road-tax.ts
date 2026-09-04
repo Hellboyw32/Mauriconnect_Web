@@ -1,3 +1,4 @@
+import { requirePermission } from '@/middlewares/auth';
 import { RoadTaxService } from '@/services/road-tax';
 import { Router, type Request, type Response } from 'express';
 import { Container } from 'typedi';
@@ -9,7 +10,7 @@ export default (app: Router) => {
 };
 
 // GET /road-tax?carNumber=X - Get all road tax records with optional filter
-route.get('/', async (req: Request, res: Response) => {
+route.get('/', requirePermission('RoadTax', 'View'), async (req: Request, res: Response) => {
   try {
     const service = Container.get(RoadTaxService);
     const carNumber = req.query.carNumber as string | undefined;
@@ -25,7 +26,7 @@ route.get('/', async (req: Request, res: Response) => {
 });
 
 // GET /road-tax/:id - Get single road tax record by ID
-route.get('/:id', async (req: Request, res: Response) => {
+route.get('/:id', requirePermission('RoadTax', 'View'), async (req: Request, res: Response) => {
   try {
     const service = Container.get(RoadTaxService);
     const roadTaxId = Number(req.params.id);
@@ -48,7 +49,7 @@ route.get('/:id', async (req: Request, res: Response) => {
 });
 
 // POST /road-tax - Create new road tax record
-route.post('/', async (req: Request, res: Response) => {
+route.post('/', requirePermission('RoadTax', 'Create'), async (req: Request, res: Response) => {
   try {
     const service = Container.get(RoadTaxService);
     const data = req.body;
@@ -71,7 +72,7 @@ route.post('/', async (req: Request, res: Response) => {
 });
 
 // PUT /road-tax/:id - Update existing road tax record
-route.put('/:id', async (req: Request, res: Response) => {
+route.put('/:id', requirePermission('RoadTax', 'Edit'), async (req: Request, res: Response) => {
   try {
     const service = Container.get(RoadTaxService);
     const roadTaxId = Number(req.params.id);
@@ -95,7 +96,7 @@ route.put('/:id', async (req: Request, res: Response) => {
 });
 
 // DELETE /road-tax/:id - Soft delete road tax record (set IsActive=false)
-route.delete('/:id', async (req: Request, res: Response) => {
+route.delete('/:id', requirePermission('RoadTax', 'Delete'), async (req: Request, res: Response) => {
   try {
     const service = Container.get(RoadTaxService);
     const roadTaxId = Number(req.params.id);

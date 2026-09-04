@@ -10,8 +10,10 @@ import PlusIcon from '@untitled-ui/icons-react/build/esm/Plus';
 import RefreshCcw01Icon from '@untitled-ui/icons-react/build/esm/RefreshCcw01';
 import type { ChangeEvent, MouseEvent } from 'react';
 import { useCallback, useMemo, useState } from 'react';
+import { hasPermission } from '@libs/permissions';
 import { RouterLink } from 'src/components/router-link';
 import { Seo } from 'src/components/seo';
+import { useAuth } from 'src/hooks/use-auth';
 import { useCars } from 'src/hooks/cars/use-cars';
 import { useSelection } from 'src/hooks/use-selection';
 import { paths } from 'src/paths';
@@ -81,6 +83,8 @@ const useCarsIds = (cars: Car[] = []) => {
 };
 
 const Page = () => {
+  const { user } = useAuth();
+  const canCreate = hasPermission(user, 'Cars', 'Create');
   const carsSearch = useCarsSearch();
   const { cars, isLoading } = useCars(carsSearch.state.filters);
   const carsIds = useCarsIds(cars);
@@ -119,18 +123,20 @@ const Page = () => {
                 direction="row"
                 spacing={2}
               >
-                <Button
-                  component={RouterLink}
-                  href={paths.cars.create}
-                  startIcon={
-                    <SvgIcon>
-                      <PlusIcon />
-                    </SvgIcon>
-                  }
-                  variant="contained"
-                >
-                  Add
-                </Button>
+                {canCreate && (
+                  <Button
+                    component={RouterLink}
+                    href={paths.cars.create}
+                    startIcon={
+                      <SvgIcon>
+                        <PlusIcon />
+                      </SvgIcon>
+                    }
+                    variant="contained"
+                  >
+                    Add
+                  </Button>
+                )}
                 <Button
                   onClick={handleRefresh}
                   startIcon={

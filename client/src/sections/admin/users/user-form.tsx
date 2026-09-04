@@ -1,7 +1,14 @@
-import type { ManagedUser, UserFormValues } from '@libs/types';
+import { ALL_MODULES, ALL_REPORT_TYPES } from '@libs/permissions';
+import type {
+  ManagedUser,
+  ModulePermission,
+  ReportTypePermission,
+  UserFormValues
+} from '@libs/types';
 import Button from '@mui/material/Button';
 import Card from '@mui/material/Card';
 import CardContent from '@mui/material/CardContent';
+import Divider from '@mui/material/Divider';
 import FormControlLabel from '@mui/material/FormControlLabel';
 import MenuItem from '@mui/material/MenuItem';
 import Stack from '@mui/material/Stack';
@@ -16,12 +23,30 @@ import { usersApi } from 'src/api/users';
 import { useAuth } from 'src/hooks/use-auth';
 import { useRouter } from 'src/hooks/use-router';
 import { paths } from 'src/paths';
+import { PermissionsMatrix } from './permissions-matrix';
 import * as Yup from 'yup';
 
 interface UserFormProps {
   mode?: 'create' | 'edit';
   user?: ManagedUser | null;
 }
+
+// Matches the default-allow model (see database/add_user_permissions.sql) -
+// a brand-new Normal user starts with full access, same as before this
+// feature existed, until an admin explicitly restricts something.
+const allTruePermissions = (): ModulePermission[] =>
+  ALL_MODULES.map((module) => ({
+    module,
+    canView: true,
+    canCreate: true,
+    canEdit: true,
+    canDelete: true,
+    maxDaysBeforeToday: null,
+    maxDaysAfterToday: null
+  }));
+
+const allTrueReportTypes = (): ReportTypePermission[] =>
+  ALL_REPORT_TYPES.map((reportType) => ({ reportType, isAllowed: true }));
 
 const defaultInitialValues: UserFormValues = {
   Username: '',
@@ -30,7 +55,9 @@ const defaultInitialValues: UserFormValues = {
   ConfirmPassword: '',
   UserType: 'Normal',
   IsActive: true,
-  IsAccountLocked: false
+  IsAccountLocked: false,
+  Permissions: allTruePermissions(),
+  ReportTypes: allTrueReportTypes()
 };
 
 const buildValidationSchema = (mode: 'create' | 'edit') =>
@@ -70,7 +97,26 @@ export const UserForm: FC<UserFormProps> = (props) => {
         EmailAccount: user.EmailAccount,
         UserType: user.UserType,
         IsActive: user.IsActive,
-        IsAccountLocked: user.IsAccountLocked
+        IsAccountLocked: user.IsAccountLocked,
+        // Missing/empty rows mean "allowed" (default-allow model) - fall
+        // back to all-true rather than leaving the matrix showing nothing.
+        Permissions: user.Permissions?.length
+          ? user.Permissions.map((row) => ({
+              module: row.Module as ModulePermission['module'],
+              canView: row.CanView,
+              canCreate: row.CanCreate,
+              canEdit: row.CanEdit,
+              canDelete: row.CanDelete,
+              maxDaysBeforeToday: row.MaxDaysBeforeToday ?? null,
+              maxDaysAfterToday: row.MaxDaysAfterToday ?? null
+            }))
+          : allTruePermissions(),
+        ReportTypes: user.ReportTypes?.length
+          ? user.ReportTypes.map((row) => ({
+              reportType: row.ReportType as ReportTypePermission['reportType'],
+              isAllowed: row.IsAllowed
+            }))
+          : allTrueReportTypes()
       }
     : defaultInitialValues;
 
@@ -217,6 +263,32 @@ export const UserForm: FC<UserFormProps> = (props) => {
             </Grid>
           </CardContent>
         </Card>
+
+        {formik.values.UserType === 'Normal' && (
+          <Card>
+            <CardContent>
+              <Stack spacing={2}>
+                <Typography variant="h6">Module Permissions</Typography>
+                <Typography
+                  color="text.secondary"
+                  variant="body2"
+                >
+                  Controls which screens this user can see and what they can do on each. Admins
+                  always have full access, so this only applies to Normal users.
+                </Typography>
+                <Divider />
+                <PermissionsMatrix
+                  value={formik.values.Permissions ?? []}
+                  onChange={(permissions) => formik.setFieldValue('Permissions', permissions)}
+                  reportTypes={formik.values.ReportTypes ?? []}
+                  onReportTypesChange={(reportTypes) =>
+                    formik.setFieldValue('ReportTypes', reportTypes)
+                  }
+                />
+              </Stack>
+            </CardContent>
+          </Card>
+        )}
 
         <Stack
           alignItems="center"

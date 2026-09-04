@@ -1,6 +1,7 @@
 import { lazy, Suspense } from 'react';
 import type { RouteObject } from 'react-router';
 import { Outlet } from 'react-router-dom';
+import { PermissionGuard } from 'src/guards/permission-guard';
 import { Layout as DashboardLayout } from 'src/layouts/dashboard';
 
 const BookingListPage = lazy(() => import('src/pages/bookings/list'));
@@ -13,9 +14,11 @@ export const bookingRoutes: RouteObject[] = [
     path: 'bookings',
     element: (
       <DashboardLayout>
-        <Suspense>
-          <Outlet />
-        </Suspense>
+        <PermissionGuard module="Bookings">
+          <Suspense>
+            <Outlet />
+          </Suspense>
+        </PermissionGuard>
       </DashboardLayout>
     ),
     children: [

@@ -10,8 +10,10 @@ import PlusIcon from '@untitled-ui/icons-react/build/esm/Plus';
 import RefreshCcw01Icon from '@untitled-ui/icons-react/build/esm/RefreshCcw01';
 import type { ChangeEvent, MouseEvent } from 'react';
 import { useCallback, useMemo, useState } from 'react';
+import { hasPermission } from '@libs/permissions';
 import { RouterLink } from 'src/components/router-link';
 import { Seo } from 'src/components/seo';
+import { useAuth } from 'src/hooks/use-auth';
 import { useCarInsurances } from 'src/hooks/car-insurance/use-car-insurances';
 import { useSelection } from 'src/hooks/use-selection';
 import { paths } from 'src/paths';
@@ -82,6 +84,8 @@ const useCarInsurancesIds = (carInsurances: CarInsurance[] = []) => {
 };
 
 const Page = () => {
+  const { user } = useAuth();
+  const canCreate = hasPermission(user, 'CarInsurance', 'Create');
   const carInsurancesSearch = useCarInsurancesSearch();
   const { carInsurances, isLoading } = useCarInsurances(carInsurancesSearch.state.filters);
   const carInsurancesIds = useCarInsurancesIds(carInsurances);
@@ -129,18 +133,20 @@ const Page = () => {
                 direction="row"
                 spacing={2}
               >
-                <Button
-                  component={RouterLink}
-                  href={paths.carInsurance.create}
-                  startIcon={
-                    <SvgIcon>
-                      <PlusIcon />
-                    </SvgIcon>
-                  }
-                  variant="contained"
-                >
-                  Add
-                </Button>
+                {canCreate && (
+                  <Button
+                    component={RouterLink}
+                    href={paths.carInsurance.create}
+                    startIcon={
+                      <SvgIcon>
+                        <PlusIcon />
+                      </SvgIcon>
+                    }
+                    variant="contained"
+                  >
+                    Add
+                  </Button>
+                )}
                 <Button
                   onClick={handleRefresh}
                   startIcon={

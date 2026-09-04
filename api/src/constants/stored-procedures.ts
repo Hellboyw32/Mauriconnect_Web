@@ -64,7 +64,11 @@ export enum USER_STORED_PROCEDURES {
   RECORD_LOGOUT = 'spRecordLogout',
   GET_USER_LOGIN_LOGS_JSON = 'spGetUserLoginLogsJson',
   GET_USER_ANALYTICS = 'spGetUserAnalytics',
-  GET_LOGIN_ANALYTICS = 'spGetLoginAnalytics'
+  GET_LOGIN_ANALYTICS = 'spGetLoginAnalytics',
+  GET_USER_PERMISSIONS_JSON = 'spGetUserPermissionsJson',
+  UPSERT_USER_PERMISSION = 'spUpsertUserPermission',
+  GET_USER_REPORT_PERMISSIONS_JSON = 'spGetUserReportPermissionsJson',
+  UPSERT_USER_REPORT_PERMISSION = 'spUpsertUserReportPermission'
 }
 
 export enum AUDIT_LOG_STORED_PROCEDURES {

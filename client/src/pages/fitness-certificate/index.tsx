@@ -14,8 +14,10 @@ import PlusIcon from '@untitled-ui/icons-react/build/esm/Plus';
 import RefreshCcw01Icon from '@untitled-ui/icons-react/build/esm/RefreshCcw01';
 import type { ChangeEvent, MouseEvent } from 'react';
 import { useCallback, useMemo, useState } from 'react';
+import { hasPermission } from '@libs/permissions';
 import { RouterLink } from 'src/components/router-link';
 import { Seo } from 'src/components/seo';
+import { useAuth } from 'src/hooks/use-auth';
 import { useFitnessCertificates } from 'src/hooks/fitness-certificate/use-fitness-certificates';
 import { useSelection } from 'src/hooks/use-selection';
 import { paths } from 'src/paths';
@@ -86,6 +88,8 @@ const useFitnessCertificatesIds = (fitnessCertificates: FitnessCertificate[] = [
 };
 
 const Page = () => {
+  const { user } = useAuth();
+  const canCreate = hasPermission(user, 'FitnessCertificate', 'Create');
   const fitnessCertificatesSearch = useFitnessCertificatesSearch();
   const { fitnessCertificates, isLoading } = useFitnessCertificates(
     fitnessCertificatesSearch.state.filters
@@ -144,18 +148,20 @@ const Page = () => {
                 direction="row"
                 spacing={2}
               >
-                <Button
-                  component={RouterLink}
-                  href={paths.fitnessCertificate.create}
-                  startIcon={
-                    <SvgIcon>
-                      <PlusIcon />
-                    </SvgIcon>
-                  }
-                  variant="contained"
-                >
-                  Add
-                </Button>
+                {canCreate && (
+                  <Button
+                    component={RouterLink}
+                    href={paths.fitnessCertificate.create}
+                    startIcon={
+                      <SvgIcon>
+                        <PlusIcon />
+                      </SvgIcon>
+                    }
+                    variant="contained"
+                  >
+                    Add
+                  </Button>
+                )}
                 <Button
                   onClick={handleRefresh}
                   startIcon={

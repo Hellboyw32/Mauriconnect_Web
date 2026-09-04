@@ -113,4 +113,30 @@ export default (app: Router) => {
       .then((result) => res.status(result.status).json(result))
       .catch((error) => res.status(500).json({ message: 'Failed to change password.', error }));
   });
+
+  route.get('/:id/permissions', (req: Request, res: Response) => {
+    const userService = Container.get(UserService);
+    const userId = parseInt(req.params.id);
+
+    userService
+      .getUserPermissions(userId)
+      .then((result) => res.status(result.status).json(result))
+      .catch((error) => res.status(500).json({ message: 'Failed to load permissions.', error }));
+  });
+
+  route.put('/:id/permissions', (req: Request, res: Response) => {
+    const userService = Container.get(UserService);
+    const userId = parseInt(req.params.id);
+    const permissions = req.body?.permissions;
+
+    if (!Array.isArray(permissions)) {
+      res.status(400).json({ message: 'permissions must be an array.' });
+      return;
+    }
+
+    userService
+      .savePermissions(userId, permissions, { userId: req.user.userId, username: req.user.username })
+      .then((result) => res.status(result.status).json(result))
+      .catch((error) => res.status(500).json({ message: 'Failed to save permissions.', error }));
+  });
 };

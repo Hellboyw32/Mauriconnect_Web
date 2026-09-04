@@ -1,3 +1,4 @@
+import { requirePermission } from '@/middlewares/auth';
 import { BookingService } from '@/services/booking';
 import { Router, type Request, type Response } from 'express';
 import { Container } from 'typedi';
@@ -6,7 +7,10 @@ const route = Router();
 export default (app: Router) => {
   app.use('/bookings', route);
 
-  route.get('/', (req: Request, res: Response) => {
+  // Dashboard summary counts intentionally aren't permission-gated - they
+  // back the always-visible Overview page, not the Bookings module itself.
+
+  route.get('/', requirePermission('Bookings', 'View'), (req: Request, res: Response) => {
     const bookingService = Container.get(BookingService);
     const customerName = req.query.customerName as string | undefined;
     const pickupDate = req.query.pickupDate as string | undefined;
@@ -86,7 +90,7 @@ export default (app: Router) => {
       });
   });
 
-  route.get('/:id', (req: Request, res: Response) => {
+  route.get('/:id', requirePermission('Bookings', 'View'), (req: Request, res: Response) => {
     const bookingId = parseInt(req.params.id);
     const bookingService = Container.get(BookingService);
     bookingService
@@ -99,7 +103,7 @@ export default (app: Router) => {
       });
   });
 
-  route.post('/', (req: Request, res: Response) => {
+  route.post('/', requirePermission('Bookings', 'Create'), (req: Request, res: Response) => {
     const bookingService = Container.get(BookingService);
     bookingService
       .createBooking(req.body)
@@ -111,7 +115,7 @@ export default (app: Router) => {
       });
   });
 
-  route.put('/:id', (req: Request, res: Response) => {
+  route.put('/:id', requirePermission('Bookings', 'Edit'), (req: Request, res: Response) => {
     const bookingId = parseInt(req.params.id);
     const bookingService = Container.get(BookingService);
     bookingService
@@ -124,7 +128,7 @@ export default (app: Router) => {
       });
   });
 
-  route.delete('/:id', (req: Request, res: Response) => {
+  route.delete('/:id', requirePermission('Bookings', 'Delete'), (req: Request, res: Response) => {
     const bookingId = parseInt(req.params.id);
     const bookingService = Container.get(BookingService);
     bookingService

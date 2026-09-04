@@ -23,7 +23,19 @@ BEGIN
         u.CreatedTimeStamp,
         u.LastModifiedUserId,
         modifier.Username AS LastModifiedByUsername,
-        u.LastModifiedTimeStamp
+        u.LastModifiedTimeStamp,
+        JSON_QUERY((
+            SELECT Module, CanView, CanCreate, CanEdit, CanDelete, MaxDaysBeforeToday, MaxDaysAfterToday
+            FROM dbo.UserPermissions
+            WHERE UserId = u.UserId
+            FOR JSON PATH
+        )) AS Permissions,
+        JSON_QUERY((
+            SELECT ReportType, IsAllowed
+            FROM dbo.UserReportPermissions
+            WHERE UserId = u.UserId
+            FOR JSON PATH
+        )) AS ReportTypes
     FROM dbo.Users u
     LEFT JOIN dbo.Users creator ON creator.UserId = u.CreatedUserId
     LEFT JOIN dbo.Users modifier ON modifier.UserId = u.LastModifiedUserId

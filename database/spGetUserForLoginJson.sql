@@ -18,7 +18,19 @@ BEGIN
         u.UserType,
         u.IsAccountLocked,
         u.IsActive,
-        u.FailedLoginAttempts
+        u.FailedLoginAttempts,
+        JSON_QUERY((
+            SELECT Module, CanView, CanCreate, CanEdit, CanDelete, MaxDaysBeforeToday, MaxDaysAfterToday
+            FROM dbo.UserPermissions
+            WHERE UserId = u.UserId
+            FOR JSON PATH
+        )) AS Permissions,
+        JSON_QUERY((
+            SELECT ReportType, IsAllowed
+            FROM dbo.UserReportPermissions
+            WHERE UserId = u.UserId
+            FOR JSON PATH
+        )) AS ReportTypes
     FROM dbo.Users u
     WHERE u.Username = @Username
     FOR JSON PATH, WITHOUT_ARRAY_WRAPPER;
