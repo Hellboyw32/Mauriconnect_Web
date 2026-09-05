@@ -1,4 +1,5 @@
 import { API_ENDPOINTS } from '@libs/constants';
+import type { CarDocumentSection, CarFileUploadResponse } from '@libs/types';
 import axios from 'axios';
 
 export interface FileInfo {
@@ -24,6 +25,12 @@ interface ListFilesResponse {
 
 interface IFileApi {
   uploadFile(referenceNo: string, file: File): Promise<UploadResponse>;
+  uploadCarFile(
+    carId: number,
+    section: CarDocumentSection,
+    startDate: string,
+    file: File
+  ): Promise<CarFileUploadResponse>;
   listFiles(referenceNo: string): Promise<FileInfo[]>;
   downloadFile(referenceNo: string, fileName: string): Promise<Blob>;
   deleteFile(referenceNo: string, fileName: string): Promise<boolean>;
@@ -52,6 +59,44 @@ class FileApi implements IFileApi {
     } catch (error) {
       console.error('Upload error:', error);
       throw error;
+    }
+  }
+
+  public async uploadCarFile(
+    carId: number,
+    section: CarDocumentSection,
+    startDate: string,
+    file: File
+  ): Promise<CarFileUploadResponse> {
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('carId', String(carId));
+      formData.append('section', section);
+      formData.append('startDate', startDate);
+
+      const response = await axios.post<CarFileUploadResponse>(
+        `${this.baseUrl}${API_ENDPOINTS.FILES}/car-upload`,
+        formData,
+        {
+          headers: {
+            'Content-Type': 'multipart/form-data'
+          }
+        }
+      );
+
+      return response.data;
+    } catch (error: any) {
+      console.error('Car upload error:', error);
+      const response = error?.response?.data as CarFileUploadResponse | undefined;
+
+      return (
+        response || {
+          status: 500,
+          message: error?.message || 'Failed to upload file',
+          success: false
+        }
+      );
     }
   }
 

@@ -64,7 +64,8 @@ export class ServicingService implements IServicingService {
         'MileageServiced': values.MileageServiced,
         'ServicingFrequency': values.ServicingFrequency,
         'Note': values.Note || null,
-        'Login': values.CreatedBy || 'system'
+        'Login': values.CreatedBy || 'system',
+        'IsCompleted': values.IsCompleted ?? true
       }
     ];
 
@@ -84,7 +85,8 @@ export class ServicingService implements IServicingService {
         'MileageServiced': values.MileageServiced,
         'ServicingFrequency': values.ServicingFrequency,
         'Note': values.Note || null,
-        'Login': values.CreatedBy || 'system'
+        'Login': values.CreatedBy || 'system',
+        'IsCompleted': values.IsCompleted ?? false
       }
     ];
 

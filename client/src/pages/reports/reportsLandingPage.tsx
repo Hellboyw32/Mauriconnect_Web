@@ -1,4 +1,13 @@
-import type { Booking, BookingsSearchState, Filters } from '@libs/types';
+import type {
+  Booking,
+  BookingsSearchState,
+  CarInsuranceRenewalReportItem,
+  Filters,
+  FitnessRenewalReportItem,
+  InsuranceReportRow,
+  RoadTaxRenewalReportItem,
+  SimCardReportRow
+} from '@libs/types';
 import Backdrop from '@mui/material/Backdrop';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
@@ -10,16 +19,25 @@ import Select, { type SelectChangeEvent } from '@mui/material/Select';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import * as React from 'react';
 import { useCallback, useMemo, useState } from 'react';
+import { useCarFitnessRenewalReport } from 'src/hooks/reports/use-car-fitness-renewal-report';
+import { useCarInsuranceRenewalReport } from 'src/hooks/reports/use-car-insurance-renewal-report';
 import { useDailyScheduleReport } from 'src/hooks/reports/use-daily-schedule-report';
 import { useDropoffScheduleReport } from 'src/hooks/reports/use-dropoff-schedule-report';
 import { useInsuranceReport } from 'src/hooks/reports/use-insurance-report';
+import { useRoadTaxRenewalReport } from 'src/hooks/reports/use-road-tax-renewal-report';
 import { useSimCardReport } from 'src/hooks/reports/use-simcard-report';
+import CarFitnessRenewalReport from 'src/sections/report/CarFitnessRenewalReport';
+import CarInsuranceRenewalReport from 'src/sections/report/CarInsuranceRenewalReport';
 import DailyScheduleReport from 'src/sections/report/DailyScheduleReport';
 import InsuranceReport from 'src/sections/report/InsuranceReport';
+import RoadTaxRenewalReport from 'src/sections/report/RoadTaxRenewalReport';
 import SimCardReport from 'src/sections/report/SimCardReport';
 
+// Report types that take a single Year/Month picker (renewal-style reports)
+const MONTH_ONLY_REPORT_TYPES = ['40', '50', '60'];
+
 // Report types that take a single Start/End date range rather than the pickup/drop pair
-const DATE_RANGE_REPORT_TYPES = ['40', '50'];
+const DATE_RANGE_REPORT_TYPES = ['70', '80'];
 
 // Formats using local date parts (avoids the UTC shift toISOString() would introduce)
 const toLocalDateString = (date: Date): string => {
@@ -49,10 +67,23 @@ export default function SelectLabels() {
   const [dropoffReportData, setDropoffReportData] = React.useState<Booking[]>([]);
   const [pickupDate, setPickupDate] = React.useState<Date | null>(new Date());
   const [dropoffDate, setDropoffDate] = React.useState<Date | null>(new Date());
+  const [renewalMonth, setRenewalMonth] = React.useState<Date | null>(new Date());
+  const [roadTaxReportData, setRoadTaxReportData] = React.useState<RoadTaxRenewalReportItem[]>(
+    []
+  );
+  const [carFitnessReportData, setCarFitnessReportData] = React.useState<
+    FitnessRenewalReportItem[]
+  >([]);
+  const [carInsuranceReportData, setCarInsuranceReportData] = React.useState<
+    CarInsuranceRenewalReportItem[]
+  >([]);
   const [startDate, setStartDate] = React.useState<Date | null>(new Date());
   const [endDate, setEndDate] = React.useState<Date | null>(new Date());
   const dailyScheduleStore = useDailyScheduleReport();
   const dropoffScheduleStore = useDropoffScheduleReport();
+  const roadTaxRenewalStore = useRoadTaxRenewalReport();
+  const carFitnessRenewalStore = useCarFitnessRenewalReport();
+  const carInsuranceRenewalStore = useCarInsuranceRenewalReport();
   const simCardReportStore = useSimCardReport();
   const insuranceReportStore = useInsuranceReport();
 
@@ -63,6 +94,15 @@ export default function SelectLabels() {
     if (report !== '10') {
       setReportData([]);
       setDropoffReportData([]);
+    }
+    if (report !== '40') {
+      setRoadTaxReportData([]);
+    }
+    if (report !== '50') {
+      setCarFitnessReportData([]);
+    }
+    if (report !== '60') {
+      setCarInsuranceReportData([]);
     }
   };
 
@@ -90,6 +130,22 @@ export default function SelectLabels() {
       setDropoffReportData(dropoffData);
     }
 
+    if (reportType && MONTH_ONLY_REPORT_TYPES.includes(reportType) && renewalMonth) {
+      const year = renewalMonth.getFullYear();
+      const month = renewalMonth.getMonth() + 1;
+
+      if (reportType === '40') {
+        const data = await roadTaxRenewalStore.handleReportGet(year, month);
+        setRoadTaxReportData(data);
+      } else if (reportType === '50') {
+        const data = await carFitnessRenewalStore.handleReportGet(year, month);
+        setCarFitnessReportData(data);
+      } else if (reportType === '60') {
+        const data = await carInsuranceRenewalStore.handleReportGet(year, month);
+        setCarInsuranceReportData(data);
+      }
+    }
+
     if (DATE_RANGE_REPORT_TYPES.includes(reportType)) {
       const startDateStr = startDate ? toLocalDateString(startDate) : undefined;
       const endDateStr = endDate ? toLocalDateString(endDate) : undefined;
@@ -98,11 +154,11 @@ export default function SelectLabels() {
         return;
       }
 
-      if (reportType === '40') {
+      if (reportType === '70') {
         await simCardReportStore.handleReportGet(startDateStr, endDateStr);
       }
 
-      if (reportType === '50') {
+      if (reportType === '80') {
         await insuranceReportStore.handleReportGet(startDateStr, endDateStr);
       }
     }
@@ -113,6 +169,10 @@ export default function SelectLabels() {
     dropoffScheduleStore,
     pickupDate,
     dropoffDate,
+    roadTaxRenewalStore,
+    carFitnessRenewalStore,
+    carInsuranceRenewalStore,
+    renewalMonth,
     simCardReportStore,
     insuranceReportStore,
     startDate,
@@ -135,12 +195,29 @@ export default function SelectLabels() {
           <MenuItem value="10">Daily Schedule Report</MenuItem>
           <MenuItem value="20">Availability Report</MenuItem>
           <MenuItem value="30">Settlement Report</MenuItem>
-          <MenuItem value="40">SimCard Report</MenuItem>
-          <MenuItem value="50">Insurance Report</MenuItem>
+          <MenuItem value="40">RoadTax ReNew</MenuItem>
+          <MenuItem value="50">Car Fitness ReNew</MenuItem>
+          <MenuItem value="60">Car Insurance ReNew</MenuItem>
+          <MenuItem value="70">SimCard Report</MenuItem>
+          <MenuItem value="80">Insurance Report</MenuItem>
         </Select>
         {/* <FormHelperText>select report and click on run</FormHelperText> */}
       </FormControl>
-      {DATE_RANGE_REPORT_TYPES.includes(reportType) ? (
+      {MONTH_ONLY_REPORT_TYPES.includes(reportType) ? (
+        <Box
+          component="div"
+          sx={{ p: 2, border: '1px grey' }}
+        >
+          <DatePicker
+            label="Month"
+            views={['year', 'month']}
+            openTo="month"
+            format="MM/yyyy"
+            value={renewalMonth}
+            onChange={(newValue) => setRenewalMonth(newValue)}
+          />
+        </Box>
+      ) : DATE_RANGE_REPORT_TYPES.includes(reportType) ? (
         <Box
           component="div"
           sx={{ p: 2, border: '1px grey' }}
@@ -193,12 +270,27 @@ export default function SelectLabels() {
           />
         </Box>
       )}
-      {reportType === '40' && simCardReportStore.rows.length > 0 && (
+      {reportType === '40' && roadTaxReportData.length > 0 && (
+        <Box>
+          <RoadTaxRenewalReport items={roadTaxReportData} />
+        </Box>
+      )}
+      {reportType === '50' && carFitnessReportData.length > 0 && (
+        <Box>
+          <CarFitnessRenewalReport items={carFitnessReportData} />
+        </Box>
+      )}
+      {reportType === '60' && carInsuranceReportData.length > 0 && (
+        <Box>
+          <CarInsuranceRenewalReport items={carInsuranceReportData} />
+        </Box>
+      )}
+      {reportType === '70' && simCardReportStore.rows.length > 0 && (
         <Box>
           <SimCardReport rows={simCardReportStore.rows} />
         </Box>
       )}
-      {reportType === '50' && insuranceReportStore.rows.length > 0 && (
+      {reportType === '80' && insuranceReportStore.rows.length > 0 && (
         <Box>
           <InsuranceReport rows={insuranceReportStore.rows} />
         </Box>

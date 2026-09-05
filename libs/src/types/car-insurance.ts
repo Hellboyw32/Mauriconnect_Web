@@ -13,6 +13,10 @@ export interface CarInsurance extends RecordLogs {
   StartDate?: string | null;
   EndDate?: string | null;
   Note?: string | null;
+  PolicyNumber?: string | null;
+  Insurer?: string | null;
+  CoverageType?: string | null;
+  Premium?: number | null;
   IsActive?: boolean | null;
 }
 
@@ -24,6 +28,10 @@ export interface CarInsuranceFormValues {
   StartDate: Date | null;
   EndDate: Date | null;
   Note?: string;
+  PolicyNumber?: string;
+  Insurer?: string;
+  CoverageType?: string;
+  Premium?: number | '';
   IsActive: boolean;
   CreatedBy?: string;
 }
@@ -38,4 +46,11 @@ export interface CarInsurancesSearchState {
   rowsPerPage: number;
   sortBy: string;
   sortDir: 'asc' | 'desc';
+}
+
+export interface CarInsuranceRenewalReportItem {
+  CarNumber: string;
+  Model: string;
+  StartDate: string;
+  EndDate: string;
 }

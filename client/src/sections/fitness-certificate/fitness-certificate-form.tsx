@@ -25,6 +25,8 @@ interface FitnessCertificateFormProps {
   mode?: 'create' | 'edit';
   initialValues?: Partial<FitnessCertificateFormValues>;
   fitnessId?: number;
+  presetCarId?: number;
+  backHref?: string;
 }
 
 const defaultInitialValues: FitnessCertificateFormValues = {
@@ -32,6 +34,8 @@ const defaultInitialValues: FitnessCertificateFormValues = {
   StartDate: null,
   EndDate: null,
   Note: '',
+  CertificateNumber: '',
+  IssuedBy: '',
   IsActive: true,
   CreatedBy: 'system'
 };
@@ -43,19 +47,25 @@ const validationSchema = Yup.object({
     .nullable()
     .required('End date is required')
     .min(Yup.ref('StartDate'), 'End date must be on or after the start date'),
-  Note: Yup.string().optional()
+  Note: Yup.string().optional(),
+  CertificateNumber: Yup.string().optional(),
+  IssuedBy: Yup.string().optional()
 });
 
 const toLocalDateString = (value: Date | null) => (value ? format(value, 'yyyy-MM-dd') : null);
 
 export const FitnessCertificateForm: FC<FitnessCertificateFormProps> = (props) => {
-  const { mode = 'create', initialValues, fitnessId } = props;
+  const { mode = 'create', initialValues, fitnessId, presetCarId, backHref } = props;
   const router = useRouter();
   const { user } = useAuth();
   const { cars } = useCars();
 
   const formik = useFormik({
-    initialValues: { ...defaultInitialValues, ...initialValues },
+    initialValues: {
+      ...defaultInitialValues,
+      ...(presetCarId ? { CarId: presetCarId } : {}),
+      ...initialValues
+    },
     validationSchema,
     onSubmit: async (values, { setSubmitting }) => {
       try {
@@ -76,7 +86,7 @@ export const FitnessCertificateForm: FC<FitnessCertificateFormProps> = (props) =
           await fitnessCertificatesApi.createFitnessCertificate({ fitnessCertificate: payload });
           toast.success('Fitness certificate record created successfully');
         }
-        router.push(paths.fitnessCertificate.index);
+        router.push(backHref || paths.fitnessCertificate.index);
       } catch (error: any) {
         toast.error(error.message || `Failed to ${mode} fitness certificate record`);
       } finally {
@@ -105,6 +115,7 @@ export const FitnessCertificateForm: FC<FitnessCertificateFormProps> = (props) =
                   <Typography variant="h6">Fitness Certificate Details</Typography>
 
                   <Autocomplete
+                    disabled={!!presetCarId}
                     options={cars}
                     getOptionLabel={(car) => `${car.Model} - ${car.CarNumber}`}
                     value={cars.find((c) => c.CarId === formik.values.CarId) ?? null}
@@ -163,6 +174,24 @@ export const FitnessCertificateForm: FC<FitnessCertificateFormProps> = (props) =
 
                   <TextField
                     fullWidth
+                    label="Certificate Number"
+                    name="CertificateNumber"
+                    onBlur={formik.handleBlur}
+                    onChange={formik.handleChange}
+                    value={formik.values.CertificateNumber}
+                  />
+
+                  <TextField
+                    fullWidth
+                    label="Issued By"
+                    name="IssuedBy"
+                    onBlur={formik.handleBlur}
+                    onChange={formik.handleChange}
+                    value={formik.values.IssuedBy}
+                  />
+
+                  <TextField
+                    fullWidth
                     label="Comments"
                     name="Note"
                     multiline
@@ -198,7 +227,7 @@ export const FitnessCertificateForm: FC<FitnessCertificateFormProps> = (props) =
         >
           <Button
             color="inherit"
-            onClick={() => router.push(paths.fitnessCertificate.index)}
+            onClick={() => router.push(backHref || paths.fitnessCertificate.index)}
           >
             Cancel
           </Button>

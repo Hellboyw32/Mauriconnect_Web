@@ -1,10 +1,12 @@
-import type { ServicingFormValues } from '@libs/types';
+import type { Car, ServicingFormValues } from '@libs/types';
 import Autocomplete from '@mui/material/Autocomplete';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
 import Card from '@mui/material/Card';
 import CardContent from '@mui/material/CardContent';
+import Checkbox from '@mui/material/Checkbox';
 import Divider from '@mui/material/Divider';
+import FormControlLabel from '@mui/material/FormControlLabel';
 import Stack from '@mui/material/Stack';
 import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
@@ -34,25 +36,40 @@ const defaultInitialValues: ServicingFormValues = {
   MileageServiced: '',
   ServicingFrequency: '',
   Note: '',
-  CreatedBy: 'system'
+  CreatedBy: 'system',
+  IsCompleted: true
 };
 
-const validationSchema = Yup.object({
-  CarId: Yup.number().required('Car is required'),
-  DateServiced: Yup.date()
-    .nullable()
-    .required('Servicing date is required')
-    .max(new Date(), 'Servicing date cannot be in the future'),
-  MileageServiced: Yup.number()
-    .required('Current servicing mileage is required')
-    .integer('Mileage must be a whole number')
-    .positive('Mileage must be a positive number'),
-  ServicingFrequency: Yup.number()
-    .required('Servicing frequency is required')
-    .integer('Servicing frequency must be a whole number')
-    .positive('Servicing frequency must be a positive number'),
-  Note: Yup.string().optional()
-});
+const buildValidationSchema = (cars: Car[]) =>
+  Yup.object({
+    CarId: Yup.number().required('Car is required'),
+    DateServiced: Yup.date()
+      .nullable()
+      .required('Servicing date is required')
+      .max(new Date(), 'Servicing date cannot be in the future'),
+    MileageServiced: Yup.number()
+      .required('Current servicing mileage is required')
+      .integer('Mileage must be a whole number')
+      .positive('Mileage must be a positive number')
+      .test(
+        'not-less-than-current-mileage',
+        'Servicing mileage cannot be less than the car\'s current mileage',
+        function (value) {
+          const car = cars.find((c) => c.CarId === this.parent.CarId);
+
+          if (!car || car.CurrentMileage == null || value == null) {
+            return true;
+          }
+
+          return value >= car.CurrentMileage;
+        }
+      ),
+    ServicingFrequency: Yup.number()
+      .required('Servicing frequency is required')
+      .integer('Servicing frequency must be a whole number')
+      .positive('Servicing frequency must be a positive number'),
+    Note: Yup.string().optional()
+  });
 
 const toLocalDateString = (value: Date | null) => (value ? format(value, 'yyyy-MM-dd') : null);
 
@@ -61,6 +78,8 @@ export const CarServicingForm: FC<CarServicingFormProps> = (props) => {
   const router = useRouter();
   const { user } = useAuth();
   const { cars } = useCars();
+
+  const validationSchema = useMemo(() => buildValidationSchema(cars), [cars]);
 
   const formik = useFormik({
     initialValues: { ...defaultInitialValues, ...initialValues },
@@ -154,6 +173,18 @@ export const CarServicingForm: FC<CarServicingFormProps> = (props) => {
                       />
                     )}
                   />
+
+                  <TextField
+                    fullWidth
+                    label="Current Mileage (km)"
+                    value={
+                      selectedCar?.CurrentMileage != null
+                        ? selectedCar.CurrentMileage.toLocaleString()
+                        : ''
+                    }
+                    InputProps={{ readOnly: true }}
+                    helperText="The car's current recorded mileage"
+                  />
                 </Stack>
               </Grid>
             </Grid>
@@ -225,6 +256,17 @@ export const CarServicingForm: FC<CarServicingFormProps> = (props) => {
                     onBlur={formik.handleBlur}
                     onChange={formik.handleChange}
                     value={formik.values.ServicingFrequency}
+                  />
+
+                  <FormControlLabel
+                    control={
+                      <Checkbox
+                        checked={!!formik.values.IsCompleted}
+                        name="IsCompleted"
+                        onChange={formik.handleChange}
+                      />
+                    }
+                    label="Please confirm if servicing is done"
                   />
                 </Stack>
               </Grid>

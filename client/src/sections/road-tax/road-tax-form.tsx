@@ -25,6 +25,8 @@ interface RoadTaxFormProps {
   mode?: 'create' | 'edit';
   initialValues?: Partial<RoadTaxFormValues>;
   roadTaxId?: number;
+  presetCarId?: number;
+  backHref?: string;
 }
 
 const defaultInitialValues: RoadTaxFormValues = {
@@ -49,13 +51,17 @@ const validationSchema = Yup.object({
 const toLocalDateString = (value: Date | null) => (value ? format(value, 'yyyy-MM-dd') : null);
 
 export const RoadTaxForm: FC<RoadTaxFormProps> = (props) => {
-  const { mode = 'create', initialValues, roadTaxId } = props;
+  const { mode = 'create', initialValues, roadTaxId, presetCarId, backHref } = props;
   const router = useRouter();
   const { user } = useAuth();
   const { cars } = useCars();
 
   const formik = useFormik({
-    initialValues: { ...defaultInitialValues, ...initialValues },
+    initialValues: {
+      ...defaultInitialValues,
+      ...(presetCarId ? { CarId: presetCarId } : {}),
+      ...initialValues
+    },
     validationSchema,
     onSubmit: async (values, { setSubmitting }) => {
       try {
@@ -73,7 +79,7 @@ export const RoadTaxForm: FC<RoadTaxFormProps> = (props) => {
           await roadTaxesApi.createRoadTax({ roadTax: payload });
           toast.success('Road tax record created successfully');
         }
-        router.push(paths.roadTax.index);
+        router.push(backHref || paths.roadTax.index);
       } catch (error: any) {
         toast.error(error.message || `Failed to ${mode} road tax record`);
       } finally {
@@ -102,6 +108,7 @@ export const RoadTaxForm: FC<RoadTaxFormProps> = (props) => {
                   <Typography variant="h6">Road Tax Details</Typography>
 
                   <Autocomplete
+                    disabled={!!presetCarId}
                     options={cars}
                     getOptionLabel={(car) => `${car.Model} - ${car.CarNumber}`}
                     value={cars.find((c) => c.CarId === formik.values.CarId) ?? null}
@@ -195,7 +202,7 @@ export const RoadTaxForm: FC<RoadTaxFormProps> = (props) => {
         >
           <Button
             color="inherit"
-            onClick={() => router.push(paths.roadTax.index)}
+            onClick={() => router.push(backHref || paths.roadTax.index)}
           >
             Cancel
           </Button>

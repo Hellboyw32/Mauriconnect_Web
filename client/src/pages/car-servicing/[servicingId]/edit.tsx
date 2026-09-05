@@ -56,7 +56,8 @@ const Page = () => {
     MileageServiced: servicingRecord.MileageServiced ?? '',
     ServicingFrequency: servicingRecord.ServicingFrequency ?? '',
     Note: servicingRecord.Note || '',
-    CreatedBy: servicingRecord.LastModifiedUserId || 'system'
+    CreatedBy: servicingRecord.LastModifiedUserId || 'system',
+    IsCompleted: servicingRecord.IsCompleted ?? false
   };
 
   return (

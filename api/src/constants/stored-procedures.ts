@@ -61,6 +61,9 @@ export enum SERVICING_STORED_PROCEDURES {
 export enum REPORT_STORED_PROCEDURES {
   GET_PICKUP_SCHEDULE_BY_DATE = 'spGetPickScheduleByDate',
   GET_DROPOFF_SCHEDULE_BY_DATE = 'spGetDropScheduleByDate',
+  GET_ROAD_TAX_RENEWALS_BY_MONTH = 'spGetRoadTaxRenewalsByMonth',
+  GET_CAR_FITNESS_RENEWALS_BY_MONTH = 'spGetCarFitnessRenewalsByMonth',
+  GET_CAR_INSURANCE_RENEWALS_BY_MONTH = 'spGetCarInsuranceRenewalsByMonth',
   GET_SIM_CARD_REPORT = 'spGetSimCardReportByDate',
   GET_INSURANCE_REPORT = 'spGetInsuranceReportByDate'
 }

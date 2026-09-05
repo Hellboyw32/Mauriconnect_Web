@@ -39,3 +39,10 @@ export interface RoadTaxesSearchState {
   sortBy: string;
   sortDir: 'asc' | 'desc';
 }
+
+export interface RoadTaxRenewalReportItem {
+  CarNumber: string;
+  Model: string;
+  StartDate: string;
+  EndDate: string;
+}

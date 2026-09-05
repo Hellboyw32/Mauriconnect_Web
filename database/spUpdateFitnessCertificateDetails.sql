@@ -14,7 +14,9 @@ CREATE OR ALTER PROCEDURE [dbo].[spUpdateFitnessCertificateDetails]
     @Login VARCHAR(100),
     @Action VARCHAR(25),
     @FitnessId INT,
-    @IsActive BIT
+    @IsActive BIT,
+    @CertificateNumber NVARCHAR(50) = NULL,
+    @IssuedBy NVARCHAR(200) = NULL
 AS
 BEGIN
     SET NOCOUNT ON;
@@ -22,9 +24,9 @@ BEGIN
     IF @Action = 'Add'
     BEGIN
         INSERT INTO dbo.CarFitness
-            (CarId, StartDate, EndDate, Note, IsActive, LastModifiedTimeStamp, LastModifiedUserId)
+            (CarId, StartDate, EndDate, Note, CertificateNumber, IssuedBy, IsActive, LastModifiedTimeStamp, LastModifiedUserId)
         VALUES
-            (@CarId, @StartDate, @EndDate, @Note, 1, GETDATE(), @Login);
+            (@CarId, @StartDate, @EndDate, @Note, @CertificateNumber, @IssuedBy, 1, GETDATE(), @Login);
     END
     ELSE IF @Action = 'Update'
     BEGIN
@@ -33,6 +35,8 @@ BEGIN
             StartDate = @StartDate,
             EndDate = @EndDate,
             Note = @Note,
+            CertificateNumber = @CertificateNumber,
+            IssuedBy = @IssuedBy,
             IsActive = @IsActive,
             LastModifiedTimeStamp = GETDATE(),
             LastModifiedUserId = @Login
