@@ -29,6 +29,7 @@ export interface ServicingFormValues {
   ServicingFrequency: number | '';
   Note?: string;
   CreatedBy?: string;
+  IsCompleted?: boolean;
 }
 
 export interface ServicingFilters {

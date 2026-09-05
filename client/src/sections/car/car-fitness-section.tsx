@@ -16,6 +16,7 @@ import Typography from '@mui/material/Typography';
 import ChevronDownIcon from '@untitled-ui/icons-react/build/esm/ChevronDown';
 import ChevronRightIcon from '@untitled-ui/icons-react/build/esm/ChevronRight';
 import PlusIcon from '@untitled-ui/icons-react/build/esm/Plus';
+import { format } from 'date-fns';
 import { useCallback, useMemo, useState, type FC } from 'react';
 import { toast } from 'react-hot-toast';
 import { fitnessCertificatesApi } from 'src/api/fitness-certificate';
@@ -24,6 +25,7 @@ import { useAuth } from 'src/hooks/use-auth';
 import { useDialog } from 'src/hooks/use-dialog';
 import { useFitnessCertificates } from 'src/hooks/fitness-certificate/use-fitness-certificates';
 import { paths } from 'src/paths';
+import { CarFileUploader } from 'src/sections/car/car-file-uploader';
 import { FitnessCertificateDeleteDialog } from 'src/sections/fitness-certificate/fitness-certificate-delete-dialog';
 import { timestampToDate } from 'src/utils/date-locale';
 import { getExpiryStatus } from 'src/utils/expiry-status';
@@ -39,6 +41,7 @@ export const CarFitnessSection: FC<CarFitnessSectionProps> = (props) => {
   const [open, setOpen] = useState(true);
   const { user } = useAuth();
   const deleteDialog = useDialog<FitnessCertificate>();
+  const uploadDialog = useDialog<FitnessCertificate>();
   const [isDeleting, setIsDeleting] = useState(false);
 
   const filters = carNumber ? { carNumber } : undefined;
@@ -240,6 +243,18 @@ export const CarFitnessSection: FC<CarFitnessSectionProps> = (props) => {
                         >
                           Edit
                         </Button>
+                        <Button
+                          disabled={!fitness.StartDate}
+                          onClick={() => uploadDialog.handleOpen(fitness)}
+                          size="small"
+                          title={
+                            fitness.StartDate
+                              ? undefined
+                              : 'This record has no Start Date, so a destination folder cannot be determined'
+                          }
+                        >
+                          Upload
+                        </Button>
                         {fitness.FitnessId !== latestFitnessId && (
                           <Button
                             color="error"
@@ -266,6 +281,21 @@ export const CarFitnessSection: FC<CarFitnessSectionProps> = (props) => {
         open={deleteDialog.open}
         isDeleting={isDeleting}
       />
+
+      {uploadDialog.data && (
+        <CarFileUploader
+          carId={carId}
+          section="CarFitness"
+          sectionLabel="Car Fitness"
+          startDate={
+            uploadDialog.data.StartDate
+              ? format(new Date(uploadDialog.data.StartDate), 'yyyy-MM-dd')
+              : ''
+          }
+          open={uploadDialog.open}
+          onClose={uploadDialog.handleClose}
+        />
+      )}
     </Card>
   );
 };

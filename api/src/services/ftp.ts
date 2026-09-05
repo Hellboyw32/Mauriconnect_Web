@@ -4,6 +4,7 @@ import * as fs from 'fs';
 import * as os from 'os';
 import * as path from 'path';
 import type { Response } from '@/types';
+import type { CarDocumentSection } from '@libs/types';
 import { BOOKING_STORED_PROCEDURES } from '@/constants';
 import { BaseMSSqlService } from '../base/base-mssql';
 
@@ -21,6 +22,14 @@ export interface UploadFileRequest {
   fileBuffer: Buffer;
 }
 
+export interface UploadCarFileRequest {
+  carId: number;
+  section: CarDocumentSection;
+  startDate: string;
+  fileName: string;
+  fileBuffer: Buffer;
+}
+
 export interface FileInfo {
   name: string;
   size: number;
@@ -30,6 +39,7 @@ export interface FileInfo {
 
 const MAX_FILE_SIZE_BYTES = 10 * 1024 * 1024; // 10MB
 const ALLOWED_EXTENSIONS = ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.pdf', '.doc', '.docx'];
+const CAR_UPLOAD_ALLOWED_EXTENSIONS = ['.jpg', '.jpeg', '.png', '.pdf'];
 
 // Windows path of the upload folder on the FTP server, used only to build a
 // human-readable full path for storage in the database - not used for FTP transfers.
@@ -150,6 +160,120 @@ export class FTPService {
     }
 
     return null;
+  }
+
+  // Car documents (Road Tax / Insurance / Fitness) only accept the narrower
+  // image + PDF set, unlike booking uploads which also allow Word docs.
+  static validateCarFile(fileName: string, fileSizeBytes: number): string | null {
+    const extension = path.extname(fileName).toLowerCase();
+
+    if (!CAR_UPLOAD_ALLOWED_EXTENSIONS.includes(extension)) {
+      return `File type "${extension || 'unknown'}" is not allowed. Allowed types: jpg, jpeg, png, pdf.`;
+    }
+
+    if (fileSizeBytes > MAX_FILE_SIZE_BYTES) {
+      return 'File is too large. Maximum size is 10MB.';
+    }
+
+    return null;
+  }
+
+  // Uploads a car document under /Dropbox/Cars/[CarId]/[Section]/[StartDate]/,
+  // keeping the original file name (unlike uploadFile, which timestamp-prefixes
+  // booking documents). ensureDir creates every missing folder in the path in
+  // order, satisfying the required Dropbox/Cars/.../[Section]/[StartDate]/
+  // creation sequence without needing to call it once per level.
+  async uploadCarFile(request: UploadCarFileRequest): Promise<Response<{ filePath: string }>> {
+    const validationError = FTPService.validateCarFile(
+      request.fileName,
+      request.fileBuffer.length
+    );
+
+    if (validationError) {
+      return {
+        status: 400,
+        message: validationError,
+        success: false
+      };
+    }
+
+    const fileName = path.basename(request.fileName).trim();
+    const dirPath = `/Dropbox/Cars/${request.carId}/${request.section}/${request.startDate}`;
+    const client = await this.getClient();
+
+    // Use local file storage if FTP is unavailable
+    if (!client) {
+      try {
+        const dirFsPath = path.join(
+          this.localStoragePath,
+          'Dropbox',
+          'Cars',
+          String(request.carId),
+          request.section,
+          request.startDate
+        );
+        if (!fs.existsSync(dirFsPath)) {
+          fs.mkdirSync(dirFsPath, { recursive: true });
+        }
+
+        const filePath = path.join(dirFsPath, fileName);
+        fs.writeFileSync(filePath, request.fileBuffer);
+
+        return {
+          status: 200,
+          message: 'File uploaded successfully (local storage)',
+          data: { filePath },
+          success: true
+        };
+      } catch (error) {
+        console.error('Local storage car upload error:', error);
+        return {
+          status: 500,
+          message: `Upload failed: ${error}`,
+          error,
+          success: false
+        };
+      }
+    }
+
+    try {
+      try {
+        await client.ensureDir(dirPath);
+      } catch (error) {
+        console.error('Error creating directory:', error);
+        return {
+          status: 500,
+          message: `Upload failed: could not create folder ${dirPath} on FTP server`,
+          error,
+          success: false
+        };
+      }
+
+      const filePath = `${dirPath}/${fileName}`;
+      const tempFileName = `${Date.now()}-${fileName.replace(/[^a-zA-Z0-9.\-_]/g, '_')}`;
+      const tempFilePath = path.join(os.tmpdir(), tempFileName);
+
+      fs.writeFileSync(tempFilePath, request.fileBuffer);
+      await client.uploadFrom(tempFilePath, filePath);
+      fs.unlinkSync(tempFilePath);
+
+      return {
+        status: 200,
+        message: 'File uploaded successfully',
+        data: { filePath },
+        success: true
+      };
+    } catch (error) {
+      console.error('FTP car upload error:', error);
+      return {
+        status: 500,
+        message: `Upload failed: ${error}`,
+        error,
+        success: false
+      };
+    } finally {
+      client.close();
+    }
   }
 
   async uploadFile(request: UploadFileRequest): Promise<Response<{ filePath: string }>> {

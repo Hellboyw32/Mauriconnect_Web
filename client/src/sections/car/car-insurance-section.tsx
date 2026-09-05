@@ -16,6 +16,7 @@ import Typography from '@mui/material/Typography';
 import ChevronDownIcon from '@untitled-ui/icons-react/build/esm/ChevronDown';
 import ChevronRightIcon from '@untitled-ui/icons-react/build/esm/ChevronRight';
 import PlusIcon from '@untitled-ui/icons-react/build/esm/Plus';
+import { format } from 'date-fns';
 import numeral from 'numeral';
 import { useCallback, useMemo, useState, type FC } from 'react';
 import { toast } from 'react-hot-toast';
@@ -25,6 +26,7 @@ import { useAuth } from 'src/hooks/use-auth';
 import { useDialog } from 'src/hooks/use-dialog';
 import { useCarInsurances } from 'src/hooks/car-insurance/use-car-insurances';
 import { paths } from 'src/paths';
+import { CarFileUploader } from 'src/sections/car/car-file-uploader';
 import { CarInsuranceDeleteDialog } from 'src/sections/car-insurance/car-insurance-delete-dialog';
 import { timestampToDate } from 'src/utils/date-locale';
 import { getExpiryStatus } from 'src/utils/expiry-status';
@@ -40,6 +42,7 @@ export const CarInsuranceSection: FC<CarInsuranceSectionProps> = (props) => {
   const [open, setOpen] = useState(true);
   const { user } = useAuth();
   const deleteDialog = useDialog<CarInsurance>();
+  const uploadDialog = useDialog<CarInsurance>();
   const [isDeleting, setIsDeleting] = useState(false);
 
   const filters = carNumber ? { carNumber } : undefined;
@@ -249,6 +252,18 @@ export const CarInsuranceSection: FC<CarInsuranceSectionProps> = (props) => {
                         >
                           Edit
                         </Button>
+                        <Button
+                          disabled={!insurance.StartDate}
+                          onClick={() => uploadDialog.handleOpen(insurance)}
+                          size="small"
+                          title={
+                            insurance.StartDate
+                              ? undefined
+                              : 'This record has no Start Date, so a destination folder cannot be determined'
+                          }
+                        >
+                          Upload
+                        </Button>
                         {insurance.CarInsuranceId !== latestCarInsuranceId && (
                           <Button
                             color="error"
@@ -275,6 +290,21 @@ export const CarInsuranceSection: FC<CarInsuranceSectionProps> = (props) => {
         open={deleteDialog.open}
         isDeleting={isDeleting}
       />
+
+      {uploadDialog.data && (
+        <CarFileUploader
+          carId={carId}
+          section="Insurance"
+          sectionLabel="Car Insurance"
+          startDate={
+            uploadDialog.data.StartDate
+              ? format(new Date(uploadDialog.data.StartDate), 'yyyy-MM-dd')
+              : ''
+          }
+          open={uploadDialog.open}
+          onClose={uploadDialog.handleClose}
+        />
+      )}
     </Card>
   );
 };
