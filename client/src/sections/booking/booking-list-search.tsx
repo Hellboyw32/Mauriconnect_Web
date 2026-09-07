@@ -274,11 +274,19 @@ export const BookingListSearch: FC<BookingListSearchProps> = (props) => {
         onSubmit={handleSearchClick}
         sx={{ p: 3 }}
       >
-        <Stack
-          alignItems={{ xs: 'stretch', md: 'center' }}
-          direction={{ xs: 'column', md: 'row' }}
-          flexWrap="wrap"
-          spacing={2}
+        <Box
+          sx={{
+            display: 'grid',
+            gridTemplateColumns: {
+              xs: '1fr',
+              sm: 'repeat(2, 1fr)',
+              md: 'repeat(3, 1fr)',
+              lg: 'repeat(4, 1fr)',
+              xl: 'repeat(7, 1fr)'
+            },
+            gap: 2,
+            alignItems: 'center'
+          }}
         >
           <OutlinedInput
             defaultValue={filters?.customerName ?? ''}
@@ -291,7 +299,7 @@ export const BookingListSearch: FC<BookingListSearchProps> = (props) => {
                 </SvgIcon>
               </InputAdornment>
             }
-            sx={{ flex: 1, minWidth: { xs: '100%', md: 200 } }}
+            sx={{ width: '100%' }}
           />
           <OutlinedInput
             defaultValue={filters?.referenceNo ?? ''}
@@ -304,7 +312,7 @@ export const BookingListSearch: FC<BookingListSearchProps> = (props) => {
                 </SvgIcon>
               </InputAdornment>
             }
-            sx={{ flex: 1, minWidth: { xs: '100%', md: 200 } }}
+            sx={{ width: '100%' }}
           />
           <OutlinedInput
             defaultValue={filters?.carNumber ?? ''}
@@ -317,7 +325,7 @@ export const BookingListSearch: FC<BookingListSearchProps> = (props) => {
                 </SvgIcon>
               </InputAdornment>
             }
-            sx={{ flex: 1, minWidth: { xs: '100%', md: 200 } }}
+            sx={{ width: '100%' }}
           />
           <DatePicker
             format="dd/MM/yyyy"
@@ -329,7 +337,7 @@ export const BookingListSearch: FC<BookingListSearchProps> = (props) => {
                 actions: ['clear', 'accept']
               },
               textField: {
-                sx: { flex: 1, minWidth: { xs: '100%', md: 180 } }
+                sx: { width: '100%' }
               }
             }}
           />
@@ -343,14 +351,14 @@ export const BookingListSearch: FC<BookingListSearchProps> = (props) => {
                 actions: ['clear', 'accept']
               },
               textField: {
-                sx: { flex: 1, minWidth: { xs: '100%', md: 180 } }
+                sx: { width: '100%' }
               }
             }}
           />
           <Button
             type="submit"
             variant="contained"
-            sx={{ minWidth: { xs: '100%', md: 100 }, height: 56 }}
+            sx={{ width: '100%', height: 56 }}
           >
             Search
           </Button>
@@ -361,7 +369,7 @@ export const BookingListSearch: FC<BookingListSearchProps> = (props) => {
             select
             SelectProps={{ native: true }}
             value={`${sortBy}|${sortDir}`}
-            sx={{ minWidth: { xs: '100%', md: 220 }, flexShrink: 0 }}
+            sx={{ width: '100%' }}
           >
             {sortOptions.map((option) => (
               <option
@@ -372,7 +380,7 @@ export const BookingListSearch: FC<BookingListSearchProps> = (props) => {
               </option>
             ))}
           </TextField>
-        </Stack>
+        </Box>
       </Box>
       <Divider />
       {showChips && (
