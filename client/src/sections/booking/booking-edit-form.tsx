@@ -15,7 +15,6 @@ import Stack from '@mui/material/Stack';
 import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
 import Grid from '@mui/material/Unstable_Grid2';
-import { DateTimePicker } from '@mui/x-date-pickers/DateTimePicker';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import { differenceInDays, format } from 'date-fns';
 import { useFormik } from 'formik';
@@ -24,6 +23,7 @@ import { toast } from 'react-hot-toast';
 import { bookingApi } from 'src/api/booking';
 import { carInsurancesApi } from 'src/api/car-insurance';
 import { roadTaxesApi } from 'src/api/road-tax';
+import { DateTimePickerSideBySide } from 'src/components/date-time-picker-side-by-side';
 import { RouterLink } from 'src/components/router-link';
 import { useDeliveryUsers } from 'src/hooks/delivery-users/use-delivery-users';
 import { useAuth } from 'src/hooks/use-auth';
@@ -317,14 +317,12 @@ export const BookingEditForm: FC<BookingEditFormProps> = ({ booking }) => {
                       onChange={formik.handleChange}
                       value={formik.values.FlightNumber}
                     />
-                    <DateTimePicker
-                      format="dd/MM/yyyy hh:mm a"
+                    <DateTimePickerSideBySide
                       label="Pickup Date"
                       onChange={(value) => formik.setFieldValue('PickUpDate', value, true)}
                       value={formik.values.PickUpDate}
                     />
-                    <DateTimePicker
-                      format="dd/MM/yyyy hh:mm a"
+                    <DateTimePickerSideBySide
                       label="Dropoff Date"
                       onChange={(value) => formik.setFieldValue('DropOffDate', value, true)}
                       value={formik.values.DropOffDate}
