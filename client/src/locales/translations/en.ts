@@ -7,6 +7,7 @@ export const en = {
   [tokens.nav.bookings]: 'Bookings',
   [tokens.nav.cars]: 'Cars',
   [tokens.nav.carInsurance]: 'Car Insurance',
+  [tokens.nav.carServicing]: 'Car Servicing',
   [tokens.nav.dashboard]: 'Dashboard',
   [tokens.nav.details]: 'Details',
   [tokens.nav.ecommerce]: 'E-Commerce',

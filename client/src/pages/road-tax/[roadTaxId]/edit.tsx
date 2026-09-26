@@ -10,6 +10,7 @@ import { useParams } from 'react-router-dom';
 import { RouterLink } from 'src/components/router-link';
 import { Seo } from 'src/components/seo';
 import { useRoadTax } from 'src/hooks/road-tax/use-road-tax';
+import { useSearchParams } from 'src/hooks/use-search-params';
 import { paths } from 'src/paths';
 import { RoadTaxForm } from 'src/sections/road-tax/road-tax-form';
 import type { RoadTaxFormValues } from '@libs/types';
@@ -17,6 +18,8 @@ import type { RoadTaxFormValues } from '@libs/types';
 const Page = () => {
   const { roadTaxId } = useParams();
   const { roadTax, isLoading } = useRoadTax(roadTaxId ? Number(roadTaxId) : undefined);
+  const searchParams = useSearchParams();
+  const returnTo = searchParams.get('returnTo');
 
   if (isLoading) {
     return (
@@ -73,7 +76,7 @@ const Page = () => {
               <Link
                 color="text.primary"
                 component={RouterLink}
-                href={paths.roadTax.index}
+                href={returnTo || paths.roadTax.index}
                 sx={{
                   alignItems: 'center',
                   display: 'inline-flex'
@@ -101,6 +104,7 @@ const Page = () => {
               mode="edit"
               initialValues={initialValues}
               roadTaxId={roadTax.RoadTaxId}
+              backHref={returnTo || undefined}
             />
           </Stack>
         </Container>

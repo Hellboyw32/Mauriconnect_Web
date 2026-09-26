@@ -38,6 +38,11 @@ export const paths = {
     create: '/fitness-certificate/create',
     edit: '/fitness-certificate/:fitnessId/edit'
   },
+  carServicing: {
+    index: '/car-servicing',
+    create: '/car-servicing/create',
+    edit: '/car-servicing/:servicingId/edit'
+  },
   reports: {
     index: '/reports'
   },

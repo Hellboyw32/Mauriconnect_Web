@@ -10,6 +10,7 @@ import { useParams } from 'react-router-dom';
 import { RouterLink } from 'src/components/router-link';
 import { Seo } from 'src/components/seo';
 import { useCarInsurance } from 'src/hooks/car-insurance/use-car-insurance';
+import { useSearchParams } from 'src/hooks/use-search-params';
 import { paths } from 'src/paths';
 import { CarInsuranceForm } from 'src/sections/car-insurance/car-insurance-form';
 import type { CarInsuranceFormValues } from '@libs/types';
@@ -19,6 +20,8 @@ const Page = () => {
   const { carInsurance, isLoading } = useCarInsurance(
     carInsuranceId ? Number(carInsuranceId) : undefined
   );
+  const searchParams = useSearchParams();
+  const returnTo = searchParams.get('returnTo');
 
   if (isLoading) {
     return (
@@ -55,6 +58,10 @@ const Page = () => {
     StartDate: carInsurance.StartDate ? new Date(carInsurance.StartDate) : null,
     EndDate: carInsurance.EndDate ? new Date(carInsurance.EndDate) : null,
     Note: carInsurance.Note || '',
+    PolicyNumber: carInsurance.PolicyNumber || '',
+    Insurer: carInsurance.Insurer || '',
+    CoverageType: carInsurance.CoverageType || '',
+    Premium: carInsurance.Premium ?? '',
     IsActive: carInsurance.IsActive ?? true,
     CreatedBy: carInsurance.LastModifiedUserId || 'system'
   };
@@ -75,7 +82,7 @@ const Page = () => {
               <Link
                 color="text.primary"
                 component={RouterLink}
-                href={paths.carInsurance.index}
+                href={returnTo || paths.carInsurance.index}
                 sx={{
                   alignItems: 'center',
                   display: 'inline-flex'
@@ -103,6 +110,7 @@ const Page = () => {
               mode="edit"
               initialValues={initialValues}
               carInsuranceId={carInsurance.CarInsuranceId}
+              backHref={returnTo || undefined}
             />
           </Stack>
         </Container>

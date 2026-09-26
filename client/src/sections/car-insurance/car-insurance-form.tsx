@@ -25,6 +25,8 @@ interface CarInsuranceFormProps {
   mode?: 'create' | 'edit';
   initialValues?: Partial<CarInsuranceFormValues>;
   carInsuranceId?: number;
+  presetCarId?: number;
+  backHref?: string;
 }
 
 const defaultInitialValues: CarInsuranceFormValues = {
@@ -32,6 +34,10 @@ const defaultInitialValues: CarInsuranceFormValues = {
   StartDate: null,
   EndDate: null,
   Note: '',
+  PolicyNumber: '',
+  Insurer: '',
+  CoverageType: '',
+  Premium: '',
   IsActive: true,
   CreatedBy: 'system'
 };
@@ -43,19 +49,27 @@ const validationSchema = Yup.object({
     .nullable()
     .required('End date is required')
     .min(Yup.ref('StartDate'), 'End date must be on or after the start date'),
-  Note: Yup.string().optional()
+  Note: Yup.string().optional(),
+  PolicyNumber: Yup.string().optional(),
+  Insurer: Yup.string().optional(),
+  CoverageType: Yup.string().optional(),
+  Premium: Yup.number().nullable().optional()
 });
 
 const toLocalDateString = (value: Date | null) => (value ? format(value, 'yyyy-MM-dd') : null);
 
 export const CarInsuranceForm: FC<CarInsuranceFormProps> = (props) => {
-  const { mode = 'create', initialValues, carInsuranceId } = props;
+  const { mode = 'create', initialValues, carInsuranceId, presetCarId, backHref } = props;
   const router = useRouter();
   const { user } = useAuth();
   const { cars } = useCars();
 
   const formik = useFormik({
-    initialValues: { ...defaultInitialValues, ...initialValues },
+    initialValues: {
+      ...defaultInitialValues,
+      ...(presetCarId ? { CarId: presetCarId } : {}),
+      ...initialValues
+    },
     validationSchema,
     onSubmit: async (values, { setSubmitting }) => {
       try {
@@ -63,6 +77,7 @@ export const CarInsuranceForm: FC<CarInsuranceFormProps> = (props) => {
           ...values,
           StartDate: toLocalDateString(values.StartDate) as any,
           EndDate: toLocalDateString(values.EndDate) as any,
+          Premium: (values.Premium === '' ? null : values.Premium) as any,
           CreatedBy: user?.username || 'system'
         };
 
@@ -73,7 +88,7 @@ export const CarInsuranceForm: FC<CarInsuranceFormProps> = (props) => {
           await carInsurancesApi.createCarInsurance({ carInsurance: payload });
           toast.success('Car insurance record created successfully');
         }
-        router.push(paths.carInsurance.index);
+        router.push(backHref || paths.carInsurance.index);
       } catch (error: any) {
         toast.error(error.message || `Failed to ${mode} car insurance record`);
       } finally {
@@ -102,6 +117,7 @@ export const CarInsuranceForm: FC<CarInsuranceFormProps> = (props) => {
                   <Typography variant="h6">Car Insurance Details</Typography>
 
                   <Autocomplete
+                    disabled={!!presetCarId}
                     options={cars}
                     getOptionLabel={(car) => `${car.Model} - ${car.CarNumber}`}
                     value={cars.find((c) => c.CarId === formik.values.CarId) ?? null}
@@ -160,6 +176,43 @@ export const CarInsuranceForm: FC<CarInsuranceFormProps> = (props) => {
 
                   <TextField
                     fullWidth
+                    label="Policy Number"
+                    name="PolicyNumber"
+                    onBlur={formik.handleBlur}
+                    onChange={formik.handleChange}
+                    value={formik.values.PolicyNumber}
+                  />
+
+                  <TextField
+                    fullWidth
+                    label="Insurer"
+                    name="Insurer"
+                    onBlur={formik.handleBlur}
+                    onChange={formik.handleChange}
+                    value={formik.values.Insurer}
+                  />
+
+                  <TextField
+                    fullWidth
+                    label="Coverage Type"
+                    name="CoverageType"
+                    onBlur={formik.handleBlur}
+                    onChange={formik.handleChange}
+                    value={formik.values.CoverageType}
+                  />
+
+                  <TextField
+                    fullWidth
+                    label="Premium (MUR)"
+                    name="Premium"
+                    type="number"
+                    onBlur={formik.handleBlur}
+                    onChange={formik.handleChange}
+                    value={formik.values.Premium}
+                  />
+
+                  <TextField
+                    fullWidth
                     label="Comments"
                     name="Note"
                     multiline
@@ -195,7 +248,7 @@ export const CarInsuranceForm: FC<CarInsuranceFormProps> = (props) => {
         >
           <Button
             color="inherit"
-            onClick={() => router.push(paths.carInsurance.index)}
+            onClick={() => router.push(backHref || paths.carInsurance.index)}
           >
             Cancel
           </Button>

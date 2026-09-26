@@ -1,5 +1,5 @@
 import type { FC } from 'react';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import Box from '@mui/material/Box';
 import Card from '@mui/material/Card';
 import CardContent from '@mui/material/CardContent';
@@ -68,10 +68,29 @@ export const FileList: FC<FileListProps> = (props) => {
   const [files, setFiles] = useState<FileInfo[]>([]);
   const [loading, setLoading] = useState(true);
   const [thumbnails, setThumbnails] = useState<Record<string, string>>({});
-  const [previewFile, setPreviewFile] = useState<{ name: string; url: string; type: string } | null>(
-    null
-  );
+  const [previewFile, setPreviewFile] = useState<{
+    name: string;
+    url: string;
+    type: string;
+    isAdHocUrl: boolean;
+  } | null>(null);
   const [rotation, setRotation] = useState(0);
+
+  // Mirrors `thumbnails` so loadFiles can read the current cache synchronously without
+  // depending on `thumbnails` itself (which it also writes to - that would either loop
+  // or force stale reads through a stable useCallback).
+  const thumbnailsRef = useRef<Record<string, string>>({});
+  useEffect(() => {
+    thumbnailsRef.current = thumbnails;
+  }, [thumbnails]);
+
+  // Revoke every cached blob URL when the component unmounts (e.g. navigating away),
+  // so nothing outlives the page.
+  useEffect(() => {
+    return () => {
+      Object.values(thumbnailsRef.current).forEach((url) => URL.revokeObjectURL(url));
+    };
+  }, []);
 
   const loadFiles = useCallback(async () => {
     setLoading(true);
@@ -79,28 +98,30 @@ export const FileList: FC<FileListProps> = (props) => {
       const fileList = await fileApi.listFiles(referenceNo);
       setFiles(fileList);
 
-      // Load thumbnails for image files
-      const thumbPromises = fileList
-        .filter((file) => getFileIcon(file.name) === 'image')
-        .map(async (file) => {
-          try {
-            const blob = await fileApi.downloadFile(referenceNo, file.name);
-            const url = URL.createObjectURL(blob);
-            return { name: file.name, url };
-          } catch (error) {
-            console.error(`Failed to load thumbnail for ${file.name}`, error);
-            return null;
-          }
-        });
+      // Files no longer play back into the grid as thumbnails eagerly (see
+      // handlePreview) - each one downloads the full original over a brand-new FTP
+      // connection, which measured 7-14s+ per file to even connect. Eagerly fetching
+      // every image on every load/refresh is what made this page unusable with more
+      // than a couple of files. Still revoke cached blobs (from earlier on-demand
+      // previews) for files that were deleted, so nothing lingers past its file.
+      const currentNames = new Set(fileList.map((file) => file.name));
+      const cachedThumbnails = thumbnailsRef.current;
 
-      const thumbResults = await Promise.all(thumbPromises);
-      const thumbMap: Record<string, string> = {};
-      thumbResults.forEach((result) => {
-        if (result) {
-          thumbMap[result.name] = result.url;
+      Object.entries(cachedThumbnails).forEach(([name, url]) => {
+        if (!currentNames.has(name)) {
+          URL.revokeObjectURL(url);
         }
       });
-      setThumbnails(thumbMap);
+
+      setThumbnails((prev) => {
+        const next: Record<string, string> = {};
+        Object.entries(prev).forEach(([name, url]) => {
+          if (currentNames.has(name)) {
+            next[name] = url;
+          }
+        });
+        return next;
+      });
     } catch (error) {
       console.error('Failed to load files:', error);
       toast.error('Failed to load files');
@@ -137,11 +158,13 @@ export const FileList: FC<FileListProps> = (props) => {
   const handlePreview = useCallback(
     async (fileName: string, fileType: string) => {
       try {
-        const url =
-          thumbnails[fileName] ||
-          URL.createObjectURL(await fileApi.downloadFile(referenceNo, fileName));
+        const cachedUrl = thumbnails[fileName];
+        const url = cachedUrl || URL.createObjectURL(await fileApi.downloadFile(referenceNo, fileName));
         setRotation(0);
-        setPreviewFile({ name: fileName, url, type: fileType });
+        // Only PDF previews create a fresh, uncached URL here (image previews reuse
+        // the cached thumbnail) - track that so closing the dialog can revoke it
+        // without touching the thumbnail cache other parts of the UI still need.
+        setPreviewFile({ name: fileName, url, type: fileType, isAdHocUrl: !cachedUrl });
       } catch (error) {
         console.error('Preview error:', error);
         toast.error('Failed to preview file');
@@ -151,7 +174,12 @@ export const FileList: FC<FileListProps> = (props) => {
   );
 
   const handleClosePreview = useCallback(() => {
-    setPreviewFile(null);
+    setPreviewFile((prev) => {
+      if (prev?.isAdHocUrl) {
+        URL.revokeObjectURL(prev.url);
+      }
+      return null;
+    });
     setRotation(0);
   }, []);
 

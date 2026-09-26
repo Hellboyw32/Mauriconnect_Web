@@ -29,6 +29,24 @@ export class ReportService {
     return await this.mssqlService.requestByStoredProcedure(storedProcedure, inputs);
   }
 
+  async getRoadTaxRenewalsByMonth(year: number, month: number) {
+    const storedProcedure = STORED_PROCEDURES.GET_ROAD_TAX_RENEWALS_BY_MONTH;
+    const inputs = [{ 'Year': year, 'Month': month }];
+    return await this.mssqlService.requestByStoredProcedure(storedProcedure, inputs);
+  }
+
+  async getCarFitnessRenewalsByMonth(year: number, month: number) {
+    const storedProcedure = STORED_PROCEDURES.GET_CAR_FITNESS_RENEWALS_BY_MONTH;
+    const inputs = [{ 'Year': year, 'Month': month }];
+    return await this.mssqlService.requestByStoredProcedure(storedProcedure, inputs);
+  }
+
+  async getCarInsuranceRenewalsByMonth(year: number, month: number) {
+    const storedProcedure = STORED_PROCEDURES.GET_CAR_INSURANCE_RENEWALS_BY_MONTH;
+    const inputs = [{ 'Year': year, 'Month': month }];
+    return await this.mssqlService.requestByStoredProcedure(storedProcedure, inputs);
+  }
+
   async getSimCardReport(startDate: string, endDate: string) {
     const storedProcedure = STORED_PROCEDURES.GET_SIM_CARD_REPORT;
     const inputs = [{ 'StartDate': startDate }, { 'EndDate': endDate }];

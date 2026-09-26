@@ -13,6 +13,7 @@ import File04 from 'src/icons/untitled-ui/duocolor/file-04';
 import Users03 from 'src/icons/untitled-ui/duocolor/users-03';
 import LogOut01 from 'src/icons/untitled-ui/duocolor/log-out-01';
 import Lock01 from 'src/icons/untitled-ui/duocolor/lock-01';
+import Tool01Icon from '@untitled-ui/icons-react/build/esm/Tool01';
 import { hasPermission } from '@libs/permissions';
 import type { Module } from '@libs/types';
 import { tokens } from 'src/locales/tokens';
@@ -92,6 +93,19 @@ export const useSections = () => {
         icon: (
           <SvgIcon fontSize="small">
             <File04 />
+          </SvgIcon>
+        )
+      },
+      {
+        // Not permission-gated: Car Servicing predates the RBAC module system
+        // (see Module type in @libs/types) and was always unrestricted on main.
+        // Leaving it that way here rather than inventing a new Module value as
+        // a side effect of this merge.
+        title: t(tokens.nav.carServicing),
+        path: paths.carServicing.index,
+        icon: (
+          <SvgIcon fontSize="small">
+            <Tool01Icon />
           </SvgIcon>
         )
       },

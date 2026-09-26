@@ -1,5 +1,13 @@
 import { API_ENDPOINTS } from '@libs/constants';
-import type { Booking, Filters, InsuranceReportRow, SimCardReportRow } from '@libs/types';
+import type {
+  Booking,
+  CarInsuranceRenewalReportItem,
+  Filters,
+  FitnessRenewalReportItem,
+  InsuranceReportRow,
+  RoadTaxRenewalReportItem,
+  SimCardReportRow
+} from '@libs/types';
 import { bookings as bookingsData } from 'src/mock/booking';
 import { api } from 'src/services/api.service';
 import { applyPagination } from 'src/utils/apply-pagination';
@@ -33,6 +41,27 @@ type GetDropoffScheduleReportRequest = {
 
 type GetDropoffScheduleReportResponse = Promise<Booking[]>;
 
+type GetRoadTaxRenewalReportRequest = {
+  year: number;
+  month: number;
+};
+
+type GetRoadTaxRenewalReportResponse = Promise<RoadTaxRenewalReportItem[]>;
+
+type GetCarFitnessRenewalReportRequest = {
+  year: number;
+  month: number;
+};
+
+type GetCarFitnessRenewalReportResponse = Promise<FitnessRenewalReportItem[]>;
+
+type GetCarInsuranceRenewalReportRequest = {
+  year: number;
+  month: number;
+};
+
+type GetCarInsuranceRenewalReportResponse = Promise<CarInsuranceRenewalReportItem[]>;
+
 type GetSimCardReportRequest = {
   startDate: string;
   endDate: string;
@@ -53,6 +82,15 @@ interface IReportApi {
   getDropoffScheduleReport(
     request?: GetDropoffScheduleReportRequest
   ): GetDropoffScheduleReportResponse;
+  getRoadTaxRenewalReport(
+    request: GetRoadTaxRenewalReportRequest
+  ): GetRoadTaxRenewalReportResponse;
+  getCarFitnessRenewalReport(
+    request: GetCarFitnessRenewalReportRequest
+  ): GetCarFitnessRenewalReportResponse;
+  getCarInsuranceRenewalReport(
+    request: GetCarInsuranceRenewalReportRequest
+  ): GetCarInsuranceRenewalReportResponse;
   getSimCardReport(request: GetSimCardReportRequest): GetSimCardReportResponse;
   getInsuranceReport(request: GetInsuranceReportRequest): GetInsuranceReportResponse;
 }
@@ -153,6 +191,39 @@ class ReportApi implements IReportApi {
       : '';
     const apiResponse = await api.get<Booking[]>(
       `${API_ENDPOINTS.REPORTS}/schedule/dropoff${queryString}`
+    );
+
+    return Promise.resolve(apiResponse.data || []);
+  }
+
+  public async getRoadTaxRenewalReport(
+    request: GetRoadTaxRenewalReportRequest
+  ): GetRoadTaxRenewalReportResponse {
+    const { year, month } = request;
+    const apiResponse = await api.get<RoadTaxRenewalReportItem[]>(
+      `${API_ENDPOINTS.REPORTS}/road-tax-renewals?year=${year}&month=${month}`
+    );
+
+    return Promise.resolve(apiResponse.data || []);
+  }
+
+  public async getCarFitnessRenewalReport(
+    request: GetCarFitnessRenewalReportRequest
+  ): GetCarFitnessRenewalReportResponse {
+    const { year, month } = request;
+    const apiResponse = await api.get<FitnessRenewalReportItem[]>(
+      `${API_ENDPOINTS.REPORTS}/car-fitness-renewals?year=${year}&month=${month}`
+    );
+
+    return Promise.resolve(apiResponse.data || []);
+  }
+
+  public async getCarInsuranceRenewalReport(
+    request: GetCarInsuranceRenewalReportRequest
+  ): GetCarInsuranceRenewalReportResponse {
+    const { year, month } = request;
+    const apiResponse = await api.get<CarInsuranceRenewalReportItem[]>(
+      `${API_ENDPOINTS.REPORTS}/car-insurance-renewals?year=${year}&month=${month}`
     );
 
     return Promise.resolve(apiResponse.data || []);

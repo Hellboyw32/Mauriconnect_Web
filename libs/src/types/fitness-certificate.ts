@@ -13,6 +13,8 @@ export interface FitnessCertificate extends RecordLogs {
   StartDate?: string | null;
   EndDate?: string | null;
   Note?: string | null;
+  CertificateNumber?: string | null;
+  IssuedBy?: string | null;
   IsActive?: boolean | null;
 }
 
@@ -24,6 +26,8 @@ export interface FitnessCertificateFormValues {
   StartDate: Date | null;
   EndDate: Date | null;
   Note?: string;
+  CertificateNumber?: string;
+  IssuedBy?: string;
   IsActive: boolean;
   CreatedBy?: string;
 }
@@ -38,4 +42,11 @@ export interface FitnessCertificatesSearchState {
   rowsPerPage: number;
   sortBy: string;
   sortDir: 'asc' | 'desc';
+}
+
+export interface FitnessRenewalReportItem {
+  CarNumber: string;
+  Model: string;
+  StartDate: string;
+  EndDate: string;
 }

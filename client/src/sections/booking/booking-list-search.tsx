@@ -7,13 +7,32 @@ import InputAdornment from '@mui/material/InputAdornment';
 import OutlinedInput from '@mui/material/OutlinedInput';
 import Stack from '@mui/material/Stack';
 import SvgIcon from '@mui/material/SvgIcon';
+import TextField from '@mui/material/TextField';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import SearchMdIcon from '@untitled-ui/icons-react/build/esm/SearchMd';
 import PropTypes from 'prop-types';
-import type { FC } from 'react';
+import type { ChangeEvent, FC } from 'react';
 import { useCallback, useRef, useState } from 'react';
 import { useUpdateEffect } from 'src/hooks/use-update-effect';
 import { timestampToDate } from 'src/utils/date-locale';
+
+type SortValue = 'LastModifiedTimeStamp|desc' | 'LastModifiedTimeStamp|asc';
+
+interface SortOption {
+  label: string;
+  value: SortValue;
+}
+
+const sortOptions: SortOption[] = [
+  {
+    label: 'Last modified (newest)',
+    value: 'LastModifiedTimeStamp|desc'
+  },
+  {
+    label: 'Last modified (oldest)',
+    value: 'LastModifiedTimeStamp|asc'
+  }
+];
 
 type SortDir = 'asc' | 'desc';
 
@@ -71,7 +90,7 @@ const buildInitialChips = (filters?: Filters): SearchChip[] => {
 };
 
 export const BookingListSearch: FC<BookingListSearchProps> = (props) => {
-  const { onFiltersChange, filters } = props;
+  const { onFiltersChange, onSortChange, sortBy, sortDir, filters } = props;
   const queryRef = useRef<HTMLInputElement | null>(null);
   const referenceNoRef = useRef<HTMLInputElement | null>(null);
   const carNumberRef = useRef<HTMLInputElement | null>(null);
@@ -169,6 +188,18 @@ export const BookingListSearch: FC<BookingListSearchProps> = (props) => {
     setDropoffDate(date);
   }, []);
 
+  const handleSortChange = useCallback(
+    (event: ChangeEvent<HTMLInputElement>): void => {
+      const [sortBy, sortDir] = event.target.value.split('|') as [string, SortDir];
+
+      onSortChange?.({
+        sortBy,
+        sortDir
+      });
+    },
+    [onSortChange]
+  );
+
   const handleSearchClick = useCallback(
     (event?: any): void => {
       if (event) {
@@ -243,11 +274,19 @@ export const BookingListSearch: FC<BookingListSearchProps> = (props) => {
         onSubmit={handleSearchClick}
         sx={{ p: 3 }}
       >
-        <Stack
-          alignItems={{ xs: 'stretch', md: 'center' }}
-          direction={{ xs: 'column', md: 'row' }}
-          flexWrap="wrap"
-          spacing={2}
+        <Box
+          sx={{
+            display: 'grid',
+            gridTemplateColumns: {
+              xs: '1fr',
+              sm: 'repeat(2, 1fr)',
+              md: 'repeat(3, 1fr)',
+              lg: 'repeat(4, 1fr)',
+              xl: 'repeat(7, 1fr)'
+            },
+            gap: 2,
+            alignItems: 'center'
+          }}
         >
           <OutlinedInput
             defaultValue={filters?.customerName ?? ''}
@@ -260,7 +299,7 @@ export const BookingListSearch: FC<BookingListSearchProps> = (props) => {
                 </SvgIcon>
               </InputAdornment>
             }
-            sx={{ flex: 1, minWidth: { xs: '100%', md: 200 } }}
+            sx={{ width: '100%' }}
           />
           <OutlinedInput
             defaultValue={filters?.referenceNo ?? ''}
@@ -273,7 +312,7 @@ export const BookingListSearch: FC<BookingListSearchProps> = (props) => {
                 </SvgIcon>
               </InputAdornment>
             }
-            sx={{ flex: 1, minWidth: { xs: '100%', md: 200 } }}
+            sx={{ width: '100%' }}
           />
           <OutlinedInput
             defaultValue={filters?.carNumber ?? ''}
@@ -286,7 +325,7 @@ export const BookingListSearch: FC<BookingListSearchProps> = (props) => {
                 </SvgIcon>
               </InputAdornment>
             }
-            sx={{ flex: 1, minWidth: { xs: '100%', md: 200 } }}
+            sx={{ width: '100%' }}
           />
           <DatePicker
             format="dd/MM/yyyy"
@@ -298,7 +337,7 @@ export const BookingListSearch: FC<BookingListSearchProps> = (props) => {
                 actions: ['clear', 'accept']
               },
               textField: {
-                sx: { flex: 1, minWidth: { xs: '100%', md: 180 } }
+                sx: { width: '100%' }
               }
             }}
           />
@@ -312,18 +351,36 @@ export const BookingListSearch: FC<BookingListSearchProps> = (props) => {
                 actions: ['clear', 'accept']
               },
               textField: {
-                sx: { flex: 1, minWidth: { xs: '100%', md: 180 } }
+                sx: { width: '100%' }
               }
             }}
           />
           <Button
             type="submit"
             variant="contained"
-            sx={{ minWidth: { xs: '100%', md: 100 }, height: 56 }}
+            sx={{ width: '100%', height: 56 }}
           >
             Search
           </Button>
-        </Stack>
+          <TextField
+            label="Sort By"
+            name="sort"
+            onChange={handleSortChange}
+            select
+            SelectProps={{ native: true }}
+            value={`${sortBy}|${sortDir}`}
+            sx={{ width: '100%' }}
+          >
+            {sortOptions.map((option) => (
+              <option
+                key={option.value}
+                value={option.value}
+              >
+                {option.label}
+              </option>
+            ))}
+          </TextField>
+        </Box>
       </Box>
       <Divider />
       {showChips && (

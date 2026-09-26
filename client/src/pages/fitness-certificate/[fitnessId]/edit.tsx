@@ -10,6 +10,7 @@ import { useParams } from 'react-router-dom';
 import { RouterLink } from 'src/components/router-link';
 import { Seo } from 'src/components/seo';
 import { useFitnessCertificate } from 'src/hooks/fitness-certificate/use-fitness-certificate';
+import { useSearchParams } from 'src/hooks/use-search-params';
 import { paths } from 'src/paths';
 import { FitnessCertificateForm } from 'src/sections/fitness-certificate/fitness-certificate-form';
 import type { FitnessCertificateFormValues } from '@libs/types';
@@ -19,6 +20,8 @@ const Page = () => {
   const { fitnessCertificate, isLoading } = useFitnessCertificate(
     fitnessId ? Number(fitnessId) : undefined
   );
+  const searchParams = useSearchParams();
+  const returnTo = searchParams.get('returnTo');
 
   if (isLoading) {
     return (
@@ -55,6 +58,8 @@ const Page = () => {
     StartDate: fitnessCertificate.StartDate ? new Date(fitnessCertificate.StartDate) : null,
     EndDate: fitnessCertificate.EndDate ? new Date(fitnessCertificate.EndDate) : null,
     Note: fitnessCertificate.Note || '',
+    CertificateNumber: fitnessCertificate.CertificateNumber || '',
+    IssuedBy: fitnessCertificate.IssuedBy || '',
     IsActive: fitnessCertificate.IsActive ?? true,
     CreatedBy: fitnessCertificate.LastModifiedUserId || 'system'
   };
@@ -75,7 +80,7 @@ const Page = () => {
               <Link
                 color="text.primary"
                 component={RouterLink}
-                href={paths.fitnessCertificate.index}
+                href={returnTo || paths.fitnessCertificate.index}
                 sx={{
                   alignItems: 'center',
                   display: 'inline-flex'
@@ -104,6 +109,7 @@ const Page = () => {
               mode="edit"
               initialValues={initialValues}
               fitnessId={fitnessCertificate.FitnessId}
+              backHref={returnTo || undefined}
             />
           </Stack>
         </Container>

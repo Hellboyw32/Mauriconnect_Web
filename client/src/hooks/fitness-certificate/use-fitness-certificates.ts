@@ -16,6 +16,7 @@ export const useFitnessCertificates = (
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const prevFiltersRef = useRef<string>();
+  const hasFetchedRef = useRef(false);
 
   const fetchFitnessCertificates = async (filters?: FitnessCertificateFilters) => {
     try {
@@ -33,7 +34,8 @@ export const useFitnessCertificates = (
 
   useEffect(() => {
     const currentFilters = JSON.stringify(initialFilters);
-    if (prevFiltersRef.current !== currentFilters) {
+    if (!hasFetchedRef.current || prevFiltersRef.current !== currentFilters) {
+      hasFetchedRef.current = true;
       prevFiltersRef.current = currentFilters;
       fetchFitnessCertificates(initialFilters);
     }

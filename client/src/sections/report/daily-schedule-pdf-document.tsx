@@ -1,6 +1,7 @@
 import type { Booking } from '@libs/types';
 import { Document, Page, StyleSheet, Text, View } from '@react-pdf/renderer';
 import { format } from 'date-fns';
+import { getBookingComments } from 'src/utils/format-booking-comments';
 
 interface PdfColumn {
   header: string;
@@ -91,7 +92,7 @@ const pickupColumns: PdfColumn[] = [
   { header: 'Price', width: '8%', render: (b) => b.Price || '' },
   { header: 'Car Model', width: '10%', render: (b: any) => b.Category || '' },
   { header: 'Pickup Location', width: '13%', render: (b: any) => b.PickupLocation || '' },
-  { header: 'Comments', width: '17%', render: (b) => b.SpecialRequest || '' }
+  { header: 'Comments', width: '17%', render: (b) => getBookingComments(b) }
 ];
 
 const dropoffColumns: PdfColumn[] = [
@@ -104,7 +105,7 @@ const dropoffColumns: PdfColumn[] = [
   { header: 'Fuel Level', width: '5%', render: (b) => b.FuelLevel || '' },
   { header: 'Drop-off Location', width: '13%', render: (b: any) => b.DropOffPlace || '' },
   { header: 'Delivered By', width: '7%', render: (b: any) => b.DeliveredBy || '' },
-  { header: 'Comments', width: '15%', render: (b) => b.SpecialRequest || '' }
+  { header: 'Comments', width: '15%', render: (b) => getBookingComments(b) }
 ];
 
 const ScheduleTable = ({

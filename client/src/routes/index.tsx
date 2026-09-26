@@ -8,6 +8,7 @@ import { carRoutes } from './cars';
 import { carInsuranceRoutes } from './car-insurance';
 import { roadTaxRoutes } from './road-tax';
 import { fitnessCertificateRoutes } from './fitness-certificate';
+import { carServicingRoutes } from './car-servicing';
 import { reportRoutes } from './reports';
 import { dashboardRoutes } from './dashboard';
 
@@ -23,6 +24,7 @@ export const routes: RouteObject[] = [
   ...carInsuranceRoutes,
   ...roadTaxRoutes,
   ...fitnessCertificateRoutes,
+  ...carServicingRoutes,
   ...reportRoutes,
   ...dashboardRoutes,
   {

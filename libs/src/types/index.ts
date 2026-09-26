@@ -12,5 +12,6 @@ export * from './invoice';
 export * from './login-log';
 export * from './report';
 export * from './road-tax';
+export * from './servicing';
 export * from './settings';
 export * from './user';

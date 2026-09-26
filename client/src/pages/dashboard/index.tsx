@@ -12,6 +12,7 @@ import { Seo } from 'src/components/seo';
 import { usePageView } from 'src/hooks/use-page-view';
 import { useSettings } from 'src/hooks/use-settings';
 import { OverviewBanner } from 'src/sections/dashboard/overview/overview-banner';
+import { OverviewCarsServicing } from 'src/sections/dashboard/overview/overview-cars-servicing';
 import { OverviewDoneTasks } from 'src/sections/dashboard/overview/overview-done-tasks';
 import { OverviewEvents } from 'src/sections/dashboard/overview/overview-events';
 import { OverviewInbox } from 'src/sections/dashboard/overview/overview-inbox';
@@ -79,21 +80,31 @@ const Page = () => {
             </Grid>
             <Grid
               xs={12}
-              md={4}
+              sm={6}
+              md={3}
             >
               <OverviewDoneTasks />
             </Grid>
             <Grid
               xs={12}
-              md={4}
+              sm={6}
+              md={3}
             >
               <OverviewPendingIssues />
             </Grid>
             <Grid
               xs={12}
-              md={4}
+              sm={6}
+              md={3}
             >
               <OverviewOpenTickets />
+            </Grid>
+            <Grid
+              xs={12}
+              sm={6}
+              md={3}
+            >
+              <OverviewCarsServicing />
             </Grid>
             <Grid
               xs={12}

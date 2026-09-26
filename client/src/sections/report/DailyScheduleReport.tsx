@@ -18,6 +18,7 @@ import Download01Icon from '@untitled-ui/icons-react/build/esm/Download01';
 import { bookingApi } from 'src/api/booking';
 import { reportApi } from 'src/api/report';
 import { useMounted } from 'src/hooks/use-mounted';
+import { getBookingComments } from 'src/utils/format-booking-comments';
 import { DailySchedulePdfDocument } from './daily-schedule-pdf-document';
 
 export default function DailyScheduleReport({
@@ -216,6 +217,14 @@ export default function DailyScheduleReport({
       type: 'string',
       minWidth: 200,
       flex: 1,
+      valueGetter: ({ row }) => {
+        const comments = getBookingComments(row);
+        const contactDetails = row?.ContactDetails ? String(row.ContactDetails) : '';
+        if (!contactDetails) return comments;
+        // Pipe-separate so the appended contact number can't be mistaken for
+        // part of the comments text.
+        return comments ? `${comments} | ${contactDetails}` : `| ${contactDetails}`;
+      },
       renderCell: (params) => (
         <div
           style={{
