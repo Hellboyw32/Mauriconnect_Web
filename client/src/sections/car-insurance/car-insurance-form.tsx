@@ -78,7 +78,7 @@ export const CarInsuranceForm: FC<CarInsuranceFormProps> = (props) => {
           StartDate: toLocalDateString(values.StartDate) as any,
           EndDate: toLocalDateString(values.EndDate) as any,
           Premium: (values.Premium === '' ? null : values.Premium) as any,
-          CreatedBy: user?.email || 'system'
+          CreatedBy: user?.username || 'system'
         };
 
         if (mode === 'edit' && carInsuranceId) {

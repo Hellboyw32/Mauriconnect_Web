@@ -1,3 +1,4 @@
+import { requirePermission } from '@/middlewares/auth';
 import { CarInsuranceService } from '@/services/car-insurance';
 import { Router, type Request, type Response } from 'express';
 import { Container } from 'typedi';
@@ -9,7 +10,7 @@ export default (app: Router) => {
 };
 
 // GET /car-insurance?carNumber=X - Get all car insurance records with optional filter
-route.get('/', async (req: Request, res: Response) => {
+route.get('/', requirePermission('CarInsurance', 'View'), async (req: Request, res: Response) => {
   try {
     const service = Container.get(CarInsuranceService);
     const carNumber = req.query.carNumber as string | undefined;
@@ -25,7 +26,7 @@ route.get('/', async (req: Request, res: Response) => {
 });
 
 // GET /car-insurance/:id - Get single car insurance record by ID
-route.get('/:id', async (req: Request, res: Response) => {
+route.get('/:id', requirePermission('CarInsurance', 'View'), async (req: Request, res: Response) => {
   try {
     const service = Container.get(CarInsuranceService);
     const insuranceId = Number(req.params.id);
@@ -48,7 +49,7 @@ route.get('/:id', async (req: Request, res: Response) => {
 });
 
 // POST /car-insurance - Create new car insurance record
-route.post('/', async (req: Request, res: Response) => {
+route.post('/', requirePermission('CarInsurance', 'Create'), async (req: Request, res: Response) => {
   try {
     const service = Container.get(CarInsuranceService);
     const data = req.body;
@@ -71,7 +72,7 @@ route.post('/', async (req: Request, res: Response) => {
 });
 
 // PUT /car-insurance/:id - Update existing car insurance record
-route.put('/:id', async (req: Request, res: Response) => {
+route.put('/:id', requirePermission('CarInsurance', 'Edit'), async (req: Request, res: Response) => {
   try {
     const service = Container.get(CarInsuranceService);
     const insuranceId = Number(req.params.id);
@@ -95,7 +96,7 @@ route.put('/:id', async (req: Request, res: Response) => {
 });
 
 // DELETE /car-insurance/:id - Soft delete car insurance record (set IsActive=false)
-route.delete('/:id', async (req: Request, res: Response) => {
+route.delete('/:id', requirePermission('CarInsurance', 'Delete'), async (req: Request, res: Response) => {
   try {
     const service = Container.get(CarInsuranceService);
     const insuranceId = Number(req.params.id);

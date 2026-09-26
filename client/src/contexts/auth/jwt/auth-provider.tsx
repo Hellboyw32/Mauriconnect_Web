@@ -9,12 +9,12 @@ import { Issuer } from 'src/utils/auth';
 import type { State } from './auth-context';
 import { AuthContext, initialState } from './auth-context';
 
-const STORAGE_KEY = 'accessToken';
+const ACCESS_TOKEN_STORAGE_KEY = 'accessToken';
+const LOGIN_LOG_ID_STORAGE_KEY = 'loginLogId';
 
 enum ActionType {
   INITIALIZE = 'INITIALIZE',
   SIGN_IN = 'SIGN_IN',
-  SIGN_UP = 'SIGN_UP',
   SIGN_OUT = 'SIGN_OUT'
 }
 
@@ -33,18 +33,11 @@ type SignInAction = {
   };
 };
 
-type SignUpAction = {
-  type: ActionType.SIGN_UP;
-  payload: {
-    user: User;
-  };
-};
-
 type SignOutAction = {
   type: ActionType.SIGN_OUT;
 };
 
-type Action = InitializeAction | SignInAction | SignUpAction | SignOutAction;
+type Action = InitializeAction | SignInAction | SignOutAction;
 
 type Handler = (state: State, action: any) => State;
 
@@ -60,15 +53,6 @@ const handlers: Record<ActionType, Handler> = {
     };
   },
   SIGN_IN: (state: State, action: SignInAction): State => {
-    const { user } = action.payload;
-
-    return {
-      ...state,
-      isAuthenticated: true,
-      user
-    };
-  },
-  SIGN_UP: (state: State, action: SignUpAction): State => {
     const { user } = action.payload;
 
     return {
@@ -97,10 +81,10 @@ export const AuthProvider: FC<AuthProviderProps> = (props) => {
 
   const initialize = useCallback(async (): Promise<void> => {
     try {
-      const accessToken = window.sessionStorage.getItem(STORAGE_KEY);
+      const accessToken = window.sessionStorage.getItem(ACCESS_TOKEN_STORAGE_KEY);
 
       if (accessToken) {
-        const user = await authApi.me({ accessToken });
+        const user = await authApi.me();
 
         dispatch({
           type: ActionType.INITIALIZE,
@@ -120,6 +104,10 @@ export const AuthProvider: FC<AuthProviderProps> = (props) => {
       }
     } catch (err) {
       console.error(err);
+      // Token is present but no longer valid (expired/revoked) - clear it so
+      // the guard doesn't keep bouncing the user between login and dashboard.
+      sessionStorage.removeItem(ACCESS_TOKEN_STORAGE_KEY);
+      sessionStorage.removeItem(LOGIN_LOG_ID_STORAGE_KEY);
       dispatch({
         type: ActionType.INITIALIZE,
         payload: {
@@ -139,11 +127,13 @@ export const AuthProvider: FC<AuthProviderProps> = (props) => {
   );
 
   const signIn = useCallback(
-    async (email: string, password: string): Promise<void> => {
-      const { accessToken } = await authApi.signIn({ email, password });
-      const user = await authApi.me({ accessToken });
+    async (username: string, password: string): Promise<void> => {
+      const { accessToken, loginLogId, user } = await authApi.signIn({ username, password });
 
-      sessionStorage.setItem(STORAGE_KEY, accessToken);
+      sessionStorage.setItem(ACCESS_TOKEN_STORAGE_KEY, accessToken);
+      if (loginLogId != null) {
+        sessionStorage.setItem(LOGIN_LOG_ID_STORAGE_KEY, String(loginLogId));
+      }
 
       dispatch({
         type: ActionType.SIGN_IN,
@@ -155,25 +145,19 @@ export const AuthProvider: FC<AuthProviderProps> = (props) => {
     [dispatch]
   );
 
-  const signUp = useCallback(
-    async (email: string, name: string, password: string): Promise<void> => {
-      const { accessToken } = await authApi.signUp({ email, name, password });
-      const user = await authApi.me({ accessToken });
-
-      sessionStorage.setItem(STORAGE_KEY, accessToken);
-
-      dispatch({
-        type: ActionType.SIGN_UP,
-        payload: {
-          user
-        }
-      });
-    },
-    [dispatch]
-  );
-
   const signOut = useCallback(async (): Promise<void> => {
-    sessionStorage.removeItem(STORAGE_KEY);
+    const loginLogId = sessionStorage.getItem(LOGIN_LOG_ID_STORAGE_KEY);
+
+    try {
+      await authApi.signOut(loginLogId ? Number(loginLogId) : undefined);
+    } catch (err) {
+      // Still clear local session state even if the logout call fails
+      // (e.g. token already expired) - the user's intent is to be signed out.
+      console.error(err);
+    }
+
+    sessionStorage.removeItem(ACCESS_TOKEN_STORAGE_KEY);
+    sessionStorage.removeItem(LOGIN_LOG_ID_STORAGE_KEY);
     dispatch({ type: ActionType.SIGN_OUT });
   }, [dispatch]);
 
@@ -183,7 +167,6 @@ export const AuthProvider: FC<AuthProviderProps> = (props) => {
         ...state,
         issuer: Issuer.JWT,
         signIn,
-        signUp,
         signOut
       }}
     >

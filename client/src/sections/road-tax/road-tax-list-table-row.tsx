@@ -46,7 +46,7 @@ export const RoadTaxListTableRow: FC<RoadTaxListTableRowProps> = (props) => {
       setIsDeleting(true);
       const response = await roadTaxesApi.deleteRoadTax({
         roadTaxId: roadTax.RoadTaxId,
-        createdBy: user?.email || 'system'
+        createdBy: user?.username || 'system'
       });
 
       toast.success(response.message || 'Road tax record deleted successfully');

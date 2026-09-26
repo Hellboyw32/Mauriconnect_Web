@@ -25,5 +25,10 @@ export default {
   },
   api: {
     prefix: '/api'
+  },
+  auth: {
+    jwtSecret: process.env.JWT_SECRET,
+    jwtExpiresIn: process.env.JWT_EXPIRES_IN || '8h',
+    maxFailedLoginAttempts: parseInt(process.env.MAX_FAILED_LOGIN_ATTEMPTS || '5', 10)
   }
 };

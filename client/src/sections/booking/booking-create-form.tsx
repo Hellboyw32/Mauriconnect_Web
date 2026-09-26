@@ -95,7 +95,7 @@ export const BookingCreateForm: FC = (props) => {
           IsBoosterSeat: values.IsBoosterSeat,
           DropOffPlace: values.DropOffPlace,
           PickupLocation: values.PickupLocation,
-          CreatedBy: user?.email || 'system'
+          CreatedBy: user?.username || 'system'
         };
 
         const response = await bookingApi.createBooking({ booking: bookingData });

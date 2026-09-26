@@ -1,3 +1,4 @@
+import { requirePermission } from '@/middlewares/auth';
 import { FitnessCertificateService } from '@/services/fitness-certificate';
 import { Router, type Request, type Response } from 'express';
 import { Container } from 'typedi';
@@ -9,7 +10,7 @@ export default (app: Router) => {
 };
 
 // GET /fitness-certificate?carNumber=X - Get all fitness certificate records with optional filter
-route.get('/', async (req: Request, res: Response) => {
+route.get('/', requirePermission('FitnessCertificate', 'View'), async (req: Request, res: Response) => {
   try {
     const service = Container.get(FitnessCertificateService);
     const carNumber = req.query.carNumber as string | undefined;
@@ -25,7 +26,7 @@ route.get('/', async (req: Request, res: Response) => {
 });
 
 // GET /fitness-certificate/:id - Get single fitness certificate record by ID
-route.get('/:id', async (req: Request, res: Response) => {
+route.get('/:id', requirePermission('FitnessCertificate', 'View'), async (req: Request, res: Response) => {
   try {
     const service = Container.get(FitnessCertificateService);
     const fitnessId = Number(req.params.id);
@@ -48,7 +49,7 @@ route.get('/:id', async (req: Request, res: Response) => {
 });
 
 // POST /fitness-certificate - Create new fitness certificate record
-route.post('/', async (req: Request, res: Response) => {
+route.post('/', requirePermission('FitnessCertificate', 'Create'), async (req: Request, res: Response) => {
   try {
     const service = Container.get(FitnessCertificateService);
     const data = req.body;
@@ -71,7 +72,7 @@ route.post('/', async (req: Request, res: Response) => {
 });
 
 // PUT /fitness-certificate/:id - Update existing fitness certificate record
-route.put('/:id', async (req: Request, res: Response) => {
+route.put('/:id', requirePermission('FitnessCertificate', 'Edit'), async (req: Request, res: Response) => {
   try {
     const service = Container.get(FitnessCertificateService);
     const fitnessId = Number(req.params.id);
@@ -95,7 +96,7 @@ route.put('/:id', async (req: Request, res: Response) => {
 });
 
 // DELETE /fitness-certificate/:id - Soft delete fitness certificate record (set IsActive=false)
-route.delete('/:id', async (req: Request, res: Response) => {
+route.delete('/:id', requirePermission('FitnessCertificate', 'Delete'), async (req: Request, res: Response) => {
   try {
     const service = Container.get(FitnessCertificateService);
     const fitnessId = Number(req.params.id);

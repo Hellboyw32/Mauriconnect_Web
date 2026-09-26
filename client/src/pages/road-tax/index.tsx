@@ -10,8 +10,10 @@ import PlusIcon from '@untitled-ui/icons-react/build/esm/Plus';
 import RefreshCcw01Icon from '@untitled-ui/icons-react/build/esm/RefreshCcw01';
 import type { ChangeEvent, MouseEvent } from 'react';
 import { useCallback, useMemo, useState } from 'react';
+import { hasPermission } from '@libs/permissions';
 import { RouterLink } from 'src/components/router-link';
 import { Seo } from 'src/components/seo';
+import { useAuth } from 'src/hooks/use-auth';
 import { useRoadTaxes } from 'src/hooks/road-tax/use-road-taxes';
 import { useSelection } from 'src/hooks/use-selection';
 import { paths } from 'src/paths';
@@ -82,6 +84,8 @@ const useRoadTaxesIds = (roadTaxes: RoadTax[] = []) => {
 };
 
 const Page = () => {
+  const { user } = useAuth();
+  const canCreate = hasPermission(user, 'RoadTax', 'Create');
   const roadTaxesSearch = useRoadTaxesSearch();
   const { roadTaxes, isLoading } = useRoadTaxes(roadTaxesSearch.state.filters);
   const roadTaxesIds = useRoadTaxesIds(roadTaxes);
@@ -128,18 +132,20 @@ const Page = () => {
                 direction="row"
                 spacing={2}
               >
-                <Button
-                  component={RouterLink}
-                  href={paths.roadTax.create}
-                  startIcon={
-                    <SvgIcon>
-                      <PlusIcon />
-                    </SvgIcon>
-                  }
-                  variant="contained"
-                >
-                  Add
-                </Button>
+                {canCreate && (
+                  <Button
+                    component={RouterLink}
+                    href={paths.roadTax.create}
+                    startIcon={
+                      <SvgIcon>
+                        <PlusIcon />
+                      </SvgIcon>
+                    }
+                    variant="contained"
+                  >
+                    Add
+                  </Button>
+                )}
                 <Button
                   onClick={handleRefresh}
                   startIcon={

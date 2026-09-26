@@ -1,3 +1,4 @@
+import { requirePermission } from '@/middlewares/auth';
 import { CarService } from '@/services/car';
 import { Router, type Request, type Response } from 'express';
 import { Container } from 'typedi';
@@ -9,6 +10,9 @@ export default (app: Router) => {
 };
 
 // GET /cars?carNumber=X&categoryId=Y - Get all cars with optional filters
+// Deliberately NOT gated by Cars:View - Booking, Car Insurance, Road Tax and
+// Fitness Certificate forms all call this to populate their car picker, so
+// restricting Cars access must not also break those other modules' create/edit.
 route.get('/', async (req: Request, res: Response) => {
   try {
     const carService = Container.get(CarService);
@@ -25,8 +29,8 @@ route.get('/', async (req: Request, res: Response) => {
   }
 });
 
-// GET /cars/:id - Get single car by ID
-route.get('/:id', async (req: Request, res: Response) => {
+// GET /cars/:id - Get single car by ID (edit-page detail, safe to gate)
+route.get('/:id', requirePermission('Cars', 'View'), async (req: Request, res: Response) => {
   try {
     const carService = Container.get(CarService);
     const carId = Number(req.params.id);
@@ -49,7 +53,7 @@ route.get('/:id', async (req: Request, res: Response) => {
 });
 
 // POST /cars - Create new car
-route.post('/', async (req: Request, res: Response) => {
+route.post('/', requirePermission('Cars', 'Create'), async (req: Request, res: Response) => {
   try {
     const carService = Container.get(CarService);
     const carData = req.body;
@@ -72,7 +76,7 @@ route.post('/', async (req: Request, res: Response) => {
 });
 
 // PUT /cars/:id - Update existing car
-route.put('/:id', async (req: Request, res: Response) => {
+route.put('/:id', requirePermission('Cars', 'Edit'), async (req: Request, res: Response) => {
   try {
     const carService = Container.get(CarService);
     const carId = Number(req.params.id);
@@ -96,7 +100,7 @@ route.put('/:id', async (req: Request, res: Response) => {
 });
 
 // DELETE /cars/:id - Soft delete car (set IsActive=false)
-route.delete('/:id', async (req: Request, res: Response) => {
+route.delete('/:id', requirePermission('Cars', 'Delete'), async (req: Request, res: Response) => {
   try {
     const carService = Container.get(CarService);
     const carId = Number(req.params.id);

@@ -1,6 +1,7 @@
 import { lazy, Suspense } from 'react';
 import type { RouteObject } from 'react-router';
 import { Outlet } from 'react-router-dom';
+import { PermissionGuard } from 'src/guards/permission-guard';
 import { Layout as DashboardLayout } from 'src/layouts/dashboard';
 
 const CarListPage = lazy(() => import('src/pages/cars/index'));
@@ -12,9 +13,11 @@ export const carRoutes: RouteObject[] = [
     path: 'cars',
     element: (
       <DashboardLayout>
-        <Suspense>
-          <Outlet />
-        </Suspense>
+        <PermissionGuard module="Cars">
+          <Suspense>
+            <Outlet />
+          </Suspense>
+        </PermissionGuard>
       </DashboardLayout>
     ),
     children: [

@@ -5,6 +5,7 @@ import type {
   Filters,
   FitnessRenewalReportItem,
   InsuranceReportRow,
+  ReportType,
   RoadTaxRenewalReportItem,
   SimCardReportRow
 } from '@libs/types';
@@ -17,8 +18,10 @@ import InputLabel from '@mui/material/InputLabel';
 import MenuItem from '@mui/material/MenuItem';
 import Select, { type SelectChangeEvent } from '@mui/material/Select';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
+import { canRunReport, getReportDateBounds } from '@libs/permissions';
 import * as React from 'react';
 import { useCallback, useMemo, useState } from 'react';
+import { useAuth } from 'src/hooks/use-auth';
 import { useCarFitnessRenewalReport } from 'src/hooks/reports/use-car-fitness-renewal-report';
 import { useCarInsuranceRenewalReport } from 'src/hooks/reports/use-car-insurance-renewal-report';
 import { useDailyScheduleReport } from 'src/hooks/reports/use-daily-schedule-report';
@@ -38,6 +41,17 @@ const MONTH_ONLY_REPORT_TYPES = ['40', '50', '60'];
 
 // Report types that take a single Start/End date range rather than the pickup/drop pair
 const DATE_RANGE_REPORT_TYPES = ['70', '80'];
+
+// Dropdown value -> permission catalog key (see libs/src/types/user.ts ReportType).
+// 40/50/60 (the renewal reports) are intentionally absent - they're ungated, see the
+// comment by their MenuItems below.
+const REPORT_TYPE_BY_VALUE: Record<string, ReportType> = {
+  '10': 'DailySchedule',
+  '20': 'Availability',
+  '30': 'Settlement',
+  '70': 'SimCard',
+  '80': 'Insurance'
+};
 
 // Formats using local date parts (avoids the UTC shift toISOString() would introduce)
 const toLocalDateString = (date: Date): string => {
@@ -62,6 +76,7 @@ const useBookingsSearch = () => {
 };
 
 export default function SelectLabels() {
+  const { user } = useAuth();
   const [reportType, setReportType] = React.useState('');
   const [reportData, setReportData] = React.useState<Booking[]>([]);
   const [dropoffReportData, setDropoffReportData] = React.useState<Booking[]>([]);
@@ -86,6 +101,8 @@ export default function SelectLabels() {
   const carInsuranceRenewalStore = useCarInsuranceRenewalReport();
   const simCardReportStore = useSimCardReport();
   const insuranceReportStore = useInsuranceReport();
+
+  const { minDate, maxDate } = useMemo(() => getReportDateBounds(user), [user]);
 
   const handleChange = (event: SelectChangeEvent) => {
     const report = event.target.value;
@@ -192,14 +209,22 @@ export default function SelectLabels() {
           <MenuItem value="">
             <em>None</em>
           </MenuItem>
-          <MenuItem value="10">Daily Schedule Report</MenuItem>
-          <MenuItem value="20">Availability Report</MenuItem>
-          <MenuItem value="30">Settlement Report</MenuItem>
+          {canRunReport(user, 'DailySchedule') && (
+            <MenuItem value="10">Daily Schedule Report</MenuItem>
+          )}
+          {canRunReport(user, 'Availability') && (
+            <MenuItem value="20">Availability Report</MenuItem>
+          )}
+          {canRunReport(user, 'Settlement') && <MenuItem value="30">Settlement Report</MenuItem>}
+          {/* Renewal reports predate the RBAC permission catalog (ReportType in
+              libs/src/types/user.ts doesn't list them) and were always unrestricted
+              on main - left ungated here rather than inventing new permission
+              categories as a side effect of this merge. */}
           <MenuItem value="40">RoadTax ReNew</MenuItem>
           <MenuItem value="50">Car Fitness ReNew</MenuItem>
           <MenuItem value="60">Car Insurance ReNew</MenuItem>
-          <MenuItem value="70">SimCard Report</MenuItem>
-          <MenuItem value="80">Insurance Report</MenuItem>
+          {canRunReport(user, 'SimCard') && <MenuItem value="70">SimCard Report</MenuItem>}
+          {canRunReport(user, 'Insurance') && <MenuItem value="80">Insurance Report</MenuItem>}
         </Select>
         {/* <FormHelperText>select report and click on run</FormHelperText> */}
       </FormControl>
@@ -225,11 +250,15 @@ export default function SelectLabels() {
           <DatePicker
             label="Start Date"
             value={startDate}
+            minDate={minDate ?? undefined}
+            maxDate={maxDate ?? undefined}
             onChange={(newValue) => setStartDate(newValue)}
           />
           <DatePicker
             label="End Date"
             value={endDate}
+            minDate={minDate ?? undefined}
+            maxDate={maxDate ?? undefined}
             onChange={(newValue) => setEndDate(newValue)}
           />
         </Box>
@@ -241,11 +270,15 @@ export default function SelectLabels() {
           <DatePicker
             label="Pickup"
             value={pickupDate}
+            minDate={minDate ?? undefined}
+            maxDate={maxDate ?? undefined}
             onChange={(newValue) => setPickupDate(newValue)}
           />
           <DatePicker
             label="Drop"
             value={dropoffDate}
+            minDate={minDate ?? undefined}
+            maxDate={maxDate ?? undefined}
             onChange={(newValue) => setDropoffDate(newValue)}
           />
         </Box>

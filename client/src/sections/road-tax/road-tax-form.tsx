@@ -69,7 +69,7 @@ export const RoadTaxForm: FC<RoadTaxFormProps> = (props) => {
           ...values,
           StartDate: toLocalDateString(values.StartDate) as any,
           EndDate: toLocalDateString(values.EndDate) as any,
-          CreatedBy: user?.email || 'system'
+          CreatedBy: user?.username || 'system'
         };
 
         if (mode === 'edit' && roadTaxId) {

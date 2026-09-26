@@ -1,4 +1,7 @@
 export enum API_ENDPOINTS {
+  AUTH = '/auth',
+  USERS = '/users',
+  ADMIN = '/admin',
   BOOKINGS = '/bookings',
   REPORTS = '/reports',
   FILES = '/files',

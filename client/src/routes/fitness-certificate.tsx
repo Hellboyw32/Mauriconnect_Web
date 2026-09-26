@@ -1,6 +1,7 @@
 import { lazy, Suspense } from 'react';
 import type { RouteObject } from 'react-router';
 import { Outlet } from 'react-router-dom';
+import { PermissionGuard } from 'src/guards/permission-guard';
 import { Layout as DashboardLayout } from 'src/layouts/dashboard';
 
 const FitnessCertificateListPage = lazy(() => import('src/pages/fitness-certificate/index'));
@@ -14,9 +15,11 @@ export const fitnessCertificateRoutes: RouteObject[] = [
     path: 'fitness-certificate',
     element: (
       <DashboardLayout>
-        <Suspense>
-          <Outlet />
-        </Suspense>
+        <PermissionGuard module="FitnessCertificate">
+          <Suspense>
+            <Outlet />
+          </Suspense>
+        </PermissionGuard>
       </DashboardLayout>
     ),
     children: [
