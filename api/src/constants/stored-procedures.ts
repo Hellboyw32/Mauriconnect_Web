@@ -10,7 +10,8 @@ export enum BOOKING_STORED_PROCEDURES {
   CREATE_BOOKING = 'spAddBookingDetails',
   UPDATE_BOOKING = 'spUpdateBookingDetails',
   DELETE_BOOKING = 'spRemoveBookingDetails',
-  GET_BOOKING_YEAR_BY_REFERENCE_NO = 'spGetBookingYearByReferenceNo'
+  GET_BOOKING_YEAR_BY_REFERENCE_NO = 'spGetBookingYearByReferenceNo',
+  VERIFY_DUPLICATE_REFERENCE = 'spVerifyDuplicateRef'
 }
 
 export enum CAR_CATEGORY_STORED_PROCEDURES {

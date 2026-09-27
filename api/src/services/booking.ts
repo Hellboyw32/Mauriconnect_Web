@@ -21,6 +21,10 @@ export interface IBookingService {
   createBooking(booking: BookingFormValues): Promise<Response>;
   updateBooking(bookingId: number, booking: any): Promise<Response>;
   deleteBooking(bookingId: number, body: { createdBy: string }): Promise<Response>;
+  verifyDuplicateReference(
+    referenceNo: string,
+    bookingId?: number
+  ): Promise<Response<{ RefExist: number }[]>>;
 }
 
 @Service()
@@ -187,5 +191,19 @@ export class BookingService implements IBookingService {
     const inputs = [{ 'BookingId': bookingId, 'Login': createdBy }];
 
     return await this.mssqlService.requestByStoredProcedure(storedProcedure, inputs);
+  }
+
+  async verifyDuplicateReference(
+    referenceNo: string,
+    bookingId: number = 0
+  ): Promise<Response<{ RefExist: number }[]>> {
+    const storedProcedure = STORED_PROCEDURES.VERIFY_DUPLICATE_REFERENCE;
+    const inputs = [{ 'RefNo': referenceNo, 'BookingId': bookingId }];
+
+    return await this.mssqlService.requestByStoredProcedure<{ RefExist: number }[]>(
+      storedProcedure,
+      inputs,
+      false
+    );
   }
 }

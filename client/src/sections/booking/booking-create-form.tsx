@@ -1,4 +1,5 @@
 import type { BookingFormValues } from '@libs/types';
+import { CarCategoryOptions } from '@libs/types';
 import Button from '@mui/material/Button';
 import Card from '@mui/material/Card';
 import CardContent from '@mui/material/CardContent';
@@ -39,8 +40,8 @@ const initialValues: BookingFormValues = {
   CurrencyOption: currencyOptions[0].value as string,
   Price: '',
   Insurance: 0,
-  PaymentMethod: paymentMethods[2].value as string,
-  CarCategory: '',
+  PaymentMethod: 'Card',
+  CarCategory: CarCategoryOptions.Economy,
   SpecialRequest: '',
   DropOffPlace: '',
   PickupLocation: '',
@@ -54,7 +55,12 @@ const validationSchema = Yup.object({
   Price: Yup.string()
     .required('Price is required')
     .matches(/^\d+(\.\d+)?$/, 'Price must be a number (no letters or commas)'),
-  CarCategory: Yup.string().required('Car category is required')
+  CarCategory: Yup.string().required('Car category is required'),
+  PickUpDate: Yup.date().nullable().required('Pickup date is required'),
+  DropOffDate: Yup.date()
+    .nullable()
+    .required('Dropoff date is required')
+    .min(Yup.ref('PickUpDate'), 'Dropoff date cannot be before the pickup date')
 });
 
 export const BookingCreateForm: FC = (props) => {
@@ -68,9 +74,22 @@ export const BookingCreateForm: FC = (props) => {
   const formik = useFormik({
     initialValues,
     validationSchema,
-    onSubmit: async (values) => {
+    onSubmit: async (values, { setFieldError, setFieldTouched }) => {
       try {
         setIsSubmitting(true);
+
+        if (values.ReferenceNo?.trim()) {
+          const isDuplicate = await bookingApi.verifyDuplicateReference({
+            referenceNo: values.ReferenceNo.trim()
+          });
+
+          if (isDuplicate) {
+            setFieldTouched('ReferenceNo', true, false);
+            setFieldError('ReferenceNo', 'Duplicate Reference');
+            toast.error('Duplicate Reference');
+            return;
+          }
+        }
 
         // Calculate number of days
         const numberOfDays = differenceInDays(values.DropOffDate, values.PickUpDate);
@@ -197,13 +216,23 @@ export const BookingCreateForm: FC = (props) => {
                     />
                     <DateTimePickerSideBySide
                       label="Pickup Date"
-                      onChange={(value) => formik.setFieldValue('PickUpDate', value, true)}
+                      onChange={(value) => {
+                        formik.setFieldValue('PickUpDate', value, true);
+                        formik.setFieldTouched('DropOffDate', true, false);
+                      }}
                       value={formik.values.PickUpDate}
+                      error={!!(formik.touched.PickUpDate && formik.errors.PickUpDate)}
+                      helperText={formik.touched.PickUpDate && (formik.errors.PickUpDate as string)}
                     />
                     <DateTimePickerSideBySide
                       label="Dropoff Date"
                       onChange={(value) => formik.setFieldValue('DropOffDate', value, true)}
                       value={formik.values.DropOffDate}
+                      minDate={formik.values.PickUpDate}
+                      error={!!(formik.touched.DropOffDate && formik.errors.DropOffDate)}
+                      helperText={
+                        formik.touched.DropOffDate && (formik.errors.DropOffDate as string)
+                      }
                     />
 
                     <FormControl>

@@ -176,14 +176,14 @@ export const CarServicingForm: FC<CarServicingFormProps> = (props) => {
 
                   <TextField
                     fullWidth
-                    label="Current Mileage (km)"
+                    label="Car's Current Mileage (km) - reference only"
                     value={
                       selectedCar?.CurrentMileage != null
                         ? selectedCar.CurrentMileage.toLocaleString()
                         : ''
                     }
                     InputProps={{ readOnly: true }}
-                    helperText="The car's current recorded mileage"
+                    helperText="The car's odometer reading right now - not this servicing record's own mileage (see below)"
                   />
                 </Stack>
               </Grid>

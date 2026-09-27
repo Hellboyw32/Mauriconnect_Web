@@ -20,6 +20,8 @@ import EyeIcon from '@untitled-ui/icons-react/build/esm/Eye';
 import CloseIcon from '@untitled-ui/icons-react/build/esm/X';
 import RotateLeftIcon from '@untitled-ui/icons-react/build/esm/RefreshCcw01';
 import RotateRightIcon from '@untitled-ui/icons-react/build/esm/RefreshCw01';
+import ZoomInIcon from '@untitled-ui/icons-react/build/esm/ZoomIn';
+import ZoomOutIcon from '@untitled-ui/icons-react/build/esm/ZoomOut';
 import { toast } from 'react-hot-toast';
 import { fileApi, type FileInfo } from 'src/api/files';
 import { format } from 'date-fns';
@@ -75,6 +77,7 @@ export const FileList: FC<FileListProps> = (props) => {
     isAdHocUrl: boolean;
   } | null>(null);
   const [rotation, setRotation] = useState(0);
+  const [zoom, setZoom] = useState(1);
 
   // Mirrors `thumbnails` so loadFiles can read the current cache synchronously without
   // depending on `thumbnails` itself (which it also writes to - that would either loop
@@ -161,6 +164,7 @@ export const FileList: FC<FileListProps> = (props) => {
         const cachedUrl = thumbnails[fileName];
         const url = cachedUrl || URL.createObjectURL(await fileApi.downloadFile(referenceNo, fileName));
         setRotation(0);
+        setZoom(1);
         // Only PDF previews create a fresh, uncached URL here (image previews reuse
         // the cached thumbnail) - track that so closing the dialog can revoke it
         // without touching the thumbnail cache other parts of the UI still need.
@@ -181,6 +185,7 @@ export const FileList: FC<FileListProps> = (props) => {
       return null;
     });
     setRotation(0);
+    setZoom(1);
   }, []);
 
   const handleRotateLeft = useCallback(() => {
@@ -189,6 +194,14 @@ export const FileList: FC<FileListProps> = (props) => {
 
   const handleRotateRight = useCallback(() => {
     setRotation((prev) => (prev + 90) % 360);
+  }, []);
+
+  const handleZoomIn = useCallback(() => {
+    setZoom((prev) => Math.min(prev + 0.25, 3));
+  }, []);
+
+  const handleZoomOut = useCallback(() => {
+    setZoom((prev) => Math.max(prev - 0.25, 0.5));
   }, []);
 
   const handleDelete = useCallback(
@@ -393,6 +406,33 @@ export const FileList: FC<FileListProps> = (props) => {
               <>
                 <IconButton
                   size="small"
+                  onClick={handleZoomOut}
+                  disabled={zoom <= 0.5}
+                  title="Zoom out"
+                >
+                  <SvgIcon fontSize="small">
+                    <ZoomOutIcon />
+                  </SvgIcon>
+                </IconButton>
+                <Typography
+                  variant="caption"
+                  color="text.secondary"
+                  sx={{ minWidth: 40, textAlign: 'center' }}
+                >
+                  {Math.round(zoom * 100)}%
+                </Typography>
+                <IconButton
+                  size="small"
+                  onClick={handleZoomIn}
+                  disabled={zoom >= 3}
+                  title="Zoom in"
+                >
+                  <SvgIcon fontSize="small">
+                    <ZoomInIcon />
+                  </SvgIcon>
+                </IconButton>
+                <IconButton
+                  size="small"
                   onClick={handleRotateLeft}
                   title="Rotate left"
                 >
@@ -433,19 +473,31 @@ export const FileList: FC<FileListProps> = (props) => {
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                overflow: 'hidden'
+                // 'auto' (not 'hidden') so a zoomed-in image can be scrolled/panned
+                // into view instead of just clipping at the dialog edges.
+                overflow: 'auto'
               }}
             >
               <Box
                 component="img"
                 src={previewFile.url}
                 alt={previewFile.name}
+                onWheel={(event) => {
+                  if (!event.ctrlKey && !event.metaKey) return;
+                  event.preventDefault();
+                  if (event.deltaY < 0) {
+                    handleZoomIn();
+                  } else {
+                    handleZoomOut();
+                  }
+                }}
                 sx={{
                   maxWidth: rotation % 180 === 0 ? '100%' : '80vh',
                   maxHeight: rotation % 180 === 0 ? '100%' : '100%',
                   objectFit: 'contain',
-                  transform: `rotate(${rotation}deg)`,
-                  transition: 'transform 0.2s ease-in-out'
+                  transform: `rotate(${rotation}deg) scale(${zoom})`,
+                  transition: 'transform 0.2s ease-in-out',
+                  cursor: zoom > 1 ? 'move' : 'default'
                 }}
               />
             </Box>

@@ -90,6 +90,30 @@ export default (app: Router) => {
       });
   });
 
+  route.get(
+    '/reference/verify',
+    requirePermission('Bookings', 'Create'),
+    (req: Request, res: Response) => {
+      const bookingService = Container.get(BookingService);
+      const referenceNo = req.query.referenceNo as string | undefined;
+      const bookingId = req.query.bookingId ? parseInt(req.query.bookingId as string) : undefined;
+
+      if (!referenceNo) {
+        res.send({ status: 400, message: 'referenceNo is required', success: false }).status(400);
+        return;
+      }
+
+      bookingService
+        .verifyDuplicateReference(referenceNo, bookingId)
+        .then((result) => {
+          res.send(result).status(200);
+        })
+        .catch((error) => {
+          res.send(error).status(500);
+        });
+    }
+  );
+
   route.get('/:id', requirePermission('Bookings', 'View'), (req: Request, res: Response) => {
     const bookingId = parseInt(req.params.id);
     const bookingService = Container.get(BookingService);
