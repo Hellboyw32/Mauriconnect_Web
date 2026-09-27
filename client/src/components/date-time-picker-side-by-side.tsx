@@ -18,6 +18,9 @@ interface DateTimePickerSideBySideProps {
   onChange: (value: Date | null) => void;
   format?: string;
   fullWidth?: boolean;
+  minDate?: Date | null;
+  error?: boolean;
+  helperText?: string | false;
 }
 
 const mergeDate = (base: Date | null, datePart: Date): Date => {
@@ -37,7 +40,16 @@ const mergeTime = (base: Date | null, timePart: Date): Date => {
 // by composing the DateCalendar and MultiSectionDigitalClock sub-components directly
 // rather than relying on DateTimePicker's single-active-view popup.
 export const DateTimePickerSideBySide: FC<DateTimePickerSideBySideProps> = (props) => {
-  const { label, value, onChange, format = 'dd/MM/yyyy hh:mm a', fullWidth = true } = props;
+  const {
+    label,
+    value,
+    onChange,
+    format = 'dd/MM/yyyy hh:mm a',
+    fullWidth = true,
+    minDate,
+    error,
+    helperText
+  } = props;
   const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null);
   const [pendingValue, setPendingValue] = useState<Date | null>(value);
 
@@ -78,6 +90,8 @@ export const DateTimePickerSideBySide: FC<DateTimePickerSideBySideProps> = (prop
         value={value ? formatDate(value, format) : ''}
         onClick={handleOpen}
         fullWidth={fullWidth}
+        error={error}
+        helperText={helperText}
         InputProps={{
           readOnly: true,
           endAdornment: (
@@ -112,6 +126,7 @@ export const DateTimePickerSideBySide: FC<DateTimePickerSideBySideProps> = (prop
           <DateCalendar
             value={pendingValue}
             onChange={handleDateChange}
+            minDate={minDate ?? undefined}
             sx={{ width: 320, flexShrink: 0 }}
           />
           <MultiSectionDigitalClock

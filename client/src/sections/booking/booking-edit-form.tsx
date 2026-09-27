@@ -49,7 +49,12 @@ const validationSchema = Yup.object({
   Price: Yup.string()
     .required('Price is required')
     .matches(/^\d+(\.\d+)?$/, 'Price must be a number (no letters or commas)'),
-  CarCategory: Yup.string().required('Car category is required')
+  CarCategory: Yup.string().required('Car category is required'),
+  PickUpDate: Yup.date().nullable().required('Pickup date is required'),
+  DropOffDate: Yup.date()
+    .nullable()
+    .required('Dropoff date is required')
+    .min(Yup.ref('PickUpDate'), 'Dropoff date cannot be before the pickup date')
 });
 
 export const BookingEditForm: FC<BookingEditFormProps> = ({ booking }) => {
@@ -319,13 +324,23 @@ export const BookingEditForm: FC<BookingEditFormProps> = ({ booking }) => {
                     />
                     <DateTimePickerSideBySide
                       label="Pickup Date"
-                      onChange={(value) => formik.setFieldValue('PickUpDate', value, true)}
+                      onChange={(value) => {
+                        formik.setFieldValue('PickUpDate', value, true);
+                        formik.setFieldTouched('DropOffDate', true, false);
+                      }}
                       value={formik.values.PickUpDate}
+                      error={!!(formik.touched.PickUpDate && formik.errors.PickUpDate)}
+                      helperText={formik.touched.PickUpDate && (formik.errors.PickUpDate as string)}
                     />
                     <DateTimePickerSideBySide
                       label="Dropoff Date"
                       onChange={(value) => formik.setFieldValue('DropOffDate', value, true)}
                       value={formik.values.DropOffDate}
+                      minDate={formik.values.PickUpDate}
+                      error={!!(formik.touched.DropOffDate && formik.errors.DropOffDate)}
+                      helperText={
+                        formik.touched.DropOffDate && (formik.errors.DropOffDate as string)
+                      }
                     />
                     <FormControl>
                       <FormLabel>Currency</FormLabel>

@@ -46,6 +46,9 @@ type UpdateBookingResponse = Promise<{ status: number; message: string }>;
 type DeleteBookingRequest = { bookingId: number; createdBy: string };
 type DeleteBookingResponse = Promise<{ status: number; message: string }>;
 
+type VerifyDuplicateReferenceRequest = { referenceNo: string; bookingId?: number };
+type VerifyDuplicateReferenceResponse = Promise<boolean>;
+
 interface IBookingApi {
   getBookings(request: GetBookingsRequest): GetBookingsResponse;
   getBooking(request?: GetBookingRequest): GetBookingResponse;
@@ -56,6 +59,7 @@ interface IBookingApi {
   createBooking(request: CreateBookingRequest): CreateBookingResponse;
   updateBooking(request: UpdateBookingRequest): UpdateBookingResponse;
   deleteBooking(request: DeleteBookingRequest): DeleteBookingResponse;
+  verifyDuplicateReference(request: VerifyDuplicateReferenceRequest): VerifyDuplicateReferenceResponse;
 }
 
 class BookingApi implements IBookingApi {
@@ -372,6 +376,33 @@ class BookingApi implements IBookingApi {
       status: response.status,
       message: response.message || 'Booking deleted successfully'
     };
+  }
+
+  public async verifyDuplicateReference(
+    request: VerifyDuplicateReferenceRequest
+  ): VerifyDuplicateReferenceResponse {
+    const { referenceNo, bookingId } = request;
+
+    if (isMockData()) {
+      return Promise.resolve(
+        bookingsData.some(
+          (booking) =>
+            booking.ReferenceNo?.trim().toLowerCase() === referenceNo.trim().toLowerCase() &&
+            booking.BookingId !== bookingId
+        )
+      );
+    }
+
+    const params = new URLSearchParams({ referenceNo });
+    if (bookingId) {
+      params.append('bookingId', String(bookingId));
+    }
+
+    const apiResponse = await api.get<{ RefExist: number }[]>(
+      `${API_ENDPOINTS.BOOKINGS}/reference/verify?${params.toString()}`
+    );
+    const rows = apiResponse.data;
+    return rows?.[0]?.RefExist === 1;
   }
 }
 
