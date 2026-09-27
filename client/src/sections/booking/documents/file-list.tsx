@@ -23,11 +23,13 @@ import RotateRightIcon from '@untitled-ui/icons-react/build/esm/RefreshCw01';
 import ZoomInIcon from '@untitled-ui/icons-react/build/esm/ZoomIn';
 import ZoomOutIcon from '@untitled-ui/icons-react/build/esm/ZoomOut';
 import { toast } from 'react-hot-toast';
-import { fileApi, type FileInfo } from 'src/api/files';
+import type { FileInfo } from 'src/api/files';
 import { format } from 'date-fns';
 
 interface FileListProps {
-  referenceNo: string;
+  loadFiles: () => Promise<FileInfo[]>;
+  onDownload: (fileName: string) => Promise<Blob>;
+  onDelete: (fileName: string) => Promise<boolean>;
   refreshTrigger?: number;
 }
 
@@ -66,7 +68,7 @@ const formatFileSize = (bytes: number): string => {
 };
 
 export const FileList: FC<FileListProps> = (props) => {
-  const { referenceNo, refreshTrigger } = props;
+  const { loadFiles: loadFilesFn, onDownload, onDelete, refreshTrigger } = props;
   const [files, setFiles] = useState<FileInfo[]>([]);
   const [loading, setLoading] = useState(true);
   const [thumbnails, setThumbnails] = useState<Record<string, string>>({});
@@ -98,7 +100,7 @@ export const FileList: FC<FileListProps> = (props) => {
   const loadFiles = useCallback(async () => {
     setLoading(true);
     try {
-      const fileList = await fileApi.listFiles(referenceNo);
+      const fileList = await loadFilesFn();
       setFiles(fileList);
 
       // Files no longer play back into the grid as thumbnails eagerly (see
@@ -131,7 +133,7 @@ export const FileList: FC<FileListProps> = (props) => {
     } finally {
       setLoading(false);
     }
-  }, [referenceNo]);
+  }, [loadFilesFn]);
 
   useEffect(() => {
     loadFiles();
@@ -140,7 +142,7 @@ export const FileList: FC<FileListProps> = (props) => {
   const handleDownload = useCallback(
     async (fileName: string) => {
       try {
-        const blob = await fileApi.downloadFile(referenceNo, fileName);
+        const blob = await onDownload(fileName);
         const url = URL.createObjectURL(blob);
         const link = document.createElement('a');
         link.href = url;
@@ -155,14 +157,14 @@ export const FileList: FC<FileListProps> = (props) => {
         toast.error('Failed to download file');
       }
     },
-    [referenceNo]
+    [onDownload]
   );
 
   const handlePreview = useCallback(
     async (fileName: string, fileType: string) => {
       try {
         const cachedUrl = thumbnails[fileName];
-        const url = cachedUrl || URL.createObjectURL(await fileApi.downloadFile(referenceNo, fileName));
+        const url = cachedUrl || URL.createObjectURL(await onDownload(fileName));
         setRotation(0);
         setZoom(1);
         // Only PDF previews create a fresh, uncached URL here (image previews reuse
@@ -174,7 +176,7 @@ export const FileList: FC<FileListProps> = (props) => {
         toast.error('Failed to preview file');
       }
     },
-    [referenceNo, thumbnails]
+    [onDownload, thumbnails]
   );
 
   const handleClosePreview = useCallback(() => {
@@ -211,7 +213,7 @@ export const FileList: FC<FileListProps> = (props) => {
       }
 
       try {
-        const success = await fileApi.deleteFile(referenceNo, fileName);
+        const success = await onDelete(fileName);
         if (success) {
           toast.success('File deleted successfully');
           loadFiles();
@@ -223,7 +225,7 @@ export const FileList: FC<FileListProps> = (props) => {
         toast.error('Failed to delete file');
       }
     },
-    [referenceNo, loadFiles]
+    [onDelete, loadFiles]
   );
 
   if (loading) {

@@ -23,7 +23,7 @@ export interface UploadFileRequest {
 }
 
 export interface UploadCarFileRequest {
-  carId: number;
+  carNumber: string;
   section: CarDocumentSection;
   startDate: string;
   fileName: string;
@@ -146,6 +146,13 @@ export class FTPService {
     return `${Date.now()}-${sanitized}`;
   }
 
+  // Car numbers are free-text (e.g. "2134 FB 23") and used directly as a
+  // folder name, so strip characters that are invalid in Windows/FTP paths.
+  // Spaces are kept - they're common in plate numbers and harmless in paths.
+  private sanitizeCarFolderSegment(carNumber: string): string {
+    return carNumber.trim().replace(/[\\/:*?"<>|]/g, '_');
+  }
+
   // Validates extension and size. Mirrors the multer-level checks on the
   // upload route, kept here too so uploadFile is safe to call directly.
   static validateFile(fileName: string, fileSizeBytes: number): string | null {
@@ -178,7 +185,7 @@ export class FTPService {
     return null;
   }
 
-  // Uploads a car document under /Dropbox/Cars/[CarId]/[Section]/[StartDate]/,
+  // Uploads a car document under /Dropbox/Cars/[CarNumber]/[Section]/[StartDate]/,
   // keeping the original file name (unlike uploadFile, which timestamp-prefixes
   // booking documents). ensureDir creates every missing folder in the path in
   // order, satisfying the required Dropbox/Cars/.../[Section]/[StartDate]/
@@ -198,7 +205,8 @@ export class FTPService {
     }
 
     const fileName = path.basename(request.fileName).trim();
-    const dirPath = `/Dropbox/Cars/${request.carId}/${request.section}/${request.startDate}`;
+    const carFolder = this.sanitizeCarFolderSegment(request.carNumber);
+    const dirPath = `/Dropbox/Cars/${carFolder}/${request.section}/${request.startDate}`;
     const client = await this.getClient();
 
     // Use local file storage if FTP is unavailable
@@ -208,7 +216,7 @@ export class FTPService {
           this.localStoragePath,
           'Dropbox',
           'Cars',
-          String(request.carId),
+          carFolder,
           request.section,
           request.startDate
         );
@@ -378,6 +386,239 @@ export class FTPService {
       return {
         status: 500,
         message: `Upload failed: ${error}`,
+        error,
+        success: false
+      };
+    } finally {
+      client.close();
+    }
+  }
+
+  async listCarFiles(
+    carNumber: string,
+    section: CarDocumentSection,
+    startDate: string
+  ): Promise<Response<FileInfo[]>> {
+    const carFolder = this.sanitizeCarFolderSegment(carNumber);
+    const client = await this.getClient();
+
+    // Use local file storage if FTP is unavailable
+    if (!client) {
+      try {
+        const dirFsPath = path.join(
+          this.localStoragePath,
+          'Dropbox',
+          'Cars',
+          carFolder,
+          section,
+          startDate
+        );
+
+        if (!fs.existsSync(dirFsPath)) {
+          return {
+            status: 200,
+            message: 'No files found',
+            data: [],
+            success: true
+          };
+        }
+
+        const fileInfos: FileInfo[] = fs.readdirSync(dirFsPath).map((name) => {
+          const stats = fs.statSync(path.join(dirFsPath, name));
+          return {
+            name,
+            size: stats.size,
+            modifiedAt: stats.mtime,
+            path: `Dropbox/Cars/${carFolder}/${section}/${startDate}/${name}`
+          };
+        });
+
+        return {
+          status: 200,
+          message: 'Files retrieved successfully (local storage)',
+          data: fileInfos,
+          success: true
+        };
+      } catch (error) {
+        console.error('Local storage car list error:', error);
+        return {
+          status: 200,
+          message: 'No files found',
+          data: [],
+          success: true
+        };
+      }
+    }
+
+    try {
+      const dirPath = `/Dropbox/Cars/${carFolder}/${section}/${startDate}`;
+
+      await client.cd(dirPath);
+      const files = await client.list();
+
+      const fileInfos: FileInfo[] = files
+        .filter((file) => file.type === ftp.FileType.File)
+        .map((file) => ({
+          name: file.name,
+          size: file.size,
+          modifiedAt: file.modifiedAt || new Date(),
+          path: `Dropbox/Cars/${carFolder}/${section}/${startDate}/${file.name}`
+        }));
+
+      return {
+        status: 200,
+        message: 'Files retrieved successfully',
+        data: fileInfos,
+        success: true
+      };
+    } catch (error) {
+      console.error('FTP car list error:', error);
+      return {
+        status: 200,
+        message: 'No files found',
+        data: [],
+        success: true
+      };
+    } finally {
+      client.close();
+    }
+  }
+
+  async downloadCarFile(
+    carNumber: string,
+    section: CarDocumentSection,
+    startDate: string,
+    fileName: string
+  ): Promise<Response<Buffer>> {
+    const carFolder = this.sanitizeCarFolderSegment(carNumber);
+    const client = await this.getClient();
+
+    // Use local file storage if FTP is unavailable
+    if (!client) {
+      try {
+        const filePath = path.join(
+          this.localStoragePath,
+          'Dropbox',
+          'Cars',
+          carFolder,
+          section,
+          startDate,
+          fileName
+        );
+
+        if (!fs.existsSync(filePath)) {
+          return {
+            status: 404,
+            message: 'File not found',
+            error: new Error('File not found'),
+            success: false
+          };
+        }
+
+        const fileBuffer = fs.readFileSync(filePath);
+
+        return {
+          status: 200,
+          message: 'File downloaded successfully (local storage)',
+          data: fileBuffer,
+          success: true
+        };
+      } catch (error) {
+        console.error('Local storage car download error:', error);
+        return {
+          status: 500,
+          message: `Download failed: ${error}`,
+          error,
+          success: false
+        };
+      }
+    }
+
+    // Use FTP
+    try {
+      const filePath = `/Dropbox/Cars/${carFolder}/${section}/${startDate}/${fileName}`;
+      const tempFilePath = path.join(os.tmpdir(), `download_${Date.now()}_${fileName}`);
+
+      await client.downloadTo(tempFilePath, filePath);
+      const fileBuffer = fs.readFileSync(tempFilePath);
+      fs.unlinkSync(tempFilePath);
+
+      return {
+        status: 200,
+        message: 'File downloaded successfully',
+        data: fileBuffer,
+        success: true
+      };
+    } catch (error) {
+      console.error('FTP car download error:', error);
+      return {
+        status: 500,
+        message: `Download failed: ${error}`,
+        error,
+        success: false
+      };
+    } finally {
+      client.close();
+    }
+  }
+
+  async deleteCarFile(
+    carNumber: string,
+    section: CarDocumentSection,
+    startDate: string,
+    fileName: string
+  ): Promise<Response<void>> {
+    const carFolder = this.sanitizeCarFolderSegment(carNumber);
+    const client = await this.getClient();
+
+    // Use local file storage if FTP is unavailable
+    if (!client) {
+      try {
+        const filePath = path.join(
+          this.localStoragePath,
+          'Dropbox',
+          'Cars',
+          carFolder,
+          section,
+          startDate,
+          fileName
+        );
+
+        if (fs.existsSync(filePath)) {
+          fs.unlinkSync(filePath);
+        }
+
+        return {
+          status: 200,
+          message: 'File deleted successfully (local storage)',
+          success: true
+        };
+      } catch (error) {
+        console.error('Local storage car delete error:', error);
+        return {
+          status: 500,
+          message: `Delete failed: ${error}`,
+          error,
+          success: false
+        };
+      }
+    }
+
+    // Use FTP
+    try {
+      const filePath = `/Dropbox/Cars/${carFolder}/${section}/${startDate}/${fileName}`;
+      await client.remove(filePath);
+
+      return {
+        status: 200,
+        message: 'File deleted successfully',
+        success: true
+      };
+    } catch (error) {
+      console.error('FTP car delete error:', error);
+      return {
+        status: 500,
+        message: `Delete failed: ${error}`,
         error,
         success: false
       };

@@ -15,6 +15,7 @@ import TableRow from '@mui/material/TableRow';
 import Typography from '@mui/material/Typography';
 import ChevronDownIcon from '@untitled-ui/icons-react/build/esm/ChevronDown';
 import ChevronRightIcon from '@untitled-ui/icons-react/build/esm/ChevronRight';
+import EyeIcon from '@untitled-ui/icons-react/build/esm/Eye';
 import PlusIcon from '@untitled-ui/icons-react/build/esm/Plus';
 import { format } from 'date-fns';
 import numeral from 'numeral';
@@ -26,6 +27,8 @@ import { useAuth } from 'src/hooks/use-auth';
 import { useDialog } from 'src/hooks/use-dialog';
 import { useCarInsurances } from 'src/hooks/car-insurance/use-car-insurances';
 import { paths } from 'src/paths';
+import { CarDocumentCountChip } from 'src/sections/car/car-document-count-chip';
+import { CarDocumentViewerDialog } from 'src/sections/car/car-document-viewer-dialog';
 import { CarFileUploader } from 'src/sections/car/car-file-uploader';
 import { CarInsuranceDeleteDialog } from 'src/sections/car-insurance/car-insurance-delete-dialog';
 import { timestampToDate } from 'src/utils/date-locale';
@@ -43,7 +46,14 @@ export const CarInsuranceSection: FC<CarInsuranceSectionProps> = (props) => {
   const { user } = useAuth();
   const deleteDialog = useDialog<CarInsurance>();
   const uploadDialog = useDialog<CarInsurance>();
+  const viewDialog = useDialog<CarInsurance>();
   const [isDeleting, setIsDeleting] = useState(false);
+  // Bumped whenever the upload/view dialog for a row closes, so that row's
+  // document count chip re-fetches (files may have been added or removed).
+  const [documentCountRefreshTrigger, setDocumentCountRefreshTrigger] = useState(0);
+  const refreshDocumentCounts = useCallback(() => {
+    setDocumentCountRefreshTrigger((prev) => prev + 1);
+  }, []);
 
   const filters = carNumber ? { carNumber } : undefined;
   const { carInsurances, isLoading, refetch } = useCarInsurances(filters);
@@ -253,17 +263,48 @@ export const CarInsuranceSection: FC<CarInsuranceSectionProps> = (props) => {
                           Edit
                         </Button>
                         <Button
-                          disabled={!insurance.StartDate}
+                          disabled={!insurance.StartDate || !carNumber}
                           onClick={() => uploadDialog.handleOpen(insurance)}
                           size="small"
                           title={
-                            insurance.StartDate
-                              ? undefined
-                              : 'This record has no Start Date, so a destination folder cannot be determined'
+                            !insurance.StartDate
+                              ? 'This record has no Start Date, so a destination folder cannot be determined'
+                              : !carNumber
+                                ? 'This car has no Car Number, so a destination folder cannot be determined'
+                                : undefined
                           }
                         >
                           Upload
                         </Button>
+                        <Button
+                          disabled={!insurance.StartDate || !carNumber}
+                          onClick={() => viewDialog.handleOpen(insurance)}
+                          size="small"
+                          startIcon={
+                            <SvgIcon fontSize="small">
+                              <EyeIcon />
+                            </SvgIcon>
+                          }
+                          title={
+                            !insurance.StartDate
+                              ? 'This record has no Start Date, so a destination folder cannot be determined'
+                              : !carNumber
+                                ? 'This car has no Car Number, so a destination folder cannot be determined'
+                                : undefined
+                          }
+                        >
+                          View Documents
+                        </Button>
+                        {carNumber && (
+                          <CarDocumentCountChip
+                            carNumber={carNumber}
+                            section="Insurance"
+                            startDate={
+                              insurance.StartDate ? format(new Date(insurance.StartDate), 'yyyy-MM-dd') : ''
+                            }
+                            refreshTrigger={documentCountRefreshTrigger}
+                          />
+                        )}
                         {insurance.CarInsuranceId !== latestCarInsuranceId && (
                           <Button
                             color="error"
@@ -291,9 +332,9 @@ export const CarInsuranceSection: FC<CarInsuranceSectionProps> = (props) => {
         isDeleting={isDeleting}
       />
 
-      {uploadDialog.data && (
+      {uploadDialog.data && carNumber && (
         <CarFileUploader
-          carId={carId}
+          carNumber={carNumber}
           section="Insurance"
           sectionLabel="Car Insurance"
           startDate={
@@ -302,7 +343,28 @@ export const CarInsuranceSection: FC<CarInsuranceSectionProps> = (props) => {
               : ''
           }
           open={uploadDialog.open}
-          onClose={uploadDialog.handleClose}
+          onClose={() => {
+            uploadDialog.handleClose();
+            refreshDocumentCounts();
+          }}
+        />
+      )}
+
+      {viewDialog.data && carNumber && (
+        <CarDocumentViewerDialog
+          carNumber={carNumber}
+          section="Insurance"
+          sectionLabel="Car Insurance"
+          startDate={
+            viewDialog.data.StartDate
+              ? format(new Date(viewDialog.data.StartDate), 'yyyy-MM-dd')
+              : ''
+          }
+          open={viewDialog.open}
+          onClose={() => {
+            viewDialog.handleClose();
+            refreshDocumentCounts();
+          }}
         />
       )}
     </Card>

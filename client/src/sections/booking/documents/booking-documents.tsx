@@ -8,6 +8,7 @@ import CardHeader from '@mui/material/CardHeader';
 import Divider from '@mui/material/Divider';
 import SvgIcon from '@mui/material/SvgIcon';
 import UploadIcon from '@untitled-ui/icons-react/build/esm/Upload01';
+import { fileApi } from 'src/api/files';
 import { FileUploader } from './file-uploader';
 import { FileList } from './file-list';
 
@@ -46,7 +47,9 @@ export const BookingDocuments: FC<BookingDocumentsProps> = (props) => {
         <Divider />
         <CardContent>
           <FileList
-            referenceNo={referenceNo}
+            loadFiles={() => fileApi.listFiles(referenceNo)}
+            onDownload={(fileName) => fileApi.downloadFile(referenceNo, fileName)}
+            onDelete={(fileName) => fileApi.deleteFile(referenceNo, fileName)}
             refreshTrigger={refreshTrigger}
           />
         </CardContent>

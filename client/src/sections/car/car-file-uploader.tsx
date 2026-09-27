@@ -25,7 +25,7 @@ const ACCEPTED_FILE_TYPES = {
 };
 
 interface CarFileUploaderProps {
-  carId: number;
+  carNumber: string;
   section: CarDocumentSection;
   sectionLabel: string;
   startDate: string;
@@ -35,7 +35,7 @@ interface CarFileUploaderProps {
 }
 
 export const CarFileUploader: FC<CarFileUploaderProps> = (props) => {
-  const { carId, section, sectionLabel, startDate, onClose, onUploadComplete, open = false } =
+  const { carNumber, section, sectionLabel, startDate, onClose, onUploadComplete, open = false } =
     props;
   const [files, setFiles] = useState<File[]>([]);
   const [uploading, setUploading] = useState(false);
@@ -83,7 +83,7 @@ export const CarFileUploader: FC<CarFileUploaderProps> = (props) => {
     setUploading(true);
 
     try {
-      const result = await fileApi.uploadCarFile(carId, section, startDate, files[0]);
+      const result = await fileApi.uploadCarFile(carNumber, section, startDate, files[0]);
 
       if (result.success) {
         toast.success(result.message || 'File uploaded successfully');
@@ -99,7 +99,7 @@ export const CarFileUploader: FC<CarFileUploaderProps> = (props) => {
     } finally {
       setUploading(false);
     }
-  }, [files, carId, section, startDate, onClose, onUploadComplete]);
+  }, [files, carNumber, section, startDate, onClose, onUploadComplete]);
 
   return (
     <Dialog
@@ -163,7 +163,7 @@ export const CarFileUploader: FC<CarFileUploaderProps> = (props) => {
 };
 
 CarFileUploader.propTypes = {
-  carId: PropTypes.number.isRequired,
+  carNumber: PropTypes.string.isRequired,
   section: PropTypes.oneOf<CarDocumentSection>(['RoadTax', 'Insurance', 'CarFitness']).isRequired,
   sectionLabel: PropTypes.string.isRequired,
   startDate: PropTypes.string.isRequired,
