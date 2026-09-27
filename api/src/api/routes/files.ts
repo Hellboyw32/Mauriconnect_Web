@@ -117,18 +117,18 @@ export default (app: Router) => {
   });
 
   // Upload a car document (Road Tax / Insurance / Fitness) to
-  // /Dropbox/Cars/[CarId]/[Section]/[StartDate]/
+  // /Dropbox/Cars/[CarNumber]/[Section]/[StartDate]/
   route.post('/car-upload', handleCarUpload, async (req: Request, res: Response) => {
     try {
-      const carId = Number(req.body.carId);
+      const carNumber = (req.body.carNumber as string | undefined)?.trim();
       const section = req.body.section as string;
       const startDate = req.body.startDate as string;
       const file = req.file;
 
-      if (!file || !carId || !section || !startDate) {
+      if (!file || !carNumber || !section || !startDate) {
         return res.status(400).send({
           status: 400,
-          message: 'carId, section, startDate, and file are required',
+          message: 'carNumber, section, startDate, and file are required',
           success: false
         });
       }
@@ -151,7 +151,7 @@ export default (app: Router) => {
 
       const ftpService = Container.get(FTPService);
       const result = await ftpService.uploadCarFile({
-        carId,
+        carNumber,
         section: section as CarDocumentSection,
         startDate,
         fileName: file.originalname,
@@ -163,6 +163,101 @@ export default (app: Router) => {
       res.status(500).send({
         status: 500,
         message: `Upload failed: ${error}`,
+        success: false
+      });
+    }
+  });
+
+  // List files for a car document section (Road Tax / Insurance / Fitness)
+  route.get('/car/:carNumber/:section/:startDate', async (req: Request, res: Response) => {
+    try {
+      const carNumber = req.params.carNumber;
+      const section = req.params.section as CarDocumentSection;
+      const startDate = req.params.startDate;
+
+      if (!CAR_UPLOAD_SECTIONS.includes(section)) {
+        return res.status(400).send({
+          status: 400,
+          message: `Invalid section "${section}". Must be one of: ${CAR_UPLOAD_SECTIONS.join(', ')}`,
+          success: false
+        });
+      }
+
+      const ftpService = Container.get(FTPService);
+      const result = await ftpService.listCarFiles(carNumber, section, startDate);
+
+      res.status(result.status).send(result);
+    } catch (error) {
+      res.status(500).send({
+        status: 500,
+        message: `Failed to list files: ${error}`,
+        success: false
+      });
+    }
+  });
+
+  // Download a car document
+  route.get('/car/:carNumber/:section/:startDate/:fileName', async (req: Request, res: Response) => {
+    try {
+      const carNumber = req.params.carNumber;
+      const section = req.params.section as CarDocumentSection;
+      const { startDate, fileName } = req.params;
+
+      if (!CAR_UPLOAD_SECTIONS.includes(section)) {
+        return res.status(400).send({
+          status: 400,
+          message: `Invalid section "${section}". Must be one of: ${CAR_UPLOAD_SECTIONS.join(', ')}`,
+          success: false
+        });
+      }
+
+      const ftpService = Container.get(FTPService);
+      const result = await ftpService.downloadCarFile(carNumber, section, startDate, fileName);
+
+      if (result.success && result.data) {
+        const contentType = mime.lookup(fileName, 'application/octet-stream');
+        res.setHeader('Content-Disposition', `attachment; filename="${fileName}"`);
+        res.setHeader('Content-Type', contentType);
+        res.send(result.data);
+      } else {
+        res.status(result.status).send({
+          status: result.status,
+          message: result.message,
+          success: false
+        });
+      }
+    } catch (error) {
+      res.status(500).send({
+        status: 500,
+        message: `Download failed: ${error}`,
+        success: false
+      });
+    }
+  });
+
+  // Delete a car document
+  route.delete('/car/:carNumber/:section/:startDate/:fileName', async (req: Request, res: Response) => {
+    try {
+      const carNumber = req.params.carNumber;
+      const section = req.params.section as CarDocumentSection;
+      const { startDate, fileName } = req.params;
+
+      if (!CAR_UPLOAD_SECTIONS.includes(section)) {
+        return res.status(400).send({
+          status: 400,
+          message: `Invalid section "${section}". Must be one of: ${CAR_UPLOAD_SECTIONS.join(', ')}`,
+          success: false
+        });
+      }
+
+      const ftpService = Container.get(FTPService);
+      const result = await ftpService.deleteCarFile(carNumber, section, startDate, fileName);
+
+      res.status(result.status).send(result);
+    } catch (error) {
+      res.status(500).send({
+        status: 500,
+        message: `Delete failed: ${error}`,
         success: false
       });
     }

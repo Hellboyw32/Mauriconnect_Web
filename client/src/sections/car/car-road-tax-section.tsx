@@ -15,6 +15,7 @@ import TableRow from '@mui/material/TableRow';
 import Typography from '@mui/material/Typography';
 import ChevronDownIcon from '@untitled-ui/icons-react/build/esm/ChevronDown';
 import ChevronRightIcon from '@untitled-ui/icons-react/build/esm/ChevronRight';
+import EyeIcon from '@untitled-ui/icons-react/build/esm/Eye';
 import PlusIcon from '@untitled-ui/icons-react/build/esm/Plus';
 import { format } from 'date-fns';
 import { useCallback, useMemo, useState, type FC } from 'react';
@@ -25,6 +26,8 @@ import { useAuth } from 'src/hooks/use-auth';
 import { useDialog } from 'src/hooks/use-dialog';
 import { useRoadTaxes } from 'src/hooks/road-tax/use-road-taxes';
 import { paths } from 'src/paths';
+import { CarDocumentCountChip } from 'src/sections/car/car-document-count-chip';
+import { CarDocumentViewerDialog } from 'src/sections/car/car-document-viewer-dialog';
 import { CarFileUploader } from 'src/sections/car/car-file-uploader';
 import { RoadTaxDeleteDialog } from 'src/sections/road-tax/road-tax-delete-dialog';
 import { timestampToDate } from 'src/utils/date-locale';
@@ -42,7 +45,14 @@ export const CarRoadTaxSection: FC<CarRoadTaxSectionProps> = (props) => {
   const { user } = useAuth();
   const deleteDialog = useDialog<RoadTax>();
   const uploadDialog = useDialog<RoadTax>();
+  const viewDialog = useDialog<RoadTax>();
   const [isDeleting, setIsDeleting] = useState(false);
+  // Bumped whenever the upload/view dialog for a row closes, so that row's
+  // document count chip re-fetches (files may have been added or removed).
+  const [documentCountRefreshTrigger, setDocumentCountRefreshTrigger] = useState(0);
+  const refreshDocumentCounts = useCallback(() => {
+    setDocumentCountRefreshTrigger((prev) => prev + 1);
+  }, []);
 
   const filters = carNumber ? { carNumber } : undefined;
   const { roadTaxes, isLoading, refetch } = useRoadTaxes(filters);
@@ -240,17 +250,48 @@ export const CarRoadTaxSection: FC<CarRoadTaxSectionProps> = (props) => {
                           Edit
                         </Button>
                         <Button
-                          disabled={!roadTax.StartDate}
+                          disabled={!roadTax.StartDate || !carNumber}
                           onClick={() => uploadDialog.handleOpen(roadTax)}
                           size="small"
                           title={
-                            roadTax.StartDate
-                              ? undefined
-                              : 'This record has no Start Date, so a destination folder cannot be determined'
+                            !roadTax.StartDate
+                              ? 'This record has no Start Date, so a destination folder cannot be determined'
+                              : !carNumber
+                                ? 'This car has no Car Number, so a destination folder cannot be determined'
+                                : undefined
                           }
                         >
                           Upload
                         </Button>
+                        <Button
+                          disabled={!roadTax.StartDate || !carNumber}
+                          onClick={() => viewDialog.handleOpen(roadTax)}
+                          size="small"
+                          startIcon={
+                            <SvgIcon fontSize="small">
+                              <EyeIcon />
+                            </SvgIcon>
+                          }
+                          title={
+                            !roadTax.StartDate
+                              ? 'This record has no Start Date, so a destination folder cannot be determined'
+                              : !carNumber
+                                ? 'This car has no Car Number, so a destination folder cannot be determined'
+                                : undefined
+                          }
+                        >
+                          View Documents
+                        </Button>
+                        {carNumber && (
+                          <CarDocumentCountChip
+                            carNumber={carNumber}
+                            section="RoadTax"
+                            startDate={
+                              roadTax.StartDate ? format(new Date(roadTax.StartDate), 'yyyy-MM-dd') : ''
+                            }
+                            refreshTrigger={documentCountRefreshTrigger}
+                          />
+                        )}
                         {roadTax.RoadTaxId !== latestRoadTaxId && (
                           <Button
                             color="error"
@@ -278,16 +319,35 @@ export const CarRoadTaxSection: FC<CarRoadTaxSectionProps> = (props) => {
         isDeleting={isDeleting}
       />
 
-      {uploadDialog.data && (
+      {uploadDialog.data && carNumber && (
         <CarFileUploader
-          carId={carId}
+          carNumber={carNumber}
           section="RoadTax"
           sectionLabel="Road Tax"
           startDate={
             uploadDialog.data.StartDate ? format(new Date(uploadDialog.data.StartDate), 'yyyy-MM-dd') : ''
           }
           open={uploadDialog.open}
-          onClose={uploadDialog.handleClose}
+          onClose={() => {
+            uploadDialog.handleClose();
+            refreshDocumentCounts();
+          }}
+        />
+      )}
+
+      {viewDialog.data && carNumber && (
+        <CarDocumentViewerDialog
+          carNumber={carNumber}
+          section="RoadTax"
+          sectionLabel="Road Tax"
+          startDate={
+            viewDialog.data.StartDate ? format(new Date(viewDialog.data.StartDate), 'yyyy-MM-dd') : ''
+          }
+          open={viewDialog.open}
+          onClose={() => {
+            viewDialog.handleClose();
+            refreshDocumentCounts();
+          }}
         />
       )}
     </Card>

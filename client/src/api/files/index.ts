@@ -26,7 +26,7 @@ interface ListFilesResponse {
 interface IFileApi {
   uploadFile(referenceNo: string, file: File): Promise<UploadResponse>;
   uploadCarFile(
-    carId: number,
+    carNumber: string,
     section: CarDocumentSection,
     startDate: string,
     file: File
@@ -34,6 +34,23 @@ interface IFileApi {
   listFiles(referenceNo: string): Promise<FileInfo[]>;
   downloadFile(referenceNo: string, fileName: string): Promise<Blob>;
   deleteFile(referenceNo: string, fileName: string): Promise<boolean>;
+  listCarFiles(
+    carNumber: string,
+    section: CarDocumentSection,
+    startDate: string
+  ): Promise<FileInfo[]>;
+  downloadCarFile(
+    carNumber: string,
+    section: CarDocumentSection,
+    startDate: string,
+    fileName: string
+  ): Promise<Blob>;
+  deleteCarFile(
+    carNumber: string,
+    section: CarDocumentSection,
+    startDate: string,
+    fileName: string
+  ): Promise<boolean>;
 }
 
 class FileApi implements IFileApi {
@@ -63,7 +80,7 @@ class FileApi implements IFileApi {
   }
 
   public async uploadCarFile(
-    carId: number,
+    carNumber: string,
     section: CarDocumentSection,
     startDate: string,
     file: File
@@ -71,7 +88,7 @@ class FileApi implements IFileApi {
     try {
       const formData = new FormData();
       formData.append('file', file);
-      formData.append('carId', String(carId));
+      formData.append('carNumber', carNumber);
       formData.append('section', section);
       formData.append('startDate', startDate);
 
@@ -133,6 +150,62 @@ class FileApi implements IFileApi {
     try {
       const response = await axios.delete(
         `${this.baseUrl}${API_ENDPOINTS.FILES}/${referenceNo}/${fileName}`
+      );
+
+      return response.data.success;
+    } catch (error) {
+      console.error('Delete error:', error);
+      return false;
+    }
+  }
+
+  public async listCarFiles(
+    carNumber: string,
+    section: CarDocumentSection,
+    startDate: string
+  ): Promise<FileInfo[]> {
+    try {
+      const response = await axios.get<ListFilesResponse>(
+        `${this.baseUrl}${API_ENDPOINTS.FILES}/car/${encodeURIComponent(carNumber)}/${section}/${startDate}`
+      );
+
+      return response.data.data || [];
+    } catch (error) {
+      console.error('List car files error:', error);
+      return [];
+    }
+  }
+
+  public async downloadCarFile(
+    carNumber: string,
+    section: CarDocumentSection,
+    startDate: string,
+    fileName: string
+  ): Promise<Blob> {
+    try {
+      const response = await axios.get(
+        `${this.baseUrl}${API_ENDPOINTS.FILES}/car/${encodeURIComponent(carNumber)}/${section}/${startDate}/${encodeURIComponent(fileName)}`,
+        {
+          responseType: 'blob'
+        }
+      );
+
+      return response.data;
+    } catch (error) {
+      console.error('Download error:', error);
+      throw error;
+    }
+  }
+
+  public async deleteCarFile(
+    carNumber: string,
+    section: CarDocumentSection,
+    startDate: string,
+    fileName: string
+  ): Promise<boolean> {
+    try {
+      const response = await axios.delete(
+        `${this.baseUrl}${API_ENDPOINTS.FILES}/car/${encodeURIComponent(carNumber)}/${section}/${startDate}/${encodeURIComponent(fileName)}`
       );
 
       return response.data.success;

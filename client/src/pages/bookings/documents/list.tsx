@@ -8,6 +8,7 @@ import Typography from '@mui/material/Typography';
 import ArrowLeftIcon from '@untitled-ui/icons-react/build/esm/ArrowLeft';
 import Upload01Icon from '@untitled-ui/icons-react/build/esm/Upload01';
 import { useCallback, useState } from 'react';
+import { fileApi } from 'src/api/files';
 import { RouterLink } from 'src/components/router-link';
 import { Seo } from 'src/components/seo';
 import { useBooking as useSingleBooking } from 'src/hooks/bookings/use-single-booking';
@@ -87,7 +88,9 @@ const Page = () => {
               }}
             >
               <FileList
-                referenceNo={booking?.ReferenceNo ?? ''}
+                loadFiles={() => fileApi.listFiles(booking?.ReferenceNo ?? '')}
+                onDownload={(fileName) => fileApi.downloadFile(booking?.ReferenceNo ?? '', fileName)}
+                onDelete={(fileName) => fileApi.deleteFile(booking?.ReferenceNo ?? '', fileName)}
                 refreshTrigger={refreshTrigger}
               />
             </Stack>
