@@ -104,6 +104,13 @@ export const BookingEditForm: FC<BookingEditFormProps> = ({ booking }) => {
     validationSchema,
     validate: (values) => {
       const errors: Partial<Record<keyof BookingFormValues, string>> = {};
+
+      // A No Show never had a car actually handed over, so there's no
+      // real-world mileage (or car assignment) to validate against.
+      if (values.NoShow) {
+        return errors;
+      }
+
       const selectedCar = cars.find((c) => c.CarId === values.car);
       const enteredMileage = Number(values.Mileage);
 
@@ -135,7 +142,9 @@ export const BookingEditForm: FC<BookingEditFormProps> = ({ booking }) => {
           DropOffDate: toLocalDateTimeString(values.DropOffDate),
           NumberOfDays: numberOfDays,
           Price: values.Price,
-          CarId: values.car,
+          // A No Show releases whatever car was reserved - it was never
+          // actually handed over, so nothing should stay assigned to it.
+          CarId: values.NoShow ? null : values.car,
           SpecialRequest: values.SpecialRequest,
           ReferenceNo: values.ReferenceNo,
           NoShow: values.NoShow,
@@ -243,8 +252,8 @@ export const BookingEditForm: FC<BookingEditFormProps> = ({ booking }) => {
     }
   };
 
-  const [showAllCarsState, setShowAllCarsState] = useState<boolean>(true);
-  const [noShowState, setNoShowState] = useState<boolean>(!showAllCarsState);
+  const [noShowState, setNoShowState] = useState<boolean>(booking?.NoShow ?? false);
+  const [showAllCarsState, setShowAllCarsState] = useState<boolean>(!noShowState);
 
   return (
     <>
@@ -479,7 +488,13 @@ export const BookingEditForm: FC<BookingEditFormProps> = ({ booking }) => {
                           disabled={showAllCarsState}
                           onChange={(event) => {
                             formik.handleChange(event);
-                            setNoShowState(!noShowState);
+                            const nextNoShow = !noShowState;
+                            setNoShowState(nextNoShow);
+
+                            if (nextNoShow) {
+                              formik.setFieldValue('car', '');
+                              formik.setFieldTouched('car', false, false);
+                            }
                           }}
                         />
                       </div>
