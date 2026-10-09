@@ -1,6 +1,11 @@
 import axios, { isAxiosError, type AxiosResponse } from 'axios';
 
+import { logClientError } from 'src/utils/log-client-error';
+
 const ACCESS_TOKEN_STORAGE_KEY = 'accessToken';
+
+// Without a timeout a hung API call waits forever and is never reported.
+axios.defaults.timeout = 60000;
 
 // Attach the session's JWT to every outgoing request - the api now requires
 // it on every route except /auth/login (see api/src/api/index.ts).
@@ -25,6 +30,26 @@ axios.interceptors.response.use(
 
       if (window.location.pathname !== '/') {
         window.location.href = '/';
+      }
+    }
+
+    if (isAxiosError(error)) {
+      const status = error.response?.status;
+      const isTimeout = error.code === 'ECONNABORTED' || error.code === 'ETIMEDOUT';
+
+      // 4xx (other than 401 above) are expected validation-style responses;
+      // only timeouts, unreachable API and server errors are worth recording.
+      if (isTimeout || !error.response || (status !== undefined && status >= 500)) {
+        logClientError({
+          errorCategory: isTimeout ? 'Timeout' : !error.response ? 'NetworkError' : 'ApiError',
+          errorCode: error.code,
+          errorMessage: error.message,
+          stackTrace: error.stack,
+          httpMethod: error.config?.method?.toUpperCase(),
+          requestUrl: error.config?.url,
+          statusCode: status,
+          componentName: 'axios'
+        });
       }
     }
 

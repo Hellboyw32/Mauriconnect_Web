@@ -84,9 +84,11 @@ export class FTPService {
       console.log('Fallback retry interval elapsed, retrying FTP connection');
     }
 
-    const client = new ftp.Client();
+    // Client.ftp.timeout is read-only in current @types/basic-ftp - the
+    // 30s timeout has to be passed through the constructor instead (it's
+    // also already the library default, so this is just being explicit).
+    const client = new ftp.Client(30000);
     client.ftp.verbose = process.env.NODE_ENV === 'development';
-    client.ftp.timeout = 30000;
 
     try {
       console.log('Attempting FTP connection to:', this.config.host);

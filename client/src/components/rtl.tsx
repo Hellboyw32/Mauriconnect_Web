@@ -31,6 +31,10 @@ export const RTL: FC<RTLProps> = (props) => {
 
   if (direction === 'rtl') {
     return (
+      // pnpm's strict linking can resolve two nominally distinct copies of
+      // @emotion/utils (same version, different store paths), making
+      // EmotionCache a type mismatch here even though it's the same shape.
+      // @ts-ignore
       <CacheProvider value={styleCache()}>
         {children}
       </CacheProvider>

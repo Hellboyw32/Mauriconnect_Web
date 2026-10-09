@@ -10,6 +10,8 @@ const sqlConfig: dbConfig = {
   port: database.port,
   user: database.user,
   parseJSON: true,
+  connectionTimeout: 15000,
+  requestTimeout: 60000,
   options: {
     encrypt: false,
     debug: {
