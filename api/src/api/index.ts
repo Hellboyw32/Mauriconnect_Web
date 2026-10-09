@@ -13,6 +13,7 @@ import deliveryUsers from './routes/delivery-users';
 import reports from './routes/reports';
 import files from './routes/files';
 import invoice from './routes/invoice';
+import scheduler from './routes/scheduler';
 import servicing from './routes/servicing';
 import users from './routes/users';
 
@@ -40,6 +41,7 @@ export default () => {
   servicing(app);
   users(app);
   admin(app);
+  scheduler(app);
   clientErrors(app);
 
   return app;

@@ -81,6 +81,12 @@ export enum APP_LOG_ERROR_STORED_PROCEDURES {
   INSERT_APP_LOG_ERROR = 'spInsertAppLogError'
 }
 
+export enum SCHEDULER_STORED_PROCEDURES {
+  GET_CATEGORIES_JSON = 'GetSchedulerCategoryJson',
+  GET_CARS_JSON = 'GetSchedulerCarsJson',
+  GET_BOOKINGS_JSON = 'SPGetAllBookingForSchedulerJson'
+}
+
 export enum SERVICING_STORED_PROCEDURES {
   ADD_SERVICING_RECORD = 'spAddServicingRecord',
   GET_SERVICING_HISTORY_JSON = 'spGetServicingHistoryJson',

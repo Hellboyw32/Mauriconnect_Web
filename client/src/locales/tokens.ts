@@ -4,6 +4,7 @@ export const tokens = {
   },
   nav: {
     analytics: 'nav.analytics',
+    scheduler: 'nav.scheduler',
     auth: 'nav.auth',
     bookings: 'nav.bookings',
     cars: 'cars',

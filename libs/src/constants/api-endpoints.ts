@@ -11,5 +11,6 @@ export enum API_ENDPOINTS {
   FITNESS_CERTIFICATE = '/fitness-certificate',
   INVOICE = '/invoice',
   SERVICING = '/servicing',
+  SCHEDULER = '/scheduler',
   DELIVERY_USERS = '/delivery-users'
 }

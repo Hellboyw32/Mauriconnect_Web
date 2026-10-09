@@ -8,6 +8,9 @@ importers:
 
   .:
     dependencies:
+      '@daypilot/daypilot-lite-react':
+        specifier: ^5.10.1
+        version: 5.10.1(react-dom@18.2.0(react@18.2.0))(react@18.2.0)
       '@emotion/core':
         specifier: ^11.0.0
         version: 11.0.0
@@ -341,6 +344,15 @@ packages:
   '@babel/types@7.29.8':
     resolution: {integrity: sha512-Vj1jF3cPfxg7OAfoI7QnVKLoILlm2JF9pnVHrX8qx7AHMiYWT+NDAA7jChlNgRS4WTLc/fD1lXLmPixluj+3Gg==}
     engines: {node: '>=6.9.0'}
+
+  '@daypilot/daypilot-lite-javascript@5.10.1':
+    resolution: {integrity: sha512-9LgvWO3NNFXw2JlN7ApPwo/6QLwqDzkUIGpqM2jathX7OBr1zLIdd06Qg/SOkFK0puQzllkxRjfsKpvE0glnLA==}
+
+  '@daypilot/daypilot-lite-react@5.10.1':
+    resolution: {integrity: sha512-0sALmmPRrVtUPLdfopfOX1UkbuPlaVg3HUXaEGVzvjN9Ah/CC4WDoL/2KhyBoFR8IKVY6a9V8br2QnoAsCyDTg==}
+    peerDependencies:
+      react: '>=16.0.0'
+      react-dom: '>=16.0.0'
 
   '@emnapi/core@1.10.0':
     resolution: {integrity: sha512-yq6OkJ4p82CAfPl0u9mQebQHKPJkY7WrIuk205cTYnYe+k2Z8YBh11FrbRG/H6ihirqcacOgl2BIO8oyMQLeXw==}
@@ -1488,6 +1500,9 @@ packages:
   cosmiconfig@7.1.0:
     resolution: {integrity: sha512-AdmX6xUzdNASswsFtmwSt7Vj8po9IuqXm0UXz7QKPuEUmPB4XyjGfaAr2PSuELMwkRMVH1EpIkX5bTZGRB3eCA==}
     engines: {node: '>=10'}
+
+  create-react-class@15.7.0:
+    resolution: {integrity: sha512-QZv4sFWG9S5RUvkTYWbflxeZX+JG7Cz0Tn33rQBJ+WFQTqTfUTjMjiv9tnfXazjsO5r0KhPs+AqCjyrQX6h2ng==}
 
   cross-fetch@3.2.0:
     resolution: {integrity: sha512-Q+xVJLoGOeIMXZmbUK4HYk+69cQH6LudR0Vu/pRm2YlU/hDV9CiS0gKUMaWY5f2NeUH9C1nV3bsTlCo0FsTV1Q==}
@@ -3529,6 +3544,15 @@ snapshots:
       '@babel/helper-string-parser': 7.29.7
       '@babel/helper-validator-identifier': 7.29.7
 
+  '@daypilot/daypilot-lite-javascript@5.10.1': {}
+
+  '@daypilot/daypilot-lite-react@5.10.1(react-dom@18.2.0(react@18.2.0))(react@18.2.0)':
+    dependencies:
+      '@daypilot/daypilot-lite-javascript': 5.10.1
+      create-react-class: 15.7.0
+      react: 18.2.0
+      react-dom: 18.2.0(react@18.2.0)
+
   '@emnapi/core@1.10.0':
     dependencies:
       '@emnapi/wasi-threads': 1.2.1
@@ -4739,6 +4763,11 @@ snapshots:
       parse-json: 5.2.0
       path-type: 4.0.0
       yaml: 1.10.3
+
+  create-react-class@15.7.0:
+    dependencies:
+      loose-envify: 1.4.0
+      object-assign: 4.1.1
 
   cross-fetch@3.2.0:
     dependencies:
