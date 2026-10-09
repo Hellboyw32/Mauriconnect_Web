@@ -32,6 +32,7 @@ interface PermissionsMatrixProps {
 }
 
 const MODULE_LABELS: Record<Module, string> = {
+  Scheduler: 'Scheduler',
   Bookings: 'Bookings',
   Cars: 'Cars',
   CarInsurance: 'Car Insurance',
@@ -48,7 +49,9 @@ const REPORT_TYPE_LABELS: Record<ReportType, string> = {
   Insurance: 'Insurance Report'
 };
 
-// Reports has no create/edit/delete concept - it's a read-only screen.
+// Reports and Scheduler have no create/edit/delete concept - they're read-only screens.
+const VIEW_ONLY_MODULES: Module[] = ['Reports', 'Scheduler'];
+
 const ACTIONS: { action: PermissionAction; field: keyof Omit<ModulePermission, 'module'> }[] = [
   { action: 'View', field: 'canView' },
   { action: 'Create', field: 'canCreate' },
@@ -157,7 +160,7 @@ export const PermissionsMatrix: FC<PermissionsMatrixProps> = (props) => {
                     <Checkbox
                       size="small"
                       checked={row[field] as boolean}
-                      disabled={isReports && field !== 'canView'}
+                      disabled={VIEW_ONLY_MODULES.includes(module) && field !== 'canView'}
                       onChange={() => handleToggle(module, field)}
                     />
                   </TableCell>

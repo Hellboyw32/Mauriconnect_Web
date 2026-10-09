@@ -10,7 +10,8 @@ export const paths = {
 
   dashboard: {
     index: '/dashboard',
-    analytics: '/dashboard/analytics'
+    analytics: '/dashboard/analytics',
+    scheduler: '/dashboard/scheduler'
   },
   bookings: {
     index: '/bookings',

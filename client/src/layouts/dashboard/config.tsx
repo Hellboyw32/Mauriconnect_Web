@@ -3,6 +3,7 @@ import type { ReactNode } from 'react';
 import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 
+import CalendarIcon from 'src/icons/untitled-ui/duocolor/calendar';
 import BarChartSquare02Icon from 'src/icons/untitled-ui/duocolor/bar-chart-square-02';
 import HomeSmileIcon from 'src/icons/untitled-ui/duocolor/home-smile';
 import LayoutAlt02 from 'src/icons/untitled-ui/duocolor/layout-alt-02';
@@ -125,6 +126,16 @@ export const useSections = () => {
       {
         items: [
           {
+            title: t(tokens.nav.scheduler),
+            path: paths.dashboard.scheduler,
+            module: 'Scheduler',
+            icon: (
+              <SvgIcon fontSize="small">
+                <CalendarIcon />
+              </SvgIcon>
+            )
+          },
+          {
             title: t(tokens.nav.overview),
             path: paths.dashboard.index,
             icon: (
@@ -150,6 +161,11 @@ export const useSections = () => {
         items: pageItems.filter((item) => !item.module || hasPermission(user, item.module, 'View'))
       }
     ];
+
+    // The dashboard section holds the Scheduler, which is a gated module.
+    sections[0].items = sections[0].items.filter(
+      (item) => !item.module || hasPermission(user, item.module, 'View')
+    );
 
     // Admin-only navigation. This is a UI convenience, not the security
     // boundary - RoleGuard on the routes and requireRole('Admin') on the API

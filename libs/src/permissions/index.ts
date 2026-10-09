@@ -8,6 +8,7 @@ import type {
 } from '../types/user';
 
 export const ALL_MODULES: Module[] = [
+  'Scheduler',
   'Bookings',
   'Cars',
   'CarInsurance',

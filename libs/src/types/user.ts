@@ -4,6 +4,7 @@ export type UserType = 'Normal' | 'Admin';
 // and the dashboard's own Analytics page are intentionally excluded - they're
 // the post-login landing page and are always visible to any authenticated user.
 export type Module =
+  | 'Scheduler'
   | 'Bookings'
   | 'Cars'
   | 'CarInsurance'
