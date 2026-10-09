@@ -13,7 +13,13 @@
     "dev": "concurrently \"cd client && npm run dev\" \"cd api && npm run dev\"",
     "lint:client": "cd client && npm run lint",
     "build:client": "cd client && npm run build",
-    "build:client:ci": "cd client && npm install && npm run build"
+    "build:client:ci": "cd client && npm install && npm run build",
+    "build:api": "cd api && npm run build",
+    "build": "npm run build:api && npm run build:client",
+    "start:api": "cd api && npm run start",
+    "start:client": "cd client && npm run start",
+    "start": "concurrently \"npm run start:api\" \"npm run start:client\"",
+    "prod": "npm run build && npm run start"
   },
   "repository": {
     "type": "git",

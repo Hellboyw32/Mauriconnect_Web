@@ -1,9 +1,12 @@
 import type { Theme } from '@mui/material/styles/createTheme';
 import { createTheme as createMuiTheme, responsiveFontSizes } from '@mui/material/styles';
+import type { ColorPreset, Contrast, Direction, PaletteMode } from '@libs/types';
 
 import { createOptions as createBaseOptions } from './base/create-options';
 import { createOptions as createDarkOptions } from './dark/create-options';
 import { createOptions as createLightOptions } from './light/create-options';
+
+export type { ColorPreset, Contrast, Direction, PaletteMode };
 
 declare module '@mui/material/styles/createPalette' {
   interface ColorRange {
@@ -43,13 +46,6 @@ declare module '@mui/material/styles/createPalette' {
   }
 }
 
-export type ColorPreset = 'blue' | 'green' | 'indigo' | 'purple';
-
-export type Contrast = 'normal' | 'high';
-
-export type Direction = 'ltr' | 'rtl';
-
-export type PaletteMode = 'dark' | 'light';
 
 interface ThemeConfig {
   colorPreset?: ColorPreset,

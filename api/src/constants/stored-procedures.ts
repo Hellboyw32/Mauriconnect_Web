@@ -77,6 +77,10 @@ export enum AUDIT_LOG_STORED_PROCEDURES {
   GET_AUDIT_LOGS_JSON = 'spGetAuditLogsJson'
 }
 
+export enum APP_LOG_ERROR_STORED_PROCEDURES {
+  INSERT_APP_LOG_ERROR = 'spInsertAppLogError'
+}
+
 export enum SERVICING_STORED_PROCEDURES {
   ADD_SERVICING_RECORD = 'spAddServicingRecord',
   GET_SERVICING_HISTORY_JSON = 'spGetServicingHistoryJson',

@@ -1,3 +1,4 @@
+import { APP_LOG_ERROR_STORED_PROCEDURES } from '@/constants';
 import type { Response, StoredProcedureInput } from '@/types';
 import { Request } from 'mssql';
 import { Container, Service } from 'typedi';
@@ -62,11 +63,31 @@ export class BaseMSSqlService implements IBaseMSSqlService {
       return { status, message, data, success: true };
     } catch (error) {
       this.logger.error('🔥  Error on requesting DB data: %o', error);
+      this.logDbError(storedProcedure, error);
       const status = 500;
       const message = `Operation failed with error message ${error}.`;
 
       return { status, error, message, success: false };
     }
+  }
+
+  // Persist DB failures to AppLogError. Skipped for the logging procedure itself
+  // so a broken AppLogError table can't recurse. Required lazily because
+  // AppLogErrorService depends on this class.
+  private logDbError(storedProcedure: string, error: any): void {
+    if (storedProcedure === APP_LOG_ERROR_STORED_PROCEDURES.INSERT_APP_LOG_ERROR) {
+      return;
+    }
+
+    const { AppLogErrorService, classifyError } = require('../services/app-log-error') as typeof import('../services/app-log-error');
+
+    Container.get(AppLogErrorService).log({
+      errorCategory: classifyError(error) === 'Timeout' ? 'Timeout' : 'DatabaseError',
+      errorCode: error?.code,
+      errorMessage: error?.message || String(error),
+      stackTrace: error?.stack,
+      componentName: storedProcedure
+    });
   }
 
   async requestByQuery<T = any>(query: string, isJsonPath: boolean = false): Promise<Response<T>> {

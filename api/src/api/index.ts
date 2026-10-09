@@ -4,6 +4,7 @@ import admin from './routes/admin';
 import auth from './routes/auth';
 import bookings from './routes/bookings';
 import carCategories from './routes/car-categories';
+import clientErrors from './routes/client-errors';
 import cars from './routes/cars';
 import carInsurance from './routes/car-insurance';
 import roadTax from './routes/road-tax';
@@ -39,6 +40,7 @@ export default () => {
   servicing(app);
   users(app);
   admin(app);
+  clientErrors(app);
 
   return app;
 };
