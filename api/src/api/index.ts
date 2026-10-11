@@ -7,6 +7,7 @@ import carCategories from './routes/car-categories';
 import clientErrors from './routes/client-errors';
 import cars from './routes/cars';
 import carInsurance from './routes/car-insurance';
+import psvl from './routes/psvl';
 import roadTax from './routes/road-tax';
 import fitnessCertificate from './routes/fitness-certificate';
 import deliveryUsers from './routes/delivery-users';
@@ -41,6 +42,7 @@ export default () => {
   servicing(app);
   users(app);
   admin(app);
+  psvl(app);
   scheduler(app);
   clientErrors(app);
 

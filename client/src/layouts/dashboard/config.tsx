@@ -10,6 +10,7 @@ import LayoutAlt02 from 'src/icons/untitled-ui/duocolor/layout-alt-02';
 import Truck01 from 'src/icons/untitled-ui/duocolor/truck-01';
 import ReceiptCheck from 'src/icons/untitled-ui/duocolor/receipt-check';
 import CreditCard01 from 'src/icons/untitled-ui/duocolor/credit-card-01';
+import File01 from 'src/icons/untitled-ui/duocolor/file-01';
 import File04 from 'src/icons/untitled-ui/duocolor/file-04';
 import Users03 from 'src/icons/untitled-ui/duocolor/users-03';
 import LogOut01 from 'src/icons/untitled-ui/duocolor/log-out-01';
@@ -64,6 +65,16 @@ export const useSections = () => {
         icon: (
           <SvgIcon fontSize="small">
             <Truck01 />
+          </SvgIcon>
+        )
+      },
+      {
+        title: t(tokens.nav.psvl),
+        path: paths.psvl.index,
+        module: 'Cars',
+        icon: (
+          <SvgIcon fontSize="small">
+            <File01 />
           </SvgIcon>
         )
       },

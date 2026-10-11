@@ -7,6 +7,8 @@ import { Layout as DashboardLayout } from 'src/layouts/dashboard';
 const CarListPage = lazy(() => import('src/pages/cars/index'));
 const CarCreatePage = lazy(() => import('src/pages/cars/create'));
 const CarEditPage = lazy(() => import('src/pages/cars/[carId]/edit'));
+const PsvlCreatePage = lazy(() => import('src/pages/cars/[carId]/psvl/create'));
+const PsvlEditPage = lazy(() => import('src/pages/cars/[carId]/psvl/[psvlId]/edit'));
 
 export const carRoutes: RouteObject[] = [
   {
@@ -32,6 +34,14 @@ export const carRoutes: RouteObject[] = [
       {
         path: ':carId/edit',
         element: <CarEditPage />
+      },
+      {
+        path: ':carId/psvl/create',
+        element: <PsvlCreatePage />
+      },
+      {
+        path: ':carId/psvl/:psvlId/edit',
+        element: <PsvlEditPage />
       }
     ]
   }

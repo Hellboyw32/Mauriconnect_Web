@@ -12,6 +12,7 @@ export * from './fitness-certificate';
 export * from './invoice';
 export * from './login-log';
 export * from './report';
+export * from './psvl';
 export * from './road-tax';
 export * from './scheduler';
 export * from './servicing';

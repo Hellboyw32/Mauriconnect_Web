@@ -48,6 +48,13 @@ export enum FITNESS_CERTIFICATE_STORED_PROCEDURES {
   DELETE_FITNESS_CERTIFICATE = 'spDeleteFitnessCertificate'
 }
 
+export enum PSVL_STORED_PROCEDURES {
+  GET_PSVLS_JSON = 'spGetAllCarPSVLJson',
+  GET_PSVL_JSON = 'spGetSingleCarPSVLJson',
+  UPDATE_PSVL = 'spUpdateCarPSVLDetails',
+  DELETE_PSVL = 'spDeleteCarPSVL'
+}
+
 export enum DELIVERY_USER_STORED_PROCEDURES {
   GET_DELIVERY_USERS = 'spGetDeliveryUsers'
 }

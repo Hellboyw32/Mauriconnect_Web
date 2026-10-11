@@ -34,6 +34,7 @@ export const en = {
   [tokens.nav.productList]: 'Products',
   [tokens.nav.profile]: 'Profile',
   [tokens.nav.reports]: 'Reports',
+  [tokens.nav.psvl]: 'PSVL',
   [tokens.nav.roadTax]: 'Road Tax',
   [tokens.nav.verifyCode]: 'Verify Code'
 };
