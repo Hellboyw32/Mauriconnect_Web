@@ -13,7 +13,7 @@ const MAX_FILE_SIZE_BYTES = 10 * 1024 * 1024; // 10MB
 // or generic (e.g. application/octet-stream) MIME types for the same file type.
 const ALLOWED_EXTENSIONS = ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.pdf', '.doc', '.docx'];
 const CAR_UPLOAD_ALLOWED_EXTENSIONS = ['.jpg', '.jpeg', '.png', '.pdf'];
-const CAR_UPLOAD_SECTIONS: CarDocumentSection[] = ['RoadTax', 'Insurance', 'CarFitness'];
+const CAR_UPLOAD_SECTIONS: CarDocumentSection[] = ['RoadTax', 'Insurance', 'CarFitness', 'PSVL'];
 const START_DATE_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
 
 const upload = multer({

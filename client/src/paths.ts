@@ -22,7 +22,9 @@ export const paths = {
   cars: {
     index: '/cars',
     create: '/cars/create',
-    edit: '/cars/:carId/edit'
+    edit: '/cars/:carId/edit',
+    psvlCreate: '/cars/:carId/psvl/create',
+    psvlEdit: '/cars/:carId/psvl/:psvlId/edit'
   },
   carInsurance: {
     index: '/car-insurance',
@@ -33,6 +35,9 @@ export const paths = {
     index: '/road-tax',
     create: '/road-tax/create',
     edit: '/road-tax/:roadTaxId/edit'
+  },
+  psvl: {
+    index: '/psvl'
   },
   fitnessCertificate: {
     index: '/fitness-certificate',

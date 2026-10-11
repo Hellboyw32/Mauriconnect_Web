@@ -13,6 +13,7 @@ import { useCar } from 'src/hooks/cars/use-car';
 import { paths } from 'src/paths';
 import { CarForm } from 'src/sections/car/car-form';
 import { CarFitnessSection } from 'src/sections/car/car-fitness-section';
+import { CarPsvlSection } from 'src/sections/car/car-psvl-section';
 import { CarInsuranceSection } from 'src/sections/car/car-insurance-section';
 import { CarRoadTaxSection } from 'src/sections/car/car-road-tax-section';
 import type { CarFormValues } from '@libs/types';
@@ -118,6 +119,10 @@ const Page = () => {
                   carNumber={car.CarNumber}
                 />
                 <CarInsuranceSection
+                  carId={car.CarId}
+                  carNumber={car.CarNumber}
+                />
+                <CarPsvlSection
                   carId={car.CarId}
                   carNumber={car.CarNumber}
                 />

@@ -10,7 +10,7 @@ export interface Document {
 
 // Section of a car record that supports FTP document uploads, and the FTP
 // folder name each maps to under /Dropbox/Cars/[CarId]/[Section]/[StartDate]/.
-export type CarDocumentSection = 'RoadTax' | 'Insurance' | 'CarFitness';
+export type CarDocumentSection = 'RoadTax' | 'Insurance' | 'CarFitness' | 'PSVL';
 
 export interface CarFileUploadResponse {
   status: number;
