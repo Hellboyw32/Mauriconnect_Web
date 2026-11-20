@@ -33,6 +33,7 @@ interface PermissionsMatrixProps {
 
 const MODULE_LABELS: Record<Module, string> = {
   Scheduler: 'Scheduler',
+  Expenses: 'Expenses',
   Bookings: 'Bookings',
   Cars: 'Cars',
   CarInsurance: 'Car Insurance',

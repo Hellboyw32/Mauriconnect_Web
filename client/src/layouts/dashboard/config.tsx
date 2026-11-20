@@ -109,6 +109,16 @@ export const useSections = () => {
         )
       },
       {
+        title: t(tokens.nav.expenses),
+        path: paths.expenses.index,
+        module: 'Expenses',
+        icon: (
+          <SvgIcon fontSize="small">
+            <CreditCard01 />
+          </SvgIcon>
+        )
+      },
+      {
         // Not permission-gated: Car Servicing predates the RBAC module system
         // (see Module type in @libs/types) and was always unrestricted on main.
         // Leaving it that way here rather than inventing a new Module value as
@@ -192,6 +202,15 @@ export const useSections = () => {
             icon: (
               <SvgIcon fontSize="small">
                 <Users03 />
+              </SvgIcon>
+            )
+          },
+          {
+            title: 'Expense Report',
+            path: paths.expenses.report,
+            icon: (
+              <SvgIcon fontSize="small">
+                <BarChartSquare02Icon />
               </SvgIcon>
             )
           },

@@ -9,6 +9,7 @@ import type {
 
 export const ALL_MODULES: Module[] = [
   'Scheduler',
+  'Expenses',
   'Bookings',
   'Cars',
   'CarInsurance',

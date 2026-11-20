@@ -12,6 +12,7 @@ export const tokens = {
     roadTax: 'roadTax',
     fitnessCertificate: 'fitnessCertificate',
     psvl: 'nav.psvl',
+    expenses: 'nav.expenses',
     carServicing: 'carServicing',
     dashboard: 'nav.dashboard',
     details: 'nav.details',

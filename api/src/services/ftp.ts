@@ -629,6 +629,90 @@ export class FTPService {
     }
   }
 
+  // ---- Expense supporting documents: /Dropbox/Expenses/[ExpenseId]/[StoredFileName] ----
+  // Indexed by the ExpenseAttachments table, so callers pass the unique stored
+  // name (never a user-supplied path) and no listing method is needed. Files are
+  // never removed from storage - removing a document only soft-deletes its row,
+  // so historical records stay auditable.
+
+  private expenseDir(expenseId: number): { ftpDir: string; fsDir: string } {
+    return {
+      ftpDir: `/Dropbox/Expenses/${expenseId}`,
+      fsDir: path.join(this.localStoragePath, 'Dropbox', 'Expenses', String(expenseId))
+    };
+  }
+
+  async uploadExpenseFile(
+    expenseId: number,
+    storedFileName: string,
+    fileBuffer: Buffer
+  ): Promise<Response<{ filePath: string }>> {
+    const { ftpDir, fsDir } = this.expenseDir(expenseId);
+    const client = await this.getClient();
+
+    if (!client) {
+      try {
+        fs.mkdirSync(fsDir, { recursive: true });
+        const filePath = path.join(fsDir, storedFileName);
+        fs.writeFileSync(filePath, fileBuffer);
+        return { status: 200, message: 'File uploaded (local storage)', data: { filePath }, success: true };
+      } catch (error) {
+        return { status: 500, message: `Upload failed: ${error}`, error, success: false };
+      }
+    }
+
+    try {
+      await client.ensureDir(ftpDir);
+      const filePath = `${ftpDir}/${storedFileName}`;
+      const tempFilePath = path.join(os.tmpdir(), `${Date.now()}-${storedFileName}`);
+
+      fs.writeFileSync(tempFilePath, fileBuffer);
+      try {
+        await client.uploadFrom(tempFilePath, filePath);
+      } finally {
+        fs.unlinkSync(tempFilePath);
+      }
+
+      return { status: 200, message: 'File uploaded successfully', data: { filePath }, success: true };
+    } catch (error) {
+      console.error('FTP expense upload error:', error);
+      return { status: 500, message: `Upload failed: ${error}`, error, success: false };
+    } finally {
+      client.close();
+    }
+  }
+
+  async downloadExpenseFile(expenseId: number, storedFileName: string): Promise<Response<Buffer>> {
+    const { ftpDir, fsDir } = this.expenseDir(expenseId);
+    const client = await this.getClient();
+
+    if (!client) {
+      try {
+        const filePath = path.join(fsDir, storedFileName);
+        if (!fs.existsSync(filePath)) {
+          return { status: 404, message: 'File not found', error: new Error('File not found'), success: false };
+        }
+        return { status: 200, message: 'File downloaded (local storage)', data: fs.readFileSync(filePath), success: true };
+      } catch (error) {
+        return { status: 500, message: `Download failed: ${error}`, error, success: false };
+      }
+    }
+
+    try {
+      const tempFilePath = path.join(os.tmpdir(), `download_${Date.now()}_${storedFileName}`);
+      await client.downloadTo(tempFilePath, `${ftpDir}/${storedFileName}`);
+      const fileBuffer = fs.readFileSync(tempFilePath);
+      fs.unlinkSync(tempFilePath);
+
+      return { status: 200, message: 'File downloaded successfully', data: fileBuffer, success: true };
+    } catch (error) {
+      console.error('FTP expense download error:', error);
+      return { status: 500, message: `Download failed: ${error}`, error, success: false };
+    } finally {
+      client.close();
+    }
+  }
+
   async listFiles(referenceNo: string): Promise<Response<FileInfo[]>> {
     referenceNo = referenceNo.trim();
     const year = await this.getBookingYear(referenceNo);

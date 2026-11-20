@@ -55,6 +55,19 @@ export enum PSVL_STORED_PROCEDURES {
   DELETE_PSVL = 'spDeleteCarPSVL'
 }
 
+export enum EXPENSE_STORED_PROCEDURES {
+  SAVE_EXPENSE = 'spSaveExpense',
+  GET_EXPENSES_JSON = 'spGetExpensesJson',
+  GET_EXPENSE_JSON = 'spGetExpenseJson',
+  GET_EXPENSE_SUPPLIERS_JSON = 'spGetExpenseSuppliersJson',
+  CHECK_EXPENSE_DUPLICATE_JSON = 'spCheckExpenseDuplicateJson',
+  DELETE_EXPENSE = 'spDeleteExpense',
+  ADD_EXPENSE_ATTACHMENT = 'spAddExpenseAttachment',
+  GET_EXPENSE_ATTACHMENT_JSON = 'spGetExpenseAttachmentJson',
+  DELETE_EXPENSE_ATTACHMENT = 'spDeleteExpenseAttachment',
+  GET_EXPENSE_REPORT_JSON = 'spGetExpenseReportJson'
+}
+
 export enum DELIVERY_USER_STORED_PROCEDURES {
   GET_DELIVERY_USERS = 'spGetDeliveryUsers'
 }
