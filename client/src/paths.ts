@@ -39,6 +39,12 @@ export const paths = {
   psvl: {
     index: '/psvl'
   },
+  expenses: {
+    index: '/expenses',
+    create: '/expenses/create',
+    edit: '/expenses/:expenseId/edit',
+    report: '/expenses/report'
+  },
   fitnessCertificate: {
     index: '/fitness-certificate',
     create: '/fitness-certificate/create',

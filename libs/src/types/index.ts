@@ -8,6 +8,7 @@ export * from './car-category';
 export * from './car-insurance';
 export * from './delivery-user';
 export * from './documents';
+export * from './expense';
 export * from './fitness-certificate';
 export * from './invoice';
 export * from './login-log';

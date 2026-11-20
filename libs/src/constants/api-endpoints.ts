@@ -13,5 +13,6 @@ export enum API_ENDPOINTS {
   SERVICING = '/servicing',
   SCHEDULER = '/scheduler',
   PSVL = '/psvl',
+  EXPENSES = '/expenses',
   DELIVERY_USERS = '/delivery-users'
 }

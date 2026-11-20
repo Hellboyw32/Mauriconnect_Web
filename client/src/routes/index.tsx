@@ -6,6 +6,7 @@ import { authRoutes } from './auth';
 import { bookingRoutes } from './bookings';
 import { carRoutes } from './cars';
 import { carInsuranceRoutes } from './car-insurance';
+import { expenseRoutes } from './expenses';
 import { psvlRoutes } from './psvl';
 import { roadTaxRoutes } from './road-tax';
 import { fitnessCertificateRoutes } from './fitness-certificate';
@@ -23,6 +24,7 @@ export const routes: RouteObject[] = [
   ...bookingRoutes,
   ...carRoutes,
   ...carInsuranceRoutes,
+  ...expenseRoutes,
   ...psvlRoutes,
   ...roadTaxRoutes,
   ...fitnessCertificateRoutes,

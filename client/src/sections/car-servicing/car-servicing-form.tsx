@@ -1,4 +1,4 @@
-import type { Car, ServicingFormValues } from '@libs/types';
+import type { ServicingFormValues } from '@libs/types';
 import Autocomplete from '@mui/material/Autocomplete';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
@@ -40,36 +40,22 @@ const defaultInitialValues: ServicingFormValues = {
   IsCompleted: true
 };
 
-const buildValidationSchema = (cars: Car[]) =>
-  Yup.object({
-    CarId: Yup.number().required('Car is required'),
-    DateServiced: Yup.date()
-      .nullable()
-      .required('Servicing date is required')
-      .max(new Date(), 'Servicing date cannot be in the future'),
-    MileageServiced: Yup.number()
-      .required('Current servicing mileage is required')
-      .integer('Mileage must be a whole number')
-      .positive('Mileage must be a positive number')
-      .test(
-        'not-less-than-current-mileage',
-        'Servicing mileage cannot be less than the car\'s current mileage',
-        function (value) {
-          const car = cars.find((c) => c.CarId === this.parent.CarId);
-
-          if (!car || car.CurrentMileage == null || value == null) {
-            return true;
-          }
-
-          return value >= car.CurrentMileage;
-        }
-      ),
-    ServicingFrequency: Yup.number()
-      .required('Servicing frequency is required')
-      .integer('Servicing frequency must be a whole number')
-      .positive('Servicing frequency must be a positive number'),
-    Note: Yup.string().optional()
-  });
+const validationSchema = Yup.object({
+  CarId: Yup.number().required('Car is required'),
+  DateServiced: Yup.date()
+    .nullable()
+    .required('Servicing date is required')
+    .max(new Date(), 'Servicing date cannot be in the future'),
+  MileageServiced: Yup.number()
+    .required('Current servicing mileage is required')
+    .integer('Mileage must be a whole number')
+    .positive('Mileage must be a positive number'),
+  ServicingFrequency: Yup.number()
+    .required('Servicing frequency is required')
+    .integer('Servicing frequency must be a whole number')
+    .positive('Servicing frequency must be a positive number'),
+  Note: Yup.string().optional()
+});
 
 const toLocalDateString = (value: Date | null) => (value ? format(value, 'yyyy-MM-dd') : null);
 
@@ -78,8 +64,6 @@ export const CarServicingForm: FC<CarServicingFormProps> = (props) => {
   const router = useRouter();
   const { user } = useAuth();
   const { cars } = useCars();
-
-  const validationSchema = useMemo(() => buildValidationSchema(cars), [cars]);
 
   const formik = useFormik({
     initialValues: { ...defaultInitialValues, ...initialValues },

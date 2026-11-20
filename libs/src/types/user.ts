@@ -5,6 +5,7 @@ export type UserType = 'Normal' | 'Admin';
 // the post-login landing page and are always visible to any authenticated user.
 export type Module =
   | 'Scheduler'
+  | 'Expenses'
   | 'Bookings'
   | 'Cars'
   | 'CarInsurance'
