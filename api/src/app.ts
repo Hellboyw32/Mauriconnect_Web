@@ -33,6 +33,14 @@ const logProcessError = async (error: any, message: string, severity: 'Error' | 
     const { AppLogErrorService } = require('./services/app-log-error');
     const { Container } = require('typedi');
 
+    // Before the loaders have run there is no logger/DB service to save to (and a
+    // failed startup is usually the database being unreachable) - the console
+    // line above is the record. Trying anyway would only throw a misleading
+    // "ServiceNotFoundError: logger" that hides the real error.
+    if (!Container.has('logger')) {
+      return;
+    }
+
     await Container.get(AppLogErrorService).log({
       errorCategory: 'ApplicationError',
       severity,
@@ -55,4 +63,18 @@ process.on('uncaughtException', async (error) => {
   process.exit(1);
 });
 
-startServer();
+// A failure while starting (typically the database connection) must stop the
+// process with a non-zero exit code and a clear message - otherwise the rejection
+// is swallowed, nothing keeps the process alive and it exits as if it were a clean
+// shutdown (nodemon: "clean exit - waiting for changes").
+startServer().catch((error) => {
+  Logger.error('🔥  The API failed to start: %o', error);
+
+  if (['ELOGIN', 'ESOCKET', 'ETIMEOUT', 'ECONNREFUSED', 'ENOTFOUND'].includes(error?.code)) {
+    Logger.error(
+      '🔥  Cannot reach the database. Check that SQL Server is running and reachable, and that the DATABASE_* values in api/.env are correct.'
+    );
+  }
+
+  process.exit(1);
+});
