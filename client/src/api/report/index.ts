@@ -6,6 +6,7 @@ import type {
   FitnessRenewalReportItem,
   InsuranceReportRow,
   RoadTaxRenewalReportItem,
+  SettlementReportRow,
   SimCardReportRow
 } from '@libs/types';
 import { bookings as bookingsData } from 'src/mock/booking';
@@ -62,6 +63,12 @@ type GetCarInsuranceRenewalReportRequest = {
 
 type GetCarInsuranceRenewalReportResponse = Promise<CarInsuranceRenewalReportItem[]>;
 
+type GetSettlementReportRequest = {
+  date: string;
+};
+
+type GetSettlementReportResponse = Promise<SettlementReportRow[]>;
+
 type GetSimCardReportRequest = {
   startDate: string;
   endDate: string;
@@ -91,6 +98,7 @@ interface IReportApi {
   getCarInsuranceRenewalReport(
     request: GetCarInsuranceRenewalReportRequest
   ): GetCarInsuranceRenewalReportResponse;
+  getSettlementReport(request: GetSettlementReportRequest): GetSettlementReportResponse;
   getSimCardReport(request: GetSimCardReportRequest): GetSimCardReportResponse;
   getInsuranceReport(request: GetInsuranceReportRequest): GetInsuranceReportResponse;
 }
@@ -227,6 +235,29 @@ class ReportApi implements IReportApi {
     );
 
     return Promise.resolve(apiResponse.data || []);
+  }
+
+  public async getSettlementReport(
+    request: GetSettlementReportRequest
+  ): GetSettlementReportResponse {
+    const { date } = request;
+    const apiResponse = await api.get<SettlementReportRow[]>(
+      `${API_ENDPOINTS.REPORTS}/settlement?date=${encodeURIComponent(date)}`
+    );
+
+    // api.get returns { message, status } (no data) when the call failed - surface
+    // that instead of silently showing an empty report.
+    if (apiResponse.status < 200 || apiResponse.status >= 300) {
+      throw new Error(apiResponse.message || 'Failed to load the settlement report');
+    }
+
+    let data = apiResponse.data;
+
+    if (Array.isArray(data) && data.length > 0 && Array.isArray(data[0])) {
+      data = data[0];
+    }
+
+    return Array.isArray(data) ? data.filter((item) => item != null) : [];
   }
 
   public async getSimCardReport(request: GetSimCardReportRequest): GetSimCardReportResponse {

@@ -28,12 +28,14 @@ import { useDailyScheduleReport } from 'src/hooks/reports/use-daily-schedule-rep
 import { useDropoffScheduleReport } from 'src/hooks/reports/use-dropoff-schedule-report';
 import { useInsuranceReport } from 'src/hooks/reports/use-insurance-report';
 import { useRoadTaxRenewalReport } from 'src/hooks/reports/use-road-tax-renewal-report';
+import { useSettlementReport } from 'src/hooks/reports/use-settlement-report';
 import { useSimCardReport } from 'src/hooks/reports/use-simcard-report';
 import CarFitnessRenewalReport from 'src/sections/report/CarFitnessRenewalReport';
 import CarInsuranceRenewalReport from 'src/sections/report/CarInsuranceRenewalReport';
 import DailyScheduleReport from 'src/sections/report/DailyScheduleReport';
 import InsuranceReport from 'src/sections/report/InsuranceReport';
 import RoadTaxRenewalReport from 'src/sections/report/RoadTaxRenewalReport';
+import SettlementReport from 'src/sections/report/SettlementReport';
 import SimCardReport from 'src/sections/report/SimCardReport';
 
 // Report types that take a single Year/Month picker (renewal-style reports)
@@ -41,6 +43,10 @@ const MONTH_ONLY_REPORT_TYPES = ['40', '50', '60'];
 
 // Report types that take a single Start/End date range rather than the pickup/drop pair
 const DATE_RANGE_REPORT_TYPES = ['70', '80'];
+
+// Report types that take one date: the Settlement report lists the bookings
+// picked up on that day.
+const SINGLE_DATE_REPORT_TYPES = ['30'];
 
 // Dropdown value -> permission catalog key (see libs/src/types/user.ts ReportType).
 // 40/50/60 (the renewal reports) are intentionally absent - they're ungated, see the
@@ -101,6 +107,9 @@ export default function SelectLabels() {
   const carInsuranceRenewalStore = useCarInsuranceRenewalReport();
   const simCardReportStore = useSimCardReport();
   const insuranceReportStore = useInsuranceReport();
+  const settlementReportStore = useSettlementReport();
+  // The date the settlement rows on screen were actually run for.
+  const [settlementDate, setSettlementDate] = React.useState('');
 
   const { minDate, maxDate } = useMemo(() => getReportDateBounds(user), [user]);
 
@@ -120,6 +129,9 @@ export default function SelectLabels() {
     }
     if (report !== '60') {
       setCarInsuranceReportData([]);
+    }
+    if (report !== '30') {
+      settlementReportStore.reset();
     }
   };
 
@@ -145,6 +157,16 @@ export default function SelectLabels() {
 
       setReportData(pickupData);
       setDropoffReportData(dropoffData);
+    }
+
+    if (reportType === '30') {
+      if (!pickupDate) {
+        return;
+      }
+
+      const settlementDateStr = toLocalDateString(pickupDate);
+      await settlementReportStore.handleReportGet(settlementDateStr);
+      setSettlementDate(settlementDateStr);
     }
 
     if (reportType && MONTH_ONLY_REPORT_TYPES.includes(reportType) && renewalMonth) {
@@ -192,6 +214,7 @@ export default function SelectLabels() {
     renewalMonth,
     simCardReportStore,
     insuranceReportStore,
+    settlementReportStore,
     startDate,
     endDate
   ]);
@@ -240,6 +263,19 @@ export default function SelectLabels() {
             format="MM/yyyy"
             value={renewalMonth}
             onChange={(newValue) => setRenewalMonth(newValue)}
+          />
+        </Box>
+      ) : SINGLE_DATE_REPORT_TYPES.includes(reportType) ? (
+        <Box
+          component="div"
+          sx={{ p: 2, border: '1px grey' }}
+        >
+          <DatePicker
+            label="Pickup Date"
+            value={pickupDate}
+            minDate={minDate ?? undefined}
+            maxDate={maxDate ?? undefined}
+            onChange={(newValue) => setPickupDate(newValue)}
           />
         </Box>
       ) : DATE_RANGE_REPORT_TYPES.includes(reportType) ? (
@@ -318,6 +354,18 @@ export default function SelectLabels() {
           <CarInsuranceRenewalReport items={carInsuranceReportData} />
         </Box>
       )}
+      {reportType === '30' && settlementReportStore.hasRun && (
+        <Box>
+          {settlementReportStore.rows.length > 0 ? (
+            <SettlementReport
+              rows={settlementReportStore.rows}
+              date={settlementDate}
+            />
+          ) : (
+            <Box sx={{ p: 2 }}>No bookings are picked up on {settlementDate}.</Box>
+          )}
+        </Box>
+      )}
       {reportType === '70' && simCardReportStore.rows.length > 0 && (
         <Box>
           <SimCardReport rows={simCardReportStore.rows} />
@@ -329,7 +377,11 @@ export default function SelectLabels() {
         </Box>
       )}
       <Backdrop
-        open={simCardReportStore.isLoading || insuranceReportStore.isLoading}
+        open={
+          simCardReportStore.isLoading ||
+          insuranceReportStore.isLoading ||
+          settlementReportStore.isLoading
+        }
         sx={{ color: '#fff', zIndex: (theme) => theme.zIndex.drawer + 1 }}
       >
         <CircularProgress color="inherit" />
