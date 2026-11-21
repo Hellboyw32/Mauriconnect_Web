@@ -58,6 +58,36 @@ export default (app: Router) => {
     }
   );
 
+  // GET /reports/settlement?date=yyyy-MM-dd - settlement sheet for the bookings
+  // picked up on that day (client, car, drop-off, amount, pay mode, agent, remarks).
+  route.get('/settlement', requireReportAccess('Settlement'), (req: Request, res: Response) => {
+    const date = req.query.date as string | undefined;
+
+    if (!date || !/^\d{4}-\d{2}-\d{2}$/.test(date) || Number.isNaN(new Date(date).getTime())) {
+      res.status(400).json({
+        status: 400,
+        message: 'date is required (yyyy-MM-dd)',
+        success: false
+      });
+      return;
+    }
+
+    const dateError = validateReportDateRange(req, [new Date(date)]);
+    if (dateError) {
+      res.status(403).json({ status: 403, message: dateError, success: false });
+      return;
+    }
+
+    Container.get(ReportService)
+      .getSettlementReport(date)
+      .then((result) => {
+        res.status(result.success ? 200 : 500).send(result);
+      })
+      .catch((error) => {
+        res.status(500).send(error);
+      });
+  });
+
   route.get('/simcard', requireReportAccess('SimCard'), (req: Request, res: Response) => {
     const startDate = req.query.startDate as string | undefined;
     const endDate = req.query.endDate as string | undefined;

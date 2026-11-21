@@ -47,6 +47,14 @@ export class ReportService {
     return await this.mssqlService.requestByStoredProcedure(storedProcedure, inputs);
   }
 
+  // Every active booking picked up on `pickupDate`, laid out like the paper
+  // settlement sheet (see database/spGetSettlementReportByDate.sql).
+  async getSettlementReport(pickupDate: string) {
+    const storedProcedure = STORED_PROCEDURES.GET_SETTLEMENT_REPORT_BY_DATE;
+    const inputs = [{ 'PickupDate': pickupDate }];
+    return await this.mssqlService.requestByStoredProcedure(storedProcedure, inputs);
+  }
+
   async getSimCardReport(startDate: string, endDate: string) {
     const storedProcedure = STORED_PROCEDURES.GET_SIM_CARD_REPORT;
     const inputs = [{ 'StartDate': startDate }, { 'EndDate': endDate }];
