@@ -19,8 +19,10 @@ import { toast } from 'react-hot-toast';
 import { servicingApi } from 'src/api/servicing';
 import { useAuth } from 'src/hooks/use-auth';
 import { useCars } from 'src/hooks/cars/use-cars';
+import { useLastServicing } from 'src/hooks/servicing/use-last-servicing';
 import { useRouter } from 'src/hooks/use-router';
 import { paths } from 'src/paths';
+import { toLocalDate } from 'src/utils/local-date';
 import * as Yup from 'yup';
 
 interface CarServicingFormProps {
@@ -97,6 +99,26 @@ export const CarServicingForm: FC<CarServicingFormProps> = (props) => {
 
   const selectedCar = cars.find((c) => c.CarId === formik.values.CarId) ?? null;
 
+  // Read-only reference: when (and at what mileage) this car was last serviced,
+  // excluding the record being edited.
+  const { lastServicing, isLoading: isLastServicingLoading } = useLastServicing(
+    formik.values.CarId,
+    selectedCar?.CarNumber,
+    servicingId
+  );
+
+  const lastServicedText = !selectedCar
+    ? ''
+    : isLastServicingLoading
+      ? 'Loading...'
+      : lastServicing?.DateServiced
+        ? `${format(toLocalDate(lastServicing.DateServiced), 'dd/MM/yyyy')}${
+            lastServicing.MileageServiced
+              ? ` - ${lastServicing.MileageServiced.toLocaleString()} km`
+              : ''
+          }`
+        : 'No completed servicing recorded';
+
   const nextServicingMileage = useMemo(() => {
     const mileage = Number(formik.values.MileageServiced);
     const frequency = Number(formik.values.ServicingFrequency);
@@ -168,6 +190,14 @@ export const CarServicingForm: FC<CarServicingFormProps> = (props) => {
                     }
                     InputProps={{ readOnly: true }}
                     helperText="The car's odometer reading right now - not this servicing record's own mileage (see below)"
+                  />
+
+                  <TextField
+                    fullWidth
+                    label="Last Serviced - reference only"
+                    value={lastServicedText}
+                    InputProps={{ readOnly: true }}
+                    helperText="Date and mileage of the car's most recent completed servicing (this record excluded)"
                   />
                 </Stack>
               </Grid>
