@@ -105,11 +105,6 @@ const Page = () => {
     if (error) toast.error(error);
   }, [error]);
 
-  const canEditRow = useCallback(
-    (expense: Expense) => canEdit && (isAdmin || expense.CreatedByUserId === user?.userId),
-    [canEdit, isAdmin, user?.userId]
-  );
-
   const handleDelete = useCallback(async () => {
     if (!deleteDialog.data) return;
 
@@ -211,7 +206,7 @@ const Page = () => {
             >
               View
             </Button>
-            {canEditRow(row) && (
+            {canEdit && (
               <Button
                 component={RouterLink}
                 href={replaceIdPath(paths.expenses.edit, ':expenseId', row.ExpenseId)}
@@ -234,7 +229,7 @@ const Page = () => {
       }
     ],
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [canEditRow, isAdmin]
+    [canEdit, isAdmin]
   );
 
   const hasFilters = Boolean(search || supplier || fromDate || toDate);
@@ -261,9 +256,7 @@ const Page = () => {
                   color="text.secondary"
                   variant="body2"
                 >
-                  {isAdmin
-                    ? 'All company expenses recorded by users, with supplier invoices.'
-                    : 'Expenses you have recorded.'}
+                  All company expenses recorded by users, with supplier invoices.
                 </Typography>
               </Stack>
               <Stack

@@ -9,6 +9,7 @@ import type {
   SettlementReportRow,
   SimCardReportRow
 } from '@libs/types';
+import axios, { isAxiosError } from 'axios';
 import { bookings as bookingsData } from 'src/mock/booking';
 import { api } from 'src/services/api.service';
 import { applyPagination } from 'src/utils/apply-pagination';
@@ -258,6 +259,21 @@ class ReportApi implements IReportApi {
     }
 
     return Array.isArray(data) ? data.filter((item) => item != null) : [];
+  }
+
+  public async downloadSettlementReportExcel(date: string): Promise<Blob> {
+    try {
+      const response = await axios.get(
+        `${import.meta.env.VITE_API_BASE_URL}${API_ENDPOINTS.REPORTS}/settlement/export?date=${encodeURIComponent(date)}`,
+        { responseType: 'blob' }
+      );
+      return response.data as Blob;
+    } catch (error) {
+      // A failed blob request carries its JSON error body inside a Blob.
+      const data = isAxiosError(error) ? error.response?.data : undefined;
+      const body = data instanceof Blob ? await data.text().then(JSON.parse).catch(() => null) : null;
+      throw new Error(body?.message || 'Failed to download the settlement report');
+    }
   }
 
   public async getSimCardReport(request: GetSimCardReportRequest): GetSimCardReportResponse {

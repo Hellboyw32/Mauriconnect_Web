@@ -60,7 +60,8 @@ export default (app: Router) => {
 
   // GET /reports/settlement?date=yyyy-MM-dd - settlement sheet for the bookings
   // picked up on that day (client, car, drop-off, amount, pay mode, agent, remarks).
-  route.get('/settlement', requireReportAccess('Settlement'), (req: Request, res: Response) => {
+  // The validated ?date= for the settlement routes, or null once an error response is sent.
+  const parseSettlementDate = (req: Request, res: Response): string | null => {
     const date = req.query.date as string | undefined;
 
     if (!date || !/^\d{4}-\d{2}-\d{2}$/.test(date) || Number.isNaN(new Date(date).getTime())) {
@@ -69,14 +70,21 @@ export default (app: Router) => {
         message: 'date is required (yyyy-MM-dd)',
         success: false
       });
-      return;
+      return null;
     }
 
     const dateError = validateReportDateRange(req, [new Date(date)]);
     if (dateError) {
       res.status(403).json({ status: 403, message: dateError, success: false });
-      return;
+      return null;
     }
+
+    return date;
+  };
+
+  route.get('/settlement', requireReportAccess('Settlement'), (req: Request, res: Response) => {
+    const date = parseSettlementDate(req, res);
+    if (!date) return;
 
     Container.get(ReportService)
       .getSettlementReport(date)
@@ -86,6 +94,29 @@ export default (app: Router) => {
       .catch((error) => {
         res.status(500).send(error);
       });
+  });
+
+  // GET /reports/settlement/export?date=yyyy-MM-dd - the settlement report as an .xlsx file
+  route.get('/settlement/export', requireReportAccess('Settlement'), async (req: Request, res: Response) => {
+    const date = parseSettlementDate(req, res);
+    if (!date) return;
+
+    try {
+      const service = Container.get(ReportService);
+      const result = await service.getSettlementReport(date);
+
+      if (!result.success) {
+        res.status(500).send(result);
+        return;
+      }
+
+      const buffer = await service.buildSettlementWorkbook(result.data);
+      res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+      res.setHeader('Content-Disposition', `attachment; filename="Settlement_Report_${date}.xlsx"`);
+      res.send(buffer);
+    } catch (error) {
+      res.status(500).send({ status: 500, message: 'Failed to export the settlement report', success: false });
+    }
   });
 
   route.get('/simcard', requireReportAccess('SimCard'), (req: Request, res: Response) => {

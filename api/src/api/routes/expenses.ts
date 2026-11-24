@@ -46,10 +46,9 @@ const handleUpload = (req: Request, res: Response, next: NextFunction) => {
   });
 };
 
-const isAdmin = (req: Request) => req.user?.userType === 'Admin';
-
-// Admins see every expense; everyone else only the ones they created.
-const scopeOf = (req: Request): ExpenseScope => ({ userId: isAdmin(req) ? null : req.user.userId });
+// Every user with Expenses View sees (and, with Edit, edits) every expense;
+// delete and reports stay Admin-only via requireRole.
+const ALL_EXPENSES: ExpenseScope = { userId: null };
 
 const actorOf = (req: Request) => ({ userId: req.user.userId, username: req.user.username });
 
@@ -209,7 +208,7 @@ route.get('/reports/export', requireRole('Admin'), async (req: Request, res: Res
 // GET /expenses/suppliers - distinct supplier names for the filter dropdown
 route.get('/suppliers', requirePermission('Expenses', 'View'), async (req: Request, res: Response) => {
   try {
-    const result = await Container.get(ExpenseService).getSuppliers(scopeOf(req));
+    const result = await Container.get(ExpenseService).getSuppliers(ALL_EXPENSES);
     res.status(200).send(result);
   } catch (error) {
     fail(res, error, 'Failed to fetch suppliers');
@@ -262,7 +261,7 @@ route.get('/', requirePermission('Expenses', 'View'), async (req: Request, res: 
         pageSize: Math.min(Math.max(Number(req.query.pageSize) || 25, 1), 500),
         sortDir: req.query.sortDir === 'asc' ? 'asc' : 'desc'
       },
-      scopeOf(req)
+      ALL_EXPENSES
     );
     res.status(result.success ? 200 : 500).send(result);
   } catch (error) {
@@ -305,7 +304,7 @@ route.get('/:id', requirePermission('Expenses', 'View'), async (req: Request, re
       return res.status(400).send({ success: false, message: 'Invalid expense ID' });
     }
 
-    const result = await Container.get(ExpenseService).getExpense(expenseId, scopeOf(req));
+    const result = await Container.get(ExpenseService).getExpense(expenseId, ALL_EXPENSES);
 
     if (result.success && !result.data) {
       return res.status(404).send({ success: false, message: 'Expense not found' });
@@ -336,7 +335,7 @@ route.put('/:id', requirePermission('Expenses', 'Edit'), async (req: Request, re
       expenseId,
       values,
       actorOf(req),
-      scopeOf(req)
+      ALL_EXPENSES
     );
 
     if (result.success) {
@@ -383,7 +382,7 @@ const loadVisibleExpense = async (req: Request, res: Response) => {
     return null;
   }
 
-  const result = await Container.get(ExpenseService).getExpense(expenseId, scopeOf(req));
+  const result = await Container.get(ExpenseService).getExpense(expenseId, ALL_EXPENSES);
 
   if (!result.success || !result.data) {
     res.status(404).send({ success: false, message: 'Expense not found' });
