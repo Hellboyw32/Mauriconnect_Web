@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 200" role="img" aria-label="Economy hatchback">
+  <defs>
+    <linearGradient id="body" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#0b4f8a"/><stop offset="1" stop-color="#0a2d4f"/></linearGradient>
+    <linearGradient id="glass" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#d9ecfb"/><stop offset="1" stop-color="#8fb6d6"/></linearGradient>
+  </defs>
+  <ellipse cx="200" cy="172" rx="170" ry="9" fill="#14212e" opacity=".12"/>
+  <path d="M60 150 C44 150 34 142 34 128 L38 108 C40 96 48 90 60 88 L120 82 L160 48 C168 42 176 38 188 38 L262 38 C280 38 292 46 302 58 L326 86 L350 92 C362 96 368 104 368 118 L368 140 C368 147 362 150 354 150 Z" fill="url(#body)"/>
+  <path d="M168 54 C172 50 177 48 184 48 L230 48 L230 84 L134 84 Z M240 48 L262 48 C274 48 282 53 290 62 L308 84 L240 84 Z" fill="url(#glass)"/>
+  <rect x="40" y="128" width="320" height="4" rx="2" fill="#ffffff" opacity=".18"/>
+  <g><circle cx="108" cy="150" r="24" fill="#1b2430"/><circle cx="108" cy="150" r="12" fill="#c9d3dd"/><circle cx="108" cy="150" r="4" fill="#1b2430"/></g>
+  <g><circle cx="298" cy="150" r="24" fill="#1b2430"/><circle cx="298" cy="150" r="12" fill="#c9d3dd"/><circle cx="298" cy="150" r="4" fill="#1b2430"/></g>
+  <rect x="352" y="118" width="16" height="8" rx="3" fill="#ffd27a"/>
+  <rect x="30" y="116" width="12" height="8" rx="3" fill="#e2574c"/>
+</svg>

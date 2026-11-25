@@ -1,0 +1,59 @@
+{
+  "name": "@mauriconnect/backend",
+  "version": "1.0.0",
+  "description": "MauriConnect car rental booking API",
+  "scripts": {
+    "dev": "tsx watch src/server.ts",
+    "build": "tsc -p tsconfig.build.json",
+    "start": "node dist/server.js",
+    "typecheck": "tsc --noEmit",
+    "db:migrate": "tsx src/database/migrate.ts",
+    "db:seed": "tsx src/database/migrate.ts --seed",
+    "db:seed:dev": "tsx src/database/migrate.ts --seed --dev-fleet --sample-reviews",
+    "test": "vitest run",
+    "test:unit": "vitest run tests/unit",
+    "test:integration": "vitest run tests/integration"
+  },
+  "license": "UNLICENSED",
+  "dependencies": {
+    "cors": "^2.8.5",
+    "date-fns": "^4.1.0",
+    "date-fns-tz": "^3.2.0",
+    "dotenv": "^16.4.5",
+    "express": "^4.22.3",
+    "express-rate-limit": "^7.4.1",
+    "helmet": "^8.0.0",
+    "jsonwebtoken": "^9.0.2",
+    "libphonenumber-js": "^1.11.14",
+    "mssql": "^11.0.1",
+    "nodemailer": "^10.3.1",
+    "pdfkit": "^0.15.1",
+    "pino": "^9.5.0",
+    "pino-http": "^10.3.0",
+    "qrcode": "^1.5.4",
+    "zod": "^4.6.7"
+  },
+  "devDependencies": {
+    "@types/cors": "^2.8.17",
+    "@types/express": "^4.17.21",
+    "@types/jsonwebtoken": "^9.0.7",
+    "@types/mssql": "^9.1.5",
+    "@types/node": "^22.9.0",
+    "@types/nodemailer": "^6.4.16",
+    "@types/pdfkit": "^0.13.5",
+    "@types/qrcode": "^1.5.5",
+    "@types/supertest": "^6.0.2",
+    "pino-pretty": "^13.0.0",
+    "supertest": "^7.0.0",
+    "tsx": "4.23.15",
+    "typescript": "^5.6.3",
+    "vitest": "4.1.12"
+  },
+  "optionalDependencies": {
+    "msnodesqlv8": "^4.5.0"
+  },
+  "private": true,
+  "engines": {
+    "node": ">=20.11"
+  }
+}
